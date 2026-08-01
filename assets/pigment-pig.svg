@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 360" role="img" aria-labelledby="pig-title pig-desc" shape-rendering="crispEdges">
+  <title id="pig-title">Pigment pixel pig mascot</title>
+  <desc id="pig-desc">A goofy pink pixel pig with uneven eyes and a paint-stained snout, framed by orange, blue, green, and yellow swatches on a dark brutalist background.</desc>
+
+  <rect width="960" height="360" fill="#0b0b0f"/>
+  <path fill="#17171d" d="M24 24h912v312H24z"/>
+  <path fill="#050507" d="M24 24h912v12H24zM24 324h912v12H24zM24 24h12v312H24zM924 24h12v312h-12z"/>
+
+  <!-- hard-edged color rails -->
+  <path fill="#ff641e" d="M52 52h132v24H52zM52 76h24v56H52z"/>
+  <path fill="#2788ff" d="M776 52h132v24H776zM884 76h24v56h-24z"/>
+  <path fill="#35d06f" d="M52 284h132v24H52zM52 228h24v56H52z"/>
+  <path fill="#ffd52a" d="M776 284h132v24H776zM884 228h24v56h-24z"/>
+
+  <!-- stray pigment chips -->
+  <path fill="#ff641e" d="M132 112h28v28h-28zM790 224h20v20h-20z"/>
+  <path fill="#2788ff" d="M104 202h20v20h-20zM820 120h32v32h-32z"/>
+  <path fill="#35d06f" d="M162 238h32v20h-32zM756 166h20v28h-20z"/>
+  <path fill="#ffd52a" d="M202 80h20v32h-20zM842 190h28v20h-28z"/>
+
+  <!-- block shadow -->
+  <path fill="#050507" d="M304 92h72V68h72v24h112V68h72v24h24v48h48v144h-48v24H304v-24h-48V140h48z"/>
+
+  <!-- ears, head, and cheeks -->
+  <path fill="#ec5f89" d="M304 80h72v36h-72zM560 80h72v36h-72z"/>
+  <path fill="#ff82a4" d="M280 116h376v168H280zM256 152h48v96h-48zM632 152h48v96h-48z"/>
+  <path fill="#be3f69" d="M304 92h48v24h-48zM584 92h48v24h-48zM280 248h48v36h-48zM608 248h48v36h-48z"/>
+
+  <!-- brows and mismatched eyes -->
+  <path fill="#1a1118" d="M340 140h80v16h-80zM528 132h68v16h-68z"/>
+  <path fill="#fff3d8" d="M356 156h56v56h-56zM536 148h52v64h-52z"/>
+  <path fill="#111117" d="M380 172h32v40h-32zM536 164h32v36h-32z"/>
+  <path fill="#2788ff" d="M380 172h16v16h-16z"/>
+  <path fill="#35d06f" d="M552 164h16v16h-16z"/>
+
+  <!-- crooked snout -->
+  <path fill="#07070a" d="M376 216h184v76H376z"/>
+  <path fill="#ff9ab4" d="M364 204h184v76H364z"/>
+  <path fill="#d94d78" d="M384 228h44v32h-44zM488 220h40v40h-40z"/>
+  <path fill="#ff641e" d="M384 228h16v16h-16z"/>
+  <path fill="#ffd52a" d="M512 220h16v16h-16z"/>
+
+  <!-- deadpan mouth and paint drip -->
+  <path fill="#54162f" d="M432 260h56v12h-56z"/>
+  <path fill="#2788ff" d="M548 240h16v44h-16zM564 268h16v28h-16z"/>
+
+  <!-- tiny brutalist labels -->
+  <g fill="#d8d8df">
+    <path d="M88 88h8v48h-8zM96 88h24v8H96zM96 108h16v8H96z"/>
+    <path d="M864 88h8v48h-8zM840 88h24v8h-24zM848 108h16v8h-16z"/>
+    <path d="M88 240h8v32h-8zM96 264h24v8H96z"/>
+    <path d="M864 240h8v32h-8zM840 264h24v8h-24z"/>
+  </g>
+</svg>

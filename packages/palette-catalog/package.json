@@ -1,0 +1,30 @@
+{
+  "name": "@pigment/palette-catalog",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./server": "./src/server.ts",
+    "./server/config": "./src/config.ts"
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "check-types": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@pigment/color": "workspace:*",
+    "pg": "^8.22.0",
+    "server-only": "^0.0.1",
+    "sharp": "^0.35.3"
+  },
+  "devDependencies": {
+    "@pigment/eslint-config": "workspace:*",
+    "@types/node": "^20",
+    "@types/pg": "^8.20.0",
+    "eslint": "^9",
+    "typescript": "^5",
+    "vitest": "^4.1.10"
+  }
+}

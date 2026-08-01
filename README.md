@@ -1,159 +1,70 @@
-# Turborepo starter
+# Pigment
 
-This Turborepo starter is maintained by the Turborepo core team.
+![A goofy pixel pig surrounded by Pigment color swatches](assets/pigment-pig.svg)
 
-## Using this example
+Pigment is a pixel-art color workshop. One Next.js app, `@pigment/web`, serves the interactive studio at `/studio`, hands-on color lessons at `/learn`, and the searchable palette catalog at `/palettes`.
 
-Run the following command:
+Image decoding, sampling, quantization, and rendering happen locally in the browser: uploaded images are not sent to a processing service. Studio palettes can be extracted from an image, edited and reordered, adjusted in perceptual color space, or loaded from the catalog. Palette edits immediately re-render the preview and remain local unless explicitly exported.
 
-```sh
-npx create-turbo@latest
+## Workspace
+
+- `apps/web` - `@pigment/web`, the unified Next.js application
+- `packages/color` - `@pigment/color`, color parsing, conversion, and adjustment
+- `packages/palette` - `@pigment/palette`, palette models and editing operations
+- `packages/quantization` - `@pigment/quantization`, browser-side image reduction and rendering
+- `packages/palette-catalog` - `@pigment/palette-catalog`, palette scanning, metadata, queries, and persistence
+- `packages/ui` - `@pigment/ui`, shared React components and styles
+
+## Development
+
+Requires Node.js 20.9 or newer and pnpm 9.
+
+```bash
+pnpm install
+pnpm dev
 ```
 
-## What's inside?
+Turbo runs workspace tasks from the repository root:
 
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
+```bash
+pnpm build
+pnpm lint
+pnpm check-types
+pnpm test
+pnpm test:integration
+pnpm format
 ```
 
-Without global `turbo`, use your package manager:
+Run a task only for the web app with `pnpm turbo run <task> --filter=@pigment/web`.
 
-```sh
-cd my-turborepo
-npx turbo build
-pnpm dlx turbo build
-pnpm exec turbo build
+## Configuration
+
+Create `apps/web/.env.local` as needed. Never commit secret values.
+
+| Variable | Purpose |
+| --- | --- |
+| `DATABASE_URL` | PostgreSQL connection used by the palette catalog |
+| `PALETTE_DIRECTORY` | Portable repository-relative directory containing palette PNGs |
+| `PALETTE_API_KEY` | Bearer token for protected palette API access |
+| `PALETTE_API_ALLOWED_ORIGINS` | Optional comma-separated CORS origin allowlist |
+
+The catalog creates its tables on first connection. `PALETTE_DIRECTORY` defaults to `palettes` and cannot point outside the project.
+
+## Palettes
+
+Scan palette files during local development or synchronize the catalog using the build-safe workflow:
+
+```bash
+pnpm --filter @pigment/web palettes:scan
+pnpm turbo run palettes:sync --filter=@pigment/web
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+The scanner reads palette-strip PNGs and metadata, validates a maximum of 64 colors, and reconciles catalog records. Production synchronization is intended for the Vercel Git build and uses Vercel's commit environment to choose an incremental or full scan.
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+## Testing
 
-```sh
-turbo build --filter=docs
-```
+`pnpm test` runs the database-independent Vitest suites through Turbo. Set `DATABASE_URL` and run `pnpm test:integration` for the PostgreSQL migration and scanner suite. Use `pnpm --filter @pigment/web test` for the app or `pnpm --filter @pigment/color test` (and the equivalent package name) for one library.
 
-Without global `turbo`:
+## Deploying
 
-```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo dev
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo dev --filter=web
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+Create a Vercel project from this repository and set **Root Directory** to `apps/web`. Enable Vercel system environment variables, configure the required variables above for each environment, and use the standard build command.

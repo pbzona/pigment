@@ -1,0 +1,382 @@
+openapi: 3.1.0
+info:
+  title: Palette Town API
+  version: 1.0.0
+  description: Read-only palette discovery API.
+servers:
+  - url: /
+security:
+  - bearerAuth: []
+paths:
+  /api/v1/palettes:
+    get:
+      operationId: listPalettes
+      summary: List and search palettes
+      parameters:
+        - name: q
+          in: query
+          description: Case-insensitive name and tag search. Required for relevance sorting.
+          schema:
+            type: string
+            maxLength: 100
+        - name: tag
+          in: query
+          description: Exact lowercase tag filter. Repeat to require every supplied tag.
+          style: form
+          explode: true
+          schema:
+            type: array
+            maxItems: 10
+            uniqueItems: true
+            items:
+              type: string
+              maxLength: 40
+              pattern: '^[a-z0-9]+(?:[ _-][a-z0-9]+)*$'
+        - name: minColors
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 64
+        - name: maxColors
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 64
+        - name: hue
+          in: query
+          description: Target OKLCH hue in degrees. Matches any color in a palette.
+          schema:
+            type: number
+            minimum: 0
+            exclusiveMaximum: 360
+        - name: hueTolerance
+          in: query
+          description: Circular hue tolerance in degrees. Requires hue.
+          schema:
+            type: number
+            minimum: 0
+            maximum: 180
+            default: 15
+        - name: color
+          in: query
+          description: RGB or RGBA hex color. A leading hash must be URL encoded as %23.
+          schema:
+            type: string
+            pattern: '^#?([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$'
+        - name: colorTolerance
+          in: query
+          description: Maximum Delta OK on a 0-100 scale. Alpha must match exactly. Requires color.
+          schema:
+            type: number
+            minimum: 0
+            maximum: 25
+            default: 3
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [relevance, popularity, recency, name]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100000
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 24
+      responses:
+        '200':
+          description: A page of palettes.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaletteListResponse'
+        '304':
+          $ref: '#/components/responses/NotModified'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /api/v1/palettes/{id}:
+    get:
+      operationId: getPalette
+      summary: Fetch one complete palette
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 100
+            pattern: '^[a-zA-Z0-9][a-zA-Z0-9_-]+$'
+      responses:
+        '200':
+          description: A complete palette.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Palette'
+        '304':
+          $ref: '#/components/responses/NotModified'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /api/v1/tags:
+    get:
+      operationId: listTags
+      summary: List palette tags
+      responses:
+        '200':
+          description: Tags ordered by palette count and name.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Tag'
+        '304':
+          $ref: '#/components/responses/NotModified'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API key
+  headers:
+    ETag:
+      description: Validator for conditional requests.
+      schema:
+        type: string
+    RetryAfter:
+      description: Seconds or an HTTP date indicating when the request may be retried.
+      schema:
+        type: string
+  responses:
+    NotModified:
+      description: The supplied If-None-Match validator is current.
+      headers:
+        ETag:
+          $ref: '#/components/headers/ETag'
+    InvalidRequest:
+      description: One or more query parameters are invalid.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Unauthorized:
+      description: The bearer token is missing or invalid.
+      headers:
+        WWW-Authenticate:
+          schema:
+            type: string
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    NotFound:
+      description: The requested palette does not exist.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    RateLimited:
+      description: A deployment-level rate limit was exceeded.
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    InternalError:
+      description: The request failed unexpectedly.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Unavailable:
+      description: API key authentication is not configured.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+  schemas:
+    Palette:
+      type: object
+      required:
+        - id
+        - name
+        - colors
+        - colorCount
+        - tags
+        - popularity
+        - author
+        - attribution
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        colors:
+          type: array
+          minItems: 1
+          maxItems: 64
+          uniqueItems: true
+          items:
+            type: string
+            pattern: '^#[0-9a-f]{6}([0-9a-f]{2})?$'
+        colorCount:
+          type: integer
+          minimum: 1
+          maximum: 64
+        tags:
+          type: array
+          items:
+            type: string
+        popularity:
+          type: integer
+          minimum: 0
+        author:
+          oneOf:
+            - $ref: '#/components/schemas/Author'
+            - type: 'null'
+        attribution:
+          oneOf:
+            - $ref: '#/components/schemas/Attribution'
+            - type: 'null'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    Author:
+      type: object
+      required: [name, url]
+      properties:
+        name:
+          type: string
+        url:
+          type: [string, 'null']
+          format: uri
+    Attribution:
+      type: object
+      required: [text, url, license]
+      properties:
+        text:
+          type: [string, 'null']
+        url:
+          type: [string, 'null']
+          format: uri
+        license:
+          type: [string, 'null']
+    Pagination:
+      type: object
+      required: [page, pageSize, totalItems, totalPages]
+      properties:
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        totalItems:
+          type: integer
+        totalPages:
+          type: integer
+    PaletteListResponse:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Palette'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    Tag:
+      type: object
+      required: [name, paletteCount]
+      properties:
+        name:
+          type: string
+        paletteCount:
+          type: integer
+          minimum: 1
+    FieldError:
+      type: object
+      required: [field, code, message]
+      properties:
+        field:
+          type: string
+        code:
+          type: string
+        message:
+          type: string
+    Problem:
+      type: object
+      required: [type, title, status, detail, instance, code]
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        code:
+          type: string
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldError'

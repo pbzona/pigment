@@ -1,0 +1,133 @@
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-blue: var(--accent-blue);
+  --color-green: var(--accent-green);
+  --color-yellow: var(--accent-yellow);
+  --font-sans: var(--font-pigment-sans, ui-sans-serif, system-ui, sans-serif);
+  --font-heading: var(--font-pigment-heading, var(--font-sans));
+  --font-mono: var(--font-pigment-mono, ui-monospace, monospace);
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+}
+
+:root,
+.dark,
+[data-pigment-theme="dark"] {
+  color-scheme: dark;
+  --background: #11100f;
+  --foreground: #f5f2e8;
+  --card: #181715;
+  --card-foreground: #f5f2e8;
+  --popover: #1d1b18;
+  --popover-foreground: #f5f2e8;
+  --primary: #f06a32;
+  --primary-foreground: #17100c;
+  --secondary: #292622;
+  --secondary-foreground: #f5f2e8;
+  --muted: #25221f;
+  --muted-foreground: #aaa49a;
+  --accent: #4d7cff;
+  --accent-foreground: #fff;
+  --destructive: #ee4540;
+  --destructive-foreground: #fff;
+  --border: #f5f2e8;
+  --input: #5e5a53;
+  --ring: #4d7cff;
+  --shadow: #050505;
+  --accent-blue: #4d7cff;
+  --accent-green: #3ebd78;
+  --accent-yellow: #f2cf45;
+  --grid-line: rgb(245 242 232 / 0.055);
+  --radius: 0;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+  html {
+    min-width: 320px;
+    background: var(--background);
+  }
+  body {
+    min-height: 100vh;
+    margin: 0;
+    color: var(--foreground);
+    background-color: var(--background);
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 24px 24px;
+    font-family: var(--font-pigment-sans, ui-sans-serif, system-ui, sans-serif);
+    text-rendering: optimizeLegibility;
+  }
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+  :focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 3px;
+  }
+  ::selection {
+    color: #fff;
+    background: var(--accent-blue);
+  }
+}
+
+@layer components {
+  .pigment-panel {
+    border: 2px solid var(--border);
+    color: var(--card-foreground);
+    background: var(--card);
+    box-shadow: 6px 6px 0 var(--shadow);
+  }
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"],
+  [data-slot="popover-content"],
+  [data-slot="select-content"],
+  [data-slot="dropdown-menu-content"],
+  [data-slot="sheet-content"] {
+    border: 2px solid var(--border);
+    box-shadow: 6px 6px 0 var(--shadow);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

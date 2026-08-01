@@ -26,6 +26,8 @@ coverage
 out/
 build
 dist
+next-env.d.ts
+*.tsbuildinfo
 
 
 # Debug
@@ -36,3 +38,4 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+data/*.sqlite*
