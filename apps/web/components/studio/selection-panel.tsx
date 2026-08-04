@@ -164,14 +164,14 @@ export function SelectionPanel({
       </section>
 
       <section>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           <Button variant="outline" size="xs" onClick={onSelectAll}>
             <Grid2X2Check data-icon="inline-start" /> All
           </Button>
           <Button variant="outline" size="xs" onClick={onInvert}>
             <Ungroup data-icon="inline-start" /> Invert
           </Button>
-          <Button variant="outline" size="xs" disabled={selectedCount === null} onClick={onDeselect}>
+          <Button variant="outline" size="xs" className="col-span-2" disabled={selectedCount === null} onClick={onDeselect}>
             Deselect
           </Button>
         </div>
@@ -194,7 +194,7 @@ export function SelectionPanel({
             ))}
           </SelectContent>
         </Select>
-        <div className="mt-3 grid grid-cols-2 gap-2">
+        <div className="mt-3 grid gap-2">
           <Button disabled={!hasSelection || processing} onClick={onApplyMethod}>
             Apply method
           </Button>

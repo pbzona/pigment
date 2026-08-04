@@ -70,6 +70,14 @@ type PixelCanvasProps = Readonly<{
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 40;
 
+export const increaseCanvasZoom = (zoom: number) => {
+  if (zoom < 2) {
+    const nextZoom = Number((zoom + 0.25).toFixed(2));
+    return nextZoom >= 2 ? 2 : nextZoom;
+  }
+  return Math.min(MAX_ZOOM, zoom + 2);
+};
+
 type Cell = Readonly<{ x: number; y: number }>;
 
 type PaintGesture = {
@@ -602,7 +610,7 @@ export function PixelCanvas({
         <span className="w-11 text-center font-mono text-[10px] tabular-nums">{Number(zoom.toFixed(2))}×</span>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon-sm" onClick={() => setZoom((value) => Math.min(MAX_ZOOM, value + (value < 2 ? 0.25 : 2)))}>
+            <Button variant="ghost" size="icon-sm" onClick={() => setZoom(increaseCanvasZoom)}>
               <Plus />
               <span className="sr-only">Zoom in</span>
             </Button>
@@ -881,7 +889,7 @@ export function PixelCanvas({
             {showGrid && zoom >= 8 ? (
               <span
                 className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,.14)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,.14)_1px,transparent_1px)]"
-                style={{ backgroundSize: `${zoom}px ${zoom}px` }}
+                style={{ backgroundPosition: "-0.5px 0, 0 -0.5px", backgroundSize: `${zoom}px ${zoom}px` }}
                 aria-hidden="true"
               />
             ) : null}

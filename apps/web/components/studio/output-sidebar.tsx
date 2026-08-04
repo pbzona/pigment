@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { useId, useState } from "react";
 import {
   CircleSlash2,
   Eye,
@@ -36,6 +36,7 @@ type OutputSidebarProps = Readonly<{
   paletteAdjustments: PaletteAdjustmentsValue;
   excludedColorIds: ReadonlySet<number>;
   isolatedColorIds: ReadonlySet<number>;
+  selectedSwatchId: number | null;
   processing: boolean;
   onGridChange: (axis: "width" | "height", value: number) => void;
   onGridScale: (factor: 0.5 | 2) => void;
@@ -45,6 +46,7 @@ type OutputSidebarProps = Readonly<{
   onToggleExcludedColor: (colorId: number) => void;
   onToggleIsolatedColor: (colorId: number) => void;
   onClearIsolation: () => void;
+  onSelectedSwatchChange: (colorId: number | null) => void;
   onPaletteAdjustmentsChange: (adjustments: PaletteAdjustmentsValue) => void;
   onRerun: () => void;
 }>;
@@ -58,6 +60,7 @@ export function OutputSidebar({
   paletteAdjustments,
   excludedColorIds,
   isolatedColorIds,
+  selectedSwatchId,
   processing,
   onGridChange,
   onGridScale,
@@ -67,18 +70,34 @@ export function OutputSidebar({
   onToggleExcludedColor,
   onToggleIsolatedColor,
   onClearIsolation,
+  onSelectedSwatchChange,
   onPaletteAdjustmentsChange,
   onRerun,
 }: OutputSidebarProps) {
-  const [selectedSwatch, setSelectedSwatch] = useState<number | null>(null);
   const [editColor, setEditColor] = useState("#ef6a47");
   const [error, setError] = useState<string | null>(null);
-  const selectedColor = palette.colors.find((swatch) => swatch.id === selectedSwatch);
+  const insertionDescriptionId = useId();
+  const selectedIndex =
+    selectedSwatchId === null
+      ? -1
+      : palette.colors.findIndex((swatch) => swatch.id === selectedSwatchId);
+  const selectedColor =
+    selectedIndex >= 0 ? palette.colors[selectedIndex] : undefined;
+  const nextSelectedColor =
+    selectedIndex >= 0 ? palette.colors[selectedIndex + 1] : undefined;
+  const selectedMidpoint =
+    selectedColor && nextSelectedColor
+      ? midpointColor(selectedColor.hex, nextSelectedColor.hex)
+      : null;
+  const selectedInsertion =
+    selectedColor && nextSelectedColor
+      ? insertMidpointSwatch(palette, selectedColor.id, nextSelectedColor.id)
+      : null;
   const matchingColorCount = palette.colors.length - excludedColorIds.size;
 
   const updateColor = () => {
-    if (selectedSwatch === null) return;
-    const result = replaceSwatch(palette, selectedSwatch, editColor);
+    if (selectedSwatchId === null) return;
+    const result = replaceSwatch(palette, selectedSwatchId, editColor);
     if (!result.ok) {
       setError(result.error);
       return;
@@ -88,8 +107,8 @@ export function OutputSidebar({
   };
 
   return (
-    <ScrollArea className="min-h-0 flex-1 [&_[data-slot=scroll-area-viewport]>div]:!block [&_[data-slot=scroll-area-viewport]>div]:!w-full">
-      <div className="divide-y divide-border">
+    <ScrollArea className="min-h-0 min-w-0 flex-1">
+      <div className="min-w-0 divide-y divide-border">
         <section className="px-4 py-5">
           <div className="mb-3 flex items-center justify-between gap-3">
             <Label>Cell grid</Label>
@@ -114,8 +133,8 @@ export function OutputSidebar({
               </Button>
             </div>
           </div>
-          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-            <label>
+          <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+            <label className="min-w-0">
               <span className="sr-only">Grid width</span>
               <Input
                 key={`${inputVersion}-output-width-${gridWidth}`}
@@ -140,7 +159,7 @@ export function OutputSidebar({
                 {aspectLocked ? "Unlock aspect ratio" : "Preserve aspect ratio"}
               </span>
             </Button>
-            <label>
+            <label className="min-w-0">
               <span className="sr-only">Grid height</span>
               <Input
                 key={`${inputVersion}-output-height-${gridHeight}`}
@@ -156,9 +175,9 @@ export function OutputSidebar({
               />
             </label>
           </div>
-          <div className="mt-1 grid grid-cols-[1fr_auto_1fr] gap-2 text-center font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+          <div className="mt-1 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] gap-2 text-center font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
             <span>width</span>
-            <span className="w-7" />
+            <span className="w-8" />
             <span>height</span>
           </div>
         </section>
@@ -174,94 +193,56 @@ export function OutputSidebar({
             <Button variant="outline" size="sm" onClick={onOpenPalette}>Manage</Button>
           </div>
 
-          <div className="mt-4 overflow-x-auto border bg-muted/20 p-2">
-            <div className="flex w-max min-w-full items-center justify-center py-1">
+          <div className="mt-4 border bg-muted/20 p-2">
+            <div
+              className="flex flex-wrap justify-center gap-1 py-1"
+              role="group"
+              aria-label="Palette colors"
+            >
               {palette.colors.map((swatch, index) => {
-                const nextSwatch = palette.colors[index + 1];
-                const midpoint = nextSwatch
-                  ? midpointColor(swatch.hex, nextSwatch.hex)
-                  : null;
-                const insertion = nextSwatch
-                  ? insertMidpointSwatch(palette, swatch.id, nextSwatch.id)
-                  : null;
                 const excluded = excludedColorIds.has(swatch.id);
                 const isolated = isolatedColorIds.has(swatch.id);
 
                 return (
-                  <Fragment key={swatch.id}>
-                    <button
-                      type="button"
-                      className={cn(
-                        "relative size-8 shrink-0 border border-white/15 outline-offset-2 transition-transform hover:-translate-y-0.5 focus-visible:z-20 focus-visible:outline-2 focus-visible:outline-ring",
-                        excluded && "opacity-40 grayscale",
-                        isolated && "ring-2 ring-[#ef6a47] ring-offset-2 ring-offset-background",
-                        selectedSwatch === swatch.id && "z-10 outline-2 outline-foreground",
-                      )}
-                      style={{ backgroundColor: swatch.hex }}
-                      aria-label={`Edit ${swatch.hex}${excluded ? ", excluded from matching" : ""}${isolated ? ", isolated in previews" : ""}`}
-                      aria-pressed={selectedSwatch === swatch.id}
-                      onClick={() => {
-                        setSelectedSwatch(swatch.id);
-                        setEditColor(swatch.hex.slice(0, 7));
-                        setError(null);
-                      }}
-                    >
-                      {excluded ? (
-                        <CircleSlash2
-                          className="absolute inset-0 m-auto size-4 text-white drop-shadow-[0_1px_2px_rgb(0_0_0)]"
-                          aria-hidden="true"
-                        />
-                      ) : null}
-                      {isolated ? (
-                        <Eye
-                          className="absolute -top-1.5 -right-1.5 size-3.5 bg-background p-0.5 text-[#ef6a47]"
-                          aria-hidden="true"
-                        />
-                      ) : null}
-                    </button>
-                    {nextSwatch ? (
-                      <button
-                        type="button"
-                        className="group relative z-20 -mx-2 grid h-8 w-4 shrink-0 cursor-copy place-items-center outline-none disabled:cursor-not-allowed disabled:opacity-35"
-                        disabled={!insertion?.ok}
-                        title={
-                          insertion?.ok
-                            ? `Insert ${midpoint?.ok ? midpoint.value : "midpoint"}`
-                            : insertion?.error
-                        }
-                        aria-label={`Insert midpoint between ${swatch.hex} and ${nextSwatch.hex}`}
-                        onClick={() => {
-                          if (!insertion?.ok) return;
-                          const newId = nextSwatchId(palette.colors);
-                          const newColor = insertion.value.colors.find(
-                            (color) => color.id === newId,
-                          );
-                          onPaletteChange(insertion.value);
-                          setSelectedSwatch(newId);
-                          if (newColor) setEditColor(newColor.hex.slice(0, 7));
-                          setError(null);
-                        }}
-                      >
-                        <span className="absolute h-5 w-px bg-white/35 transition-opacity group-hover:opacity-0 group-focus-visible:opacity-0" />
-                        <span
-                          className="grid size-5 scale-0 place-items-center border border-white/60 text-white opacity-0 shadow-[0_0_0_1px_rgba(0,0,0,.45),0_2px_8px_rgba(0,0,0,.6)] transition group-hover:scale-100 group-hover:opacity-100 group-focus-visible:scale-100 group-focus-visible:opacity-100"
-                          style={{
-                            backgroundColor: midpoint?.ok ? midpoint.value : "transparent",
-                          }}
-                        >
-                          <Plus className="size-3 drop-shadow-[0_1px_1px_rgba(0,0,0,.9)]" />
-                        </span>
-                      </button>
+                  <button
+                    key={swatch.id}
+                    type="button"
+                    className={cn(
+                      "relative size-9 shrink-0 touch-manipulation border border-white/15 outline-offset-2 transition-transform hover:-translate-y-0.5 focus-visible:z-20 focus-visible:outline-2 focus-visible:outline-ring",
+                      excluded && "opacity-40 grayscale",
+                      isolated && "ring-2 ring-[#ef6a47] ring-offset-2 ring-offset-background",
+                      selectedSwatchId === swatch.id && "z-10 outline-2 outline-foreground",
+                    )}
+                    style={{ backgroundColor: swatch.hex }}
+                    aria-label={`Edit color ${index + 1} of ${palette.colors.length}, ${swatch.hex}${excluded ? ", excluded from matching" : ""}${isolated ? ", isolated in previews" : ""}`}
+                    aria-pressed={selectedSwatchId === swatch.id}
+                    onClick={() => {
+                      onSelectedSwatchChange(swatch.id);
+                      setEditColor(swatch.hex);
+                      setError(null);
+                    }}
+                  >
+                    {excluded ? (
+                      <CircleSlash2
+                        className="absolute inset-0 m-auto size-4 text-white drop-shadow-[0_1px_2px_rgb(0_0_0)]"
+                        aria-hidden="true"
+                      />
                     ) : null}
-                  </Fragment>
+                    {isolated ? (
+                      <Eye
+                        className="absolute -top-1.5 -right-1.5 size-3.5 bg-background p-0.5 text-[#ef6a47]"
+                        aria-hidden="true"
+                      />
+                    ) : null}
+                  </button>
                 );
               })}
             </div>
           </div>
 
-          {selectedSwatch !== null && selectedColor ? (
+          {selectedSwatchId !== null && selectedColor ? (
             <div className="mt-4 border bg-muted/25 p-3">
-              <div className="flex items-end gap-2">
+              <div className="grid grid-cols-[auto_minmax(0,1fr)] items-end gap-2">
                 <label>
                   <Label className="mb-2">Color</Label>
                   <input
@@ -271,7 +252,7 @@ export function OutputSidebar({
                     onChange={(event) => setEditColor(event.target.value)}
                   />
                 </label>
-                <label className="min-w-0 flex-1">
+                <label className="min-w-0">
                   <span className="sr-only">Hex or CSS color</span>
                   <Input
                     value={editColor}
@@ -281,25 +262,62 @@ export function OutputSidebar({
                     }}
                   />
                 </label>
-                <Button size="sm" onClick={updateColor}>Update</Button>
+              </div>
+              <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+                <Button size="sm" className="w-full" onClick={updateColor}>Update</Button>
                 <Button
                   variant="outline"
                   size="icon-sm"
                   className="text-destructive hover:text-destructive"
                   onClick={() => {
-                    const result = removeSwatch(palette, selectedSwatch);
+                    const result = removeSwatch(palette, selectedSwatchId);
                     if (!result.ok) {
                       setError(result.error);
                       return;
                     }
                     onPaletteChange(result.value);
-                    setSelectedSwatch(null);
+                    onSelectedSwatchChange(null);
                     setError(null);
                   }}
                 >
                   <Trash2 />
                   <span className="sr-only">Remove selected color</span>
                 </Button>
+              </div>
+              <div className="mt-3 border-t pt-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  disabled={!selectedInsertion?.ok}
+                  aria-describedby={insertionDescriptionId}
+                  onClick={() => {
+                    if (!selectedInsertion?.ok) return;
+                    const newId = nextSwatchId(palette.colors);
+                    const newColor = selectedInsertion.value.colors.find(
+                      (color) => color.id === newId,
+                    );
+                    onPaletteChange(selectedInsertion.value);
+                    onSelectedSwatchChange(newId);
+                    if (newColor) setEditColor(newColor.hex);
+                    setError(null);
+                  }}
+                >
+                  <Plus data-icon="inline-start" />
+                  Insert midpoint
+                </Button>
+                <p
+                  id={insertionDescriptionId}
+                  className="mt-2 text-[10px] leading-4 text-muted-foreground"
+                >
+                  {selectedInsertion?.ok &&
+                  selectedMidpoint?.ok &&
+                  nextSelectedColor
+                    ? `Add ${selectedMidpoint.value} between this color and ${nextSelectedColor.hex}.`
+                    : selectedInsertion && !selectedInsertion.ok
+                      ? selectedInsertion.error
+                      : "The last color has no following midpoint."}
+                </p>
               </div>
               <div className="mt-3 grid grid-cols-2 gap-2 border-t pt-3">
                 <Button
@@ -333,13 +351,13 @@ export function OutputSidebar({
             </div>
           ) : (
             <p className="mt-3 text-[10px] leading-4 text-muted-foreground">
-              Select a swatch to edit it. Hover or focus between colors to insert a midpoint.
+              Select a swatch to edit it or insert a midpoint.
             </p>
           )}
 
           {excludedColorIds.size > 0 || isolatedColorIds.size > 0 ? (
             <div
-              className="mt-3 flex items-center justify-between gap-3 border bg-muted/20 px-3 py-2"
+              className="mt-3 flex flex-wrap items-center justify-between gap-3 border bg-muted/20 px-3 py-2"
               aria-live="polite"
             >
               <p className="text-[10px] leading-4 text-muted-foreground">
@@ -359,7 +377,7 @@ export function OutputSidebar({
             </div>
           ) : null}
 
-          <div className="mt-4 flex gap-2 border-t pt-4">
+          <div className="mt-4 flex flex-wrap gap-2 border-t pt-4">
             <PaletteAdjustments value={paletteAdjustments} onChange={onPaletteAdjustmentsChange} />
             <Button variant="ghost" size="sm" disabled={processing} onClick={onRerun}>
               <RefreshCw data-icon="inline-start" />

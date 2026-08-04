@@ -33,12 +33,12 @@ export function Inspector({
     >
       <div className="border-b px-4 py-3">
         <TabsList className="w-full rounded-none">
-          <TabsTrigger value="convert" className="rounded-none">Convert</TabsTrigger>
-          <TabsTrigger value="select" className="rounded-none">Select</TabsTrigger>
-          <TabsTrigger value="paint" className="rounded-none">Paint</TabsTrigger>
+          <TabsTrigger value="convert" className="min-w-0 flex-1 rounded-none px-2">Convert</TabsTrigger>
+          <TabsTrigger value="select" className="min-w-0 flex-1 rounded-none px-2">Select</TabsTrigger>
+          <TabsTrigger value="paint" className="min-w-0 flex-1 rounded-none px-2">Paint</TabsTrigger>
         </TabsList>
       </div>
-      <ScrollArea className="min-h-0 flex-1">
+      <ScrollArea className="min-h-0 min-w-0 flex-1">
         <TabsContent value="convert" className="pt-5">
           <ConvertPanel {...convertProps} />
         </TabsContent>

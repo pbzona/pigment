@@ -328,6 +328,7 @@ export function PixelStudio() {
   const [selectionMethod, setSelectionMethod] =
     useState<ConversionMethod>("dither");
   const [selectedColorId, setSelectedColorId] = useState(activePalette.colors[0].id);
+  const [selectedOutputSwatchId, setSelectedOutputSwatchId] = useState<number | null>(null);
   const activeStrokeRef = useRef<ActiveStroke | null>(null);
   const historyRef = useRef<HistoryPatch[]>([]);
   const futureRef = useRef<HistoryPatch[]>([]);
@@ -775,6 +776,7 @@ export function PixelStudio() {
     setGenerated(null);
     setProcessing(true);
     setSelectedColorId(palette.colors[0].id);
+    setSelectedOutputSwatchId(null);
     setMatchingPalette(nextAdjusted);
   };
 
@@ -817,6 +819,12 @@ export function PixelStudio() {
       setProcessing(true);
       if (!nextPalette.colors.some((swatch) => swatch.id === selectedColorId)) {
         setSelectedColorId(nextPalette.colors[0].id);
+      }
+      if (
+        selectedOutputSwatchId !== null &&
+        !nextPalette.colors.some((swatch) => swatch.id === selectedOutputSwatchId)
+      ) {
+        setSelectedOutputSwatchId(null);
       }
     }
 
@@ -1197,6 +1205,7 @@ export function PixelStudio() {
     paletteAdjustments: adjustments,
     excludedColorIds,
     isolatedColorIds,
+    selectedSwatchId: selectedOutputSwatchId,
     processing,
     onGridChange: handleGridChange,
     onGridScale: (factor: 0.5 | 2) =>
@@ -1210,6 +1219,7 @@ export function PixelStudio() {
     onToggleExcludedColor: toggleExcludedColor,
     onToggleIsolatedColor: toggleIsolatedColor,
     onClearIsolation: () => setIsolatedColorIds(new Set()),
+    onSelectedSwatchChange: setSelectedOutputSwatchId,
     onPaletteAdjustmentsChange: (nextAdjustments: PaletteAdjustments) => {
       adjustmentsRef.current = nextAdjustments;
       setAdjustments(nextAdjustments);
@@ -1259,7 +1269,7 @@ export function PixelStudio() {
   const canRedo = historyStatus.redo > 0;
 
   return (
-    <div className="flex h-svh min-h-0 flex-col overflow-hidden bg-background text-foreground md:min-h-[560px]">
+    <div className="flex h-svh min-h-0 flex-col overflow-hidden bg-background text-foreground">
       <header
         className="flex h-13 shrink-0 items-center justify-between border-b bg-background px-3 sm:px-4"
         inert={cropping}
@@ -1375,16 +1385,13 @@ export function PixelStudio() {
             </SheetTrigger>
             <SheetContent
               side="right"
-              className="gap-0 overflow-hidden p-0 data-[side=right]:w-[92vw] data-[side=right]:max-w-[22rem]"
+              className="min-h-0 gap-0 overflow-hidden p-0 data-[side=right]:w-[92vw] data-[side=right]:max-w-[22rem]"
             >
               <SheetHeader className="shrink-0 border-b text-left">
                 <SheetTitle>Output</SheetTitle>
                 <SheetDescription>Set the cell grid and shape the output palette.</SheetDescription>
               </SheetHeader>
-              <OutputSidebar
-                key={paletteIdentity(activePalette)}
-                {...outputProps}
-              />
+              <OutputSidebar {...outputProps} />
             </SheetContent>
           </Sheet> : null}
           <Button
@@ -1399,11 +1406,11 @@ export function PixelStudio() {
       </header>
 
       <div
-        className="relative flex min-h-0 flex-1"
+        className="relative flex min-h-0 min-w-0 flex-1"
         inert={uploading || cropping}
         aria-busy={uploading || cropping}
       >
-        {desktopControls ? <aside className="w-72 shrink-0 border-r bg-background">
+        {desktopControls ? <aside className="min-h-0 min-w-0 w-72 shrink-0 border-r bg-background">
           <Inspector
             mode={mode}
             onModeChange={setMode}
@@ -1446,15 +1453,12 @@ export function PixelStudio() {
           onCropApply={requestCrop}
         />
         {desktopControls ? (
-          <aside className="flex w-80 shrink-0 flex-col border-l bg-background">
+          <aside className="flex min-h-0 min-w-0 w-80 shrink-0 flex-col border-l bg-background">
             <div className="shrink-0 border-b px-4 py-3">
               <p className="text-xs font-medium">Output</p>
               <p className="mt-0.5 text-[10px] text-muted-foreground">Cell grid and palette</p>
             </div>
-            <OutputSidebar
-              key={paletteIdentity(activePalette)}
-              {...outputProps}
-            />
+            <OutputSidebar {...outputProps} />
           </aside>
         ) : null}
         {uploading || cropping ? (
