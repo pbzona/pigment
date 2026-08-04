@@ -13,7 +13,6 @@ import {
 
 import { BrandMark } from "@pigment/ui/brand-mark";
 import { Button } from "@pigment/ui/button";
-import { PigMascot } from "@pigment/ui/pig-mascot";
 import { CONVERSION_METHODS } from "@pigment/quantization/methods";
 
 export const metadata: Metadata = {
@@ -74,9 +73,6 @@ export default function Home() {
             <span className="text-xs font-semibold tracking-[-0.02em]">PIGMENT</span>
           </Link>
           <nav className="flex items-center gap-1" aria-label="Main navigation">
-            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-              <a href="#how-it-works">How it works</a>
-            </Button>
             <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
               <Link href="/learn">Learn</Link>
             </Button>
@@ -142,7 +138,6 @@ export default function Home() {
             </div>
 
             <div className="relative mx-auto w-full max-w-lg lg:mr-0">
-              <PigMascot className="absolute -right-8 -top-20 z-10 hidden w-28 rotate-3 lg:block" />
               <div className="absolute -left-5 -top-5 size-24 border-l border-t border-primary/55" aria-hidden="true" />
               <div className="border border-foreground/15 bg-card p-4 shadow-[12px_12px_0_0_rgba(255,255,255,0.045)] sm:p-6">
                 <div className="mb-5 flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
