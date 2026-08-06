@@ -6,7 +6,7 @@ import {
   type BuildScanEnvironment,
   type GitRunner,
   type PaletteBuildState,
-} from "@pigment/palette-catalog/server";
+} from "@pigment/palette-catalog/server/build";
 
 const CURRENT_SHA = "a".repeat(40);
 const DATABASE_SHA = "b".repeat(40);

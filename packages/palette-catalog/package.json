@@ -5,8 +5,9 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./server": "./src/server.ts",
-    "./server/config": "./src/config.ts"
+    "./server/build": "./src/build.ts",
+    "./server/config": "./src/config.ts",
+    "./server/runtime": "./src/runtime.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

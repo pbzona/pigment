@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { cache } from "react";
 import { parsePaletteId } from "@pigment/palette-catalog";
-import { getPalette } from "@pigment/palette-catalog/server";
+import { getPalette } from "@pigment/palette-catalog/server/runtime";
 
 import { CopyColorButton } from "@/components/catalog/copy-color-button";
 import { FavoriteButton } from "@/components/catalog/favorite-button";

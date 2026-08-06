@@ -1,4 +1,4 @@
-import { loadEnvConfig } from "@next/env";
+import nextEnv from "@next/env";
 
 import {
   advancePaletteBuildState,
@@ -9,9 +9,9 @@ import {
   openDatabase,
   queryPaletteBuildState,
   scanPaletteDirectory,
-} from "@pigment/palette-catalog/server";
+} from "@pigment/palette-catalog/server/build";
 
-loadEnvConfig(process.cwd(), false);
+nextEnv.loadEnvConfig(process.cwd(), false);
 
 async function main() {
   const forceLocal = process.argv.includes("--force");

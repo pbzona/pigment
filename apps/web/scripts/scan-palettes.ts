@@ -4,7 +4,7 @@ import {
   getPaletteDirectory,
   openDatabase,
   scanPaletteDirectory,
-} from "@pigment/palette-catalog/server";
+} from "@pigment/palette-catalog/server/build";
 
 async function main() {
   const database = await openDatabase();

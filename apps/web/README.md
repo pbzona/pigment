@@ -18,9 +18,10 @@ pnpm --filter @pigment/web dev
 ```
 
 Set `DATABASE_URL`, `PALETTE_DIRECTORY`, `PALETTE_API_KEY`, and
-`PALETTE_API_ALLOWED_ORIGINS` as documented in `.env.example`. The Palette Town
-browser proxy additionally requires `PALETTE_TOWN_URL` and the server-only
-`PALETTE_TOWN_API_KEY` used by that service.
+`PALETTE_API_ALLOWED_ORIGINS` as documented in `.env.example`. Browser BFF
+routes query `@pigment/palette-catalog` directly and do not require the public
+API key.
 
 Use `pnpm --filter @pigment/web palettes:scan` to index PNG sources from
-`palettes/`.
+`palettes/` during local development. Production builds run the guarded catalog
+sync automatically after Next.js finishes compiling.

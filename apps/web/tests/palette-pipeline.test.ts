@@ -33,7 +33,7 @@ import {
   scanPaletteDirectory,
   updatePaletteFavorite,
   type PaletteDatabase,
-} from "@pigment/palette-catalog/server";
+} from "@pigment/palette-catalog/server/build";
 
 const temporaryDirectories: string[] = [];
 const databases: PaletteDatabase[] = [];

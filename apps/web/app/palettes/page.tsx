@@ -2,7 +2,7 @@ import Form from "next/form";
 import Link from "next/link";
 import { connection } from "next/server";
 import type { RawSearchParams } from "@pigment/palette-catalog";
-import { getCatalogPage } from "@pigment/palette-catalog/server";
+import { getCatalogPage } from "@pigment/palette-catalog/server/runtime";
 import { BrandMark } from "@pigment/ui/brand-mark";
 import { PigMascot } from "@pigment/ui/pig-mascot";
 

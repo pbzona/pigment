@@ -5,7 +5,7 @@ import { isPaletteId } from "@pigment/palette-catalog";
 import {
   getDatabase,
   updatePaletteFavorite,
-} from "@pigment/palette-catalog/server";
+} from "@pigment/palette-catalog/server/runtime";
 
 
 export async function setPaletteFavorite(

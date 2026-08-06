@@ -6,7 +6,7 @@ import {
   getDatabase,
   getPaletteDirectory,
   queryPaletteImageById,
-} from "@pigment/palette-catalog/server";
+} from "@pigment/palette-catalog/server/runtime";
 
 
 export const runtime = "nodejs";

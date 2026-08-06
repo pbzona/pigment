@@ -7,7 +7,7 @@ import {
   queryApiCatalog,
   requireApiKey,
   withDatabaseSnapshot,
-} from "@pigment/palette-catalog/server";
+} from "@pigment/palette-catalog/server/runtime";
 
 export const runtime = "nodejs";
 

@@ -47,8 +47,6 @@ Create `apps/web/.env.local` as needed. Never commit secret values.
 | `PALETTE_DIRECTORY`           | Portable repository-relative directory containing palette PNGs |
 | `PALETTE_API_KEY`             | Bearer token for protected palette API access                  |
 | `PALETTE_API_ALLOWED_ORIGINS` | Optional comma-separated CORS origin allowlist                 |
-| `PALETTE_TOWN_URL`            | Base URL for the Palette Town service used by the Studio proxy |
-| `PALETTE_TOWN_API_KEY`        | Server-only bearer token for Palette Town                      |
 
 The catalog creates its tables on first connection. `PALETTE_DIRECTORY` defaults to `palettes` and cannot point outside the project.
 

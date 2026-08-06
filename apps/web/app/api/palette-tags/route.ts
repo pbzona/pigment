@@ -1,15 +1,18 @@
 import { NextResponse } from "next/server";
 
 import { parsePaletteTownTags } from "@pigment/palette/palette-town";
-import { fetchPaletteTown, PaletteTownError } from "@/lib/server/palette-town";
+import {
+  getDatabase,
+  queryApiTags,
+  withDatabaseSnapshot,
+} from "@pigment/palette-catalog/server/runtime";
 
 export async function GET() {
   try {
-    const body = await fetchPaletteTown(
-      "api/v1/tags",
-      undefined,
-      (value) => parsePaletteTownTags(value).ok,
+    const tags = await withDatabaseSnapshot(await getDatabase(), (snapshot) =>
+      queryApiTags(snapshot),
     );
+    const body = { data: tags };
     const parsedBody = parsePaletteTownTags(body);
     if (!parsedBody.ok) {
       return NextResponse.json(
@@ -21,18 +24,10 @@ export async function GET() {
       headers: { "Cache-Control": "private, max-age=300, must-revalidate" },
     });
   } catch (error) {
-    const upstream =
-      error instanceof PaletteTownError
-        ? error
-        : new PaletteTownError("Palette Town is unavailable.", 503);
+    console.error("Palette tag request failed", error);
     return NextResponse.json(
-      { error: upstream.message },
-      {
-        status: upstream.status,
-        headers: upstream.retryAfter
-          ? { "Retry-After": upstream.retryAfter }
-          : undefined,
-      },
+      { error: "Palette catalog is unavailable." },
+      { status: 503 },
     );
   }
 }

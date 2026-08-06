@@ -3,7 +3,7 @@ import {
   apiJson,
   parseApiPaletteFilters,
   requireApiKey,
-} from "@pigment/palette-catalog/server";
+} from "@pigment/palette-catalog/server/runtime";
 
 import { GET as listPalettes, OPTIONS as listOptions } from "../app/api/v1/palettes/route";
 
