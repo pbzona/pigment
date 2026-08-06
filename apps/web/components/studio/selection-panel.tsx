@@ -3,11 +3,11 @@
 import { useId } from "react";
 
 import {
+  Blend,
   Brush,
   Grid2X2Check,
   Scan,
   Ungroup,
-  WandSparkles,
 } from "lucide-react";
 
 import { Button } from "@pigment/ui/button";
@@ -51,7 +51,7 @@ const tools: readonly Readonly<{
 }>[] = [
   { value: "brush", label: "Selection brush", icon: Brush },
   { value: "rectangle", label: "Rectangle", icon: Scan },
-  { value: "contiguous", label: "Contiguous color", icon: WandSparkles },
+  { value: "contiguous", label: "Contiguous color", icon: Blend },
 ];
 
 export function SelectionPanel({
