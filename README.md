@@ -1,7 +1,5 @@
 # Pigment
 
-![A goofy pixel pig surrounded by Pigment color swatches](assets/pigment-pig.svg)
-
 Pigment is a pixel-art color workshop. One Next.js app, `@pigment/web`, serves the interactive studio at `/studio`, hands-on color lessons at `/learn`, and the searchable palette catalog at `/palettes`.
 
 Image decoding, sampling, quantization, and rendering happen locally in the browser: uploaded images are not sent to a processing service. Studio palettes can be extracted from an image, edited and reordered, adjusted in perceptual color space, or loaded from the catalog. Palette edits immediately re-render the preview and remain local unless explicitly exported.

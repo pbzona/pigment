@@ -56,11 +56,6 @@
   align-items: center;
 }
 
-.catalog-mascot {
-  width: 52px;
-  margin-left: 8px;
-}
-
 .brand-mark {
   display: grid;
   grid-template-columns: 1fr 1fr;
