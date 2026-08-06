@@ -8,7 +8,6 @@ import {
   Grid3X3,
   LockKeyhole,
   Palette,
-  Sparkles,
 } from "lucide-react";
 
 import { BrandMark } from "@pigment/ui/brand-mark";
@@ -100,8 +99,7 @@ export default function Home() {
           />
           <div className="relative mx-auto grid min-h-[calc(100svh-3.5rem)] max-w-7xl items-center gap-14 px-4 py-16 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(24rem,.95fr)] lg:px-8">
             <div className="max-w-3xl">
-              <p className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.18em] text-primary">
-                <Sparkles className="size-4" />
+              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary">
                 Pigment color tools
               </p>
               <h1 className="mt-6 text-balance text-5xl font-medium leading-[0.94] tracking-[-0.065em] sm:text-7xl lg:text-[5.5rem]">
