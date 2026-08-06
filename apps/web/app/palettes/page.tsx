@@ -4,7 +4,6 @@ import { connection } from "next/server";
 import type { RawSearchParams } from "@pigment/palette-catalog";
 import { getCatalogPage } from "@pigment/palette-catalog/server/runtime";
 import { BrandMark } from "@pigment/ui/brand-mark";
-import { PigMascot } from "@pigment/ui/pig-mascot";
 
 import { ColorFilter } from "@/components/catalog/color-filter";
 import { Pagination } from "@/components/catalog/pagination";
@@ -60,7 +59,6 @@ export default async function PalettesPage({
             <p className="eyebrow">Pigment color archive</p>
             <p className="brand-name">Palettes</p>
           </div>
-          <PigMascot className="catalog-mascot" />
         </div>
 
         <dl className="header-stats">
