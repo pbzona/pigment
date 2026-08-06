@@ -73,6 +73,14 @@ const EMPTY_PAGINATION: PaletteTownPagination = {
   totalPages: 0,
 };
 
+async function readJsonResponse(response: Response): Promise<unknown | null> {
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
 type PaletteCardProps = Readonly<{
   palette: Palette;
   active: boolean;
@@ -205,7 +213,7 @@ export function PaletteDialog({
         });
         void fetch(`/api/palettes?${params}`, { signal: controller.signal })
           .then(async (response) => {
-            const body: unknown = await response.json();
+            const body = await readJsonResponse(response);
             if (!response.ok) {
               throw new Error(
                 typeof body === "object" &&
@@ -213,7 +221,12 @@ export function PaletteDialog({
                 "error" in body &&
                 typeof body.error === "string"
                   ? body.error
-                  : "Palette Town is unavailable.",
+                  : "Palette Town is unavailable. Try again.",
+              );
+            }
+            if (body === null) {
+              throw new Error(
+                "Palette Town returned an invalid response. Try again.",
               );
             }
             const parsed = parsePaletteTownList(body);
@@ -259,7 +272,7 @@ export function PaletteDialog({
     void fetch("/api/palette-tags", { signal: controller.signal })
       .then(async (response) => {
         if (!response.ok) return;
-        const parsed = parsePaletteTownTags(await response.json());
+        const parsed = parsePaletteTownTags(await readJsonResponse(response));
         if (parsed.ok) setRemoteTags(parsed.value);
       })
       .catch(() => undefined);

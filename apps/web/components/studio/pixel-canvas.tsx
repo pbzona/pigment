@@ -69,6 +69,8 @@ type PixelCanvasProps = Readonly<{
 
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 40;
+const CANVAS_INLINE_SPACE = 82;
+const CANVAS_BLOCK_SPACE = 130;
 
 export const increaseCanvasZoom = (zoom: number) => {
   if (zoom < 2) {
@@ -76,6 +78,22 @@ export const increaseCanvasZoom = (zoom: number) => {
     return nextZoom >= 2 ? 2 : nextZoom;
   }
   return Math.min(MAX_ZOOM, zoom + 2);
+};
+
+export const fittedCanvasZoom = (
+  viewportWidth: number,
+  viewportHeight: number,
+  width: number,
+  height: number,
+) => {
+  const availableWidth = Math.max(1, viewportWidth - CANVAS_INLINE_SPACE);
+  const availableHeight = Math.max(1, viewportHeight - CANVAS_BLOCK_SPACE);
+  const availableZoom = Math.min(availableWidth / width, availableHeight / height);
+  const fittedZoom =
+    availableZoom >= 1
+      ? Math.floor(availableZoom)
+      : Math.floor(availableZoom * 100) / 100;
+  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, fittedZoom));
 };
 
 type Cell = Readonly<{ x: number; y: number }>;
@@ -254,20 +272,28 @@ export function PixelCanvas({
   const fitCanvas = () => {
     const viewport = viewportRef.current;
     if (!viewport) return;
-    const availableWidth = Math.max(1, viewport.clientWidth - 80);
-    const availableHeight = Math.max(1, viewport.clientHeight - 80);
-    const availableZoom = Math.min(availableWidth / width, availableHeight / height);
-    const fittedZoom = availableZoom >= 1
-      ? Math.floor(availableZoom)
-      : Math.floor(availableZoom * 100) / 100;
-    setZoom(Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, fittedZoom)));
+    setZoom(fittedCanvasZoom(viewport.clientWidth, viewport.clientHeight, width, height));
   };
 
-  const fitCanvasForGrid = useEffectEvent(fitCanvas);
+  const fitCanvasToViewport = useEffectEvent(fitCanvas);
 
   useEffect(() => {
-    const frame = window.requestAnimationFrame(fitCanvasForGrid);
-    return () => window.cancelAnimationFrame(frame);
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+
+    let frame = 0;
+    const fit = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(fitCanvasToViewport);
+    };
+    const observer = new ResizeObserver(fit);
+    observer.observe(viewport);
+    fit();
+
+    return () => {
+      observer.disconnect();
+      window.cancelAnimationFrame(frame);
+    };
   }, [width, height]);
 
   const cellFromPointer = (
@@ -596,7 +622,7 @@ export function PixelCanvas({
   };
 
   return (
-    <section className="relative min-h-0 flex-1 bg-[#0e0f11]">
+    <section className="relative min-h-0 min-w-0 flex-1 overflow-hidden bg-[#0e0f11]">
       <div className="absolute top-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 border border-white/10 bg-[#191a1d]/95 p-1 shadow-lg shadow-black/30 backdrop-blur">
         <Tooltip>
           <TooltipTrigger asChild>

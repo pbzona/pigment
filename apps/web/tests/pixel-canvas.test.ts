@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { increaseCanvasZoom } from "@/components/studio/pixel-canvas";
+import {
+  fittedCanvasZoom,
+  increaseCanvasZoom,
+} from "@/components/studio/pixel-canvas";
 
 describe("canvas zoom", () => {
   it("snaps to an integer before reaching grid-visible zoom levels", () => {
@@ -17,5 +20,19 @@ describe("canvas zoom", () => {
 
   it("does not exceed the maximum zoom", () => {
     expect(increaseCanvasZoom(40)).toBe(40);
+  });
+
+  it("fits the artwork when the canvas viewport narrows", () => {
+    const zoom = fittedCanvasZoom(320, 516, 64, 16);
+
+    expect(zoom).toBe(3);
+    expect(64 * zoom + 82).toBeLessThanOrEqual(320);
+  });
+
+  it("reserves vertical space for the canvas toolbar", () => {
+    const zoom = fittedCanvasZoom(672, 668, 60, 64);
+
+    expect(zoom).toBe(8);
+    expect(64 * zoom + 130).toBeLessThanOrEqual(668);
   });
 });

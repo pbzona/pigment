@@ -5,12 +5,7 @@ import {
   parsePaletteTownQuery,
   serializePaletteTownQuery,
 } from "@pigment/palette/palette-town";
-import {
-  getDatabase,
-  parseApiPaletteFilters,
-  queryApiCatalog,
-  withDatabaseSnapshot,
-} from "@pigment/palette-catalog/server";
+import { fetchPaletteTown, PaletteTownError } from "@/lib/server/palette-town";
 
 export async function GET(request: Request) {
   const parsedQuery = parsePaletteTownQuery(new URL(request.url).searchParams);
@@ -19,33 +14,34 @@ export async function GET(request: Request) {
   }
 
   try {
-    const catalogQuery = parseApiPaletteFilters(
+    const body = await fetchPaletteTown(
+      "api/v1/palettes",
       serializePaletteTownQuery(parsedQuery.value),
+      (value) => parsePaletteTownList(value).ok,
     );
-    if (!catalogQuery.ok) {
-      return NextResponse.json({ error: "Invalid palette query." }, { status: 400 });
-    }
-    const catalog = await withDatabaseSnapshot(await getDatabase(), (snapshot) =>
-      queryApiCatalog(snapshot, catalogQuery.filters),
-    );
-    const body = {
-      data: catalog.palettes,
-      pagination: {
-        page: catalog.page,
-        pageSize: catalog.pageSize,
-        totalItems: catalog.total,
-        totalPages: catalog.totalPages,
-      },
-    };
     const parsedBody = parsePaletteTownList(body);
     if (!parsedBody.ok) {
-      return NextResponse.json({ error: "Palette Town returned invalid data." }, { status: 502 });
+      return NextResponse.json(
+        { error: "Palette Town returned invalid data." },
+        { status: 502 },
+      );
     }
     return NextResponse.json(body, {
       headers: { "Cache-Control": "private, max-age=60, must-revalidate" },
     });
   } catch (error) {
-    console.error("Palette browser request failed", error);
-    return NextResponse.json({ error: "Palette catalog is unavailable." }, { status: 503 });
+    const upstream =
+      error instanceof PaletteTownError
+        ? error
+        : new PaletteTownError("Palette Town is unavailable.", 503);
+    return NextResponse.json(
+      { error: upstream.message },
+      {
+        status: upstream.status,
+        headers: upstream.retryAfter
+          ? { "Retry-After": upstream.retryAfter }
+          : undefined,
+      },
+    );
   }
 }
