@@ -623,7 +623,7 @@ export function PixelCanvas({
 
   return (
     <section className="relative min-h-0 min-w-0 flex-1 overflow-hidden bg-[#0e0f11]">
-      <div className="absolute top-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 border border-white/10 bg-[#191a1d]/95 p-1 shadow-lg shadow-black/30 backdrop-blur">
+      <div className="absolute top-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 border-2 border-border bg-card p-1 shadow-[4px_4px_0_var(--shadow)]">
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon-sm" onClick={() => setZoom((value) => Math.max(MIN_ZOOM, value - (value <= 2 ? 0.25 : 2)))}>
@@ -780,7 +780,7 @@ export function PixelCanvas({
       </div>
 
       {crop ? (
-        <div className="absolute top-15 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 border border-white/10 bg-[#191a1d]/95 p-1 shadow-lg shadow-black/30 backdrop-blur">
+        <div className="absolute top-15 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 border-2 border-border bg-card p-1 shadow-[4px_4px_0_var(--shadow)]">
           <span className="px-2 font-mono text-[10px] tabular-nums text-white/70">
             {crop.right - crop.left}×{crop.bottom - crop.top} cells
             {crop.right - crop.left < MIN_GRID_SIDE ||
@@ -979,12 +979,12 @@ export function PixelCanvas({
         Space and drag, or drag with the right mouse button, to pan.
       </p>
 
-      <div className="pointer-events-none absolute bottom-4 left-4 hidden border border-white/10 bg-[#191a1d]/90 px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.1em] text-white/45 shadow-lg md:block">
+      <div className="pointer-events-none absolute bottom-4 left-4 hidden border border-border/40 bg-card px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.1em] text-muted-foreground md:block">
         Space + drag / right-drag to pan
       </div>
 
       {processing ? (
-        <div className="pointer-events-none absolute right-4 bottom-4 flex items-center gap-2 border border-white/10 bg-[#191a1d]/95 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em] text-white/60 shadow-lg shadow-black/30">
+        <div className="pointer-events-none absolute right-4 bottom-4 flex items-center gap-2 border-2 border-border bg-card px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground shadow-[3px_3px_0_var(--shadow)]">
           <span className="size-2 animate-pulse bg-[#ef6a47]" />
           Quantizing
         </div>

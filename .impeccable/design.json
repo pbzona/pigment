@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-13T15:54:35Z",
+  "title": "Design System: Pigment",
+  "extensions": {
+    "colorMeta": {
+      "kiln-orange": { "role": "primary", "displayName": "Kiln Orange", "canonical": "#f06a32", "tonalRamp": ["#351308", "#5c220e", "#843218", "#ae4521", "#d75829", "#f06a32", "#f6a37f", "#fde3d7"] },
+      "kiln-ink": { "role": "neutral", "displayName": "Kiln Ink", "canonical": "#17100c", "tonalRamp": ["#17100c", "#30241e", "#4d3b32", "#6c5549", "#8e7465", "#b39b8c", "#d7c7bc", "#f7eee8"] },
+      "electric-ultramarine": { "role": "secondary", "displayName": "Electric Ultramarine", "canonical": "#4d7cff", "tonalRamp": ["#091d50", "#102f7b", "#1b43a7", "#2859d3", "#3970f4", "#628bff", "#9db2ff", "#e5ebff"] },
+      "signal-green": { "role": "secondary", "displayName": "Signal Green", "canonical": "#3ebd78", "tonalRamp": ["#082d1a", "#0e4a2b", "#176a40", "#218b55", "#2cab69", "#51c986", "#91dfae", "#e1f7e9"] },
+      "token-yellow": { "role": "tertiary", "displayName": "Token Yellow", "canonical": "#f2cf45", "tonalRamp": ["#372b04", "#5b4708", "#82660e", "#aa8618", "#d2aa28", "#f2cf45", "#f8df82", "#fff5d2"] },
+      "danger-red": { "role": "tertiary", "displayName": "Danger Red", "canonical": "#ee4540", "tonalRamp": ["#3b0908", "#64110f", "#8d1c19", "#b92a26", "#df3935", "#f05b57", "#f59a97", "#fde3e2"] },
+      "carbon-canvas": { "role": "neutral", "displayName": "Carbon Canvas", "canonical": "#11100f", "tonalRamp": ["#11100f", "#292724", "#403d39", "#59554f", "#746f67", "#969088", "#c0bbb3", "#f2eee8"] },
+      "carbon-panel": { "role": "neutral", "displayName": "Carbon Panel", "canonical": "#181715", "tonalRamp": ["#181715", "#302e2b", "#484541", "#615d57", "#7b766f", "#9d9790", "#c6c1ba", "#f3f0eb"] },
+      "carbon-popover": { "role": "neutral", "displayName": "Carbon Popover", "canonical": "#1d1b18", "tonalRamp": ["#1d1b18", "#35322d", "#4e4a43", "#68635b", "#837d74", "#a49e96", "#ccc7c0", "#f5f2ed"] },
+      "carbon-control": { "role": "neutral", "displayName": "Carbon Control", "canonical": "#292622", "tonalRamp": ["#171512", "#292622", "#423e38", "#5d574f", "#797268", "#9b958c", "#c4bfb7", "#f2efea"] },
+      "carbon-muted": { "role": "neutral", "displayName": "Carbon Muted", "canonical": "#25221f", "tonalRamp": ["#151311", "#25221f", "#3e3a35", "#58534c", "#746e66", "#969088", "#c0bbb4", "#f1eee9"] },
+      "warm-pixel-paper": { "role": "neutral", "displayName": "Warm Pixel Paper", "canonical": "#f5f2e8", "tonalRamp": ["#2d2a22", "#4b473b", "#6a6556", "#898474", "#aaa594", "#cbc7b9", "#e5e1d6", "#f5f2e8"] },
+      "quiet-notation": { "role": "neutral", "displayName": "Quiet Notation", "canonical": "#aaa49a", "tonalRamp": ["#282520", "#45413a", "#625e55", "#807b71", "#9d978e", "#b9b4ac", "#d6d2cb", "#f1efeb"] },
+      "control-stroke": { "role": "neutral", "displayName": "Control Stroke", "canonical": "#5e5a53", "tonalRamp": ["#1b1916", "#302d29", "#48443e", "#5e5a53", "#7b766e", "#9c9790", "#c4c0b9", "#f0ede9"] },
+      "hard-shadow": { "role": "neutral", "displayName": "Hard Shadow", "canonical": "#050505", "tonalRamp": ["#050505", "#1d1d1d", "#363636", "#505050", "#6d6d6d", "#919191", "#bdbdbd", "#ededed"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Rare oversized titles and expressive palette-detail moments." },
+      "headline": { "displayName": "Headline", "purpose": "Section headings and high-clarity empty states." },
+      "title": { "displayName": "Title", "purpose": "Panel titles, brand lockups, and card names." },
+      "body": { "displayName": "Body", "purpose": "Instruction, explanation, and readable supporting copy." },
+      "label": { "displayName": "Label / Mono", "purpose": "Controls, measurements, indexes, dimensions, and state." }
+    },
+    "shadows": [
+      { "name": "panel-block", "value": "6px 6px 0 #050505", "purpose": "Major panels, dialogs, popovers, and sheets." },
+      { "name": "control-block", "value": "3px 3px 0 #050505", "purpose": "Primary and secondary controls at rest." },
+      { "name": "chromatic-control-block", "value": "3px 3px 0 #f06a32", "purpose": "Outline controls and chromatic structural emphasis." },
+      { "name": "raised-hover", "value": "5px 5px 0 #050505", "purpose": "A pressable control moving up-left on hover." },
+      { "name": "catalog-lift", "value": "8px 8px 0 #f06a32", "purpose": "Palette cards under pointer exploration." }
+    ],
+    "motion": [
+      { "name": "control-response", "value": "140ms ease", "purpose": "Button translation, shadow, and color response." },
+      { "name": "card-response", "value": "150ms ease", "purpose": "Palette-card lift and shadow response." },
+      { "name": "reduced-motion", "value": "0.01ms", "purpose": "Near-instant fallback under prefers-reduced-motion." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "catalog-mobile", "value": "760px" },
+      { "name": "catalog-medium", "value": "1180px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The default high-value action, expressed as a square arcade-like control.",
+      "html": "<button class=\"ds-btn-primary\">RUN EXPERIMENT</button>",
+      "css": ".ds-btn-primary{height:40px;padding:0 16px;border:2px solid var(--border,#f5f2e8);border-radius:0;background:var(--primary,#f06a32);color:var(--primary-foreground,#17100c);font:700 14px/1 var(--font-pigment-mono,ui-monospace,monospace);letter-spacing:.05em;text-transform:uppercase;box-shadow:3px 3px 0 var(--shadow,#050505);transition:transform 140ms ease,box-shadow 140ms ease}.ds-btn-primary:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--shadow,#050505)}.ds-btn-primary:active{transform:translate(2px,2px);box-shadow:none}.ds-btn-primary:focus-visible{outline:3px solid var(--ring,#4d7cff);outline-offset:3px}"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "A secondary action with a chromatic mechanical shadow.",
+      "html": "<button class=\"ds-btn-outline\">COMPARE</button>",
+      "css": ".ds-btn-outline{height:40px;padding:0 16px;border:2px solid var(--border,#f5f2e8);border-radius:0;background:var(--background,#11100f);color:var(--foreground,#f5f2e8);font:700 14px/1 var(--font-pigment-mono,ui-monospace,monospace);letter-spacing:.05em;text-transform:uppercase;box-shadow:3px 3px 0 var(--primary,#f06a32);transition:transform 140ms ease,box-shadow 140ms ease,background 140ms ease}.ds-btn-outline:hover{transform:translate(-2px,-2px);background:var(--muted,#25221f);box-shadow:5px 5px 0 var(--primary,#f06a32)}.ds-btn-outline:active{transform:translate(2px,2px);box-shadow:none}.ds-btn-outline:focus-visible{outline:3px solid var(--ring,#4d7cff);outline-offset:3px}"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input-default",
+      "description": "A dark square field with a cool technical focus state.",
+      "html": "<label class=\"ds-field\"><span>PALETTE NAME</span><input class=\"ds-input\" placeholder=\"Try sunset, ink, witchy…\"></label>",
+      "css": ".ds-field{display:grid;gap:8px;color:var(--muted-foreground,#aaa49a);font:650 11px/1.2 var(--font-pigment-mono,ui-monospace,monospace);letter-spacing:.08em}.ds-input{height:40px;padding:8px 12px;border:2px solid var(--input,#5e5a53);border-radius:0;background:var(--background,#11100f);color:var(--foreground,#f5f2e8);font:400 14px/1.4 var(--font-pigment-sans,ui-sans-serif,system-ui,sans-serif);outline:none}.ds-input::placeholder{color:var(--muted-foreground,#aaa49a)}.ds-input:hover{border-color:var(--border,#f5f2e8)}.ds-input:focus-visible{border-color:var(--ring,#4d7cff);outline:3px solid var(--ring,#4d7cff);outline-offset:3px}"
+    },
+    {
+      "name": "Segmented Tabs",
+      "kind": "chip",
+      "description": "A single framed machine control for switching methods or modes.",
+      "html": "<div class=\"ds-tabs\" role=\"tablist\"><button class=\"ds-tab ds-tab-active\">SAMPLE</button><button class=\"ds-tab\">MATCH</button><button class=\"ds-tab\">PAINT</button></div>",
+      "css": ".ds-tabs{display:inline-flex;border:2px solid var(--border,#f5f2e8);background:var(--muted,#25221f)}.ds-tab{height:36px;padding:0 16px;border:0;border-right:2px solid var(--border,#f5f2e8);border-radius:0;background:transparent;color:var(--foreground,#f5f2e8);font:700 12px/1 var(--font-pigment-mono,ui-monospace,monospace);letter-spacing:.05em}.ds-tab:last-child{border-right:0}.ds-tab:hover{background:var(--secondary,#292622)}.ds-tab-active{background:var(--primary,#f06a32);color:var(--primary-foreground,#17100c)}.ds-tab:focus-visible{outline:3px solid var(--ring,#4d7cff);outline-offset:-3px}"
+    },
+    {
+      "name": "Workbench Card",
+      "kind": "card",
+      "refersTo": "card-default",
+      "description": "The canonical framed panel with visible header structure and hard depth.",
+      "html": "<article class=\"ds-card\"><header><strong>QUANTIZATION</strong><span>04 METHODS</span></header><div><h3>Color decisions you can inspect.</h3><p>Compare the result, then change the method or refine individual cells.</p></div></article>",
+      "css": ".ds-card{width:320px;border:2px solid var(--border,#f5f2e8);border-radius:0;background:var(--card,#181715);color:var(--card-foreground,#f5f2e8);box-shadow:6px 6px 0 var(--shadow,#050505);font-family:var(--font-pigment-sans,ui-sans-serif,system-ui,sans-serif)}.ds-card header{display:flex;justify-content:space-between;padding:12px 16px;border-bottom:2px solid var(--border,#f5f2e8);font:650 11px/1.2 var(--font-pigment-mono,ui-monospace,monospace);letter-spacing:.08em}.ds-card header span{color:var(--muted-foreground,#aaa49a)}.ds-card>div{padding:20px}.ds-card h3{margin:0;font-size:20px;line-height:1.1;letter-spacing:-.035em}.ds-card p{margin:10px 0 0;color:var(--muted-foreground,#aaa49a);font-size:14px;line-height:1.55}"
+    },
+    {
+      "name": "Palette Card",
+      "kind": "custom",
+      "description": "Pigment's signature archive card, led by artwork color and supported by factual metadata.",
+      "html": "<article class=\"ds-palette-card\"><div class=\"ds-palette-strip\"><i></i><i></i><i></i><i></i></div><div class=\"ds-palette-copy\"><h3>Amber Circuit</h3><p>AMBER-CIRCUIT-8X.PNG</p></div><footer><span>8 COLORS</span><span>PNG</span></footer></article>",
+      "css": ".ds-palette-card{width:340px;border:1px solid var(--border,#f5f2e8);background:var(--card,#181715);color:var(--foreground,#f5f2e8);box-shadow:4px 4px 0 var(--shadow,#050505);transition:transform 150ms ease,box-shadow 150ms ease}.ds-palette-card:hover{transform:translate(-3px,-3px);box-shadow:8px 8px 0 var(--primary,#f06a32)}.ds-palette-strip{display:flex;height:112px;border-bottom:1px solid var(--border,#f5f2e8)}.ds-palette-strip i{flex:1}.ds-palette-strip i:nth-child(1){background:#171513}.ds-palette-strip i:nth-child(2){background:#48656a}.ds-palette-strip i:nth-child(3){background:#ef6a47}.ds-palette-strip i:nth-child(4){background:#f1e8d9}.ds-palette-copy{padding:17px 14px}.ds-palette-copy h3{margin:0;font:670 19px/1.1 var(--font-pigment-sans,ui-sans-serif,system-ui,sans-serif);letter-spacing:-.035em}.ds-palette-copy p{margin:5px 0 0;color:var(--muted-foreground,#aaa49a);font:400 11px/1.2 var(--font-pigment-mono,ui-monospace,monospace)}.ds-palette-card footer{display:flex;border-top:1px solid var(--border,#f5f2e8);color:var(--muted-foreground,#aaa49a);font:650 11px/1.2 var(--font-pigment-mono,ui-monospace,monospace);letter-spacing:.08em}.ds-palette-card footer span{padding:12px}.ds-palette-card footer span+span{border-left:1px solid var(--border,#f5f2e8)}"
+    },
+    {
+      "name": "Brand Mark",
+      "kind": "custom",
+      "description": "A crisp four-cell sampler that compresses Pigment's interface palette into one mark.",
+      "html": "<span class=\"ds-brand-mark\" aria-label=\"Pigment\"><i></i><i></i><i></i><i></i></span>",
+      "css": ".ds-brand-mark{display:grid;width:40px;height:40px;grid-template-columns:1fr 1fr;border:2px solid var(--border,#f5f2e8);background:var(--border,#f5f2e8);box-shadow:3px 3px 0 var(--primary,#f06a32)}.ds-brand-mark i:nth-child(1){background:var(--accent-yellow,#f2cf45)}.ds-brand-mark i:nth-child(2){background:var(--primary,#f06a32)}.ds-brand-mark i:nth-child(3){background:var(--accent-blue,#4d7cff)}.ds-brand-mark i:nth-child(4){background:var(--accent-green,#3ebd78)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Chromatic Lab Notebook",
+    "overview": "Pigment is a dark, gridded notebook where visual experiments, algorithm notes, and handmade interventions occupy the same page. It is playful, technical, tactile, and candid: color is vivid, the machinery is visible, and controls look ready to be pushed rather than admired from a distance.\n\nThe interface combines the directness of graph paper and technical annotation with the cheerful physicality of an art toy. Square surfaces, exposed dividers, hard shadows, pixel imagery, terse mono labels, and immediate state changes make the system feel assembled and inspectable. It should never become sterile software chrome or nostalgic game decoration; the point is curious artistic play with enough rigor to teach what happened.",
+    "keyCharacteristics": [
+      "A near-black grid provides a continuous working ground.",
+      "Warm off-white strokes define structure with unusually high clarity.",
+      "Kiln Orange carries primary action; ultramarine, green, and yellow annotate distinct states.",
+      "Square geometry and hard offset shadows make controls feel physical.",
+      "Geist Sans explains; Geist Mono labels, measures, indexes, and reports.",
+      "Pixel art and palette strips are working material, not decorative garnish."
+    ],
+    "rules": [
+      { "name": "The Pigment Has a Job Rule", "body": "Every saturated color communicates action, focus, status, category, or artwork content; none exists merely to fill empty space.", "section": "colors" },
+      { "name": "The Warm Ink Rule", "body": "Use Warm Pixel Paper—not pure white—for ordinary text and structural strokes. Reserve white for exceptional contrast inside saturated states.", "section": "colors" },
+      { "name": "The Artwork Leads Rule", "body": "User images and palette swatches may introduce any color. Interface pigments must not compete with them for visual dominance.", "section": "colors" },
+      { "name": "The Explain and Measure Rule", "body": "Sans text explains the experiment; mono text identifies, measures, indexes, or controls it.", "section": "typography" },
+      { "name": "The Tight-at-Scale Rule", "body": "Large headings use tight tracking and compact leading. Body copy never inherits that compression.", "section": "typography" },
+      { "name": "The Honest Label Rule", "body": "Uppercase mono labels stay short and factual. Do not turn descriptive sentences into technical-looking microcopy.", "section": "typography" },
+      { "name": "The Mechanical Shadow Rule", "body": "Shadows are hard, directional, and attached to an interaction or structural layer. Never use diffuse ambient drop shadows.", "section": "elevation" },
+      { "name": "The Press Has Consequence Rule", "body": "A physical-looking control must visibly move or lose depth when activated; shadow alone is not enough.", "section": "elevation" },
+      { "name": "The Square Until Proven Otherwise Rule", "body": "New components begin at zero radius. A rounded exception must communicate a specific affordance rather than generic friendliness.", "section": "shapes" }
+    ],
+    "dos": [
+      "Do keep the artwork or palette as the most chromatically complex object on a working screen.",
+      "Do expose structure with square frames, clear dividers, and factual mono annotation.",
+      "Do make interactive state changes immediate and physical: lift on hover, compress on press, and show focus unmistakably.",
+      "Do preserve a clear hierarchy between a two-pixel outer frame and lighter internal rules.",
+      "Do use the mascot and playful copy as concise rewards around real interaction.",
+      "Do honor reduced-motion preferences while preserving non-motion state cues."
+    ],
+    "donts": [
+      "Don't add rounded cards, pill buttons, frosted glass, soft gradients, or diffuse SaaS shadows.",
+      "Don't use saturated interface color without a semantic job.",
+      "Don't imitate retro games with ornamental scanlines, fake CRT effects, or novelty pixel fonts; Pigment is a contemporary art tool.",
+      "Don't turn every label into uppercase mono text; explanations need the warmth and readability of sentence-case sans.",
+      "Don't hide algorithm choices behind magical language or decorative abstraction.",
+      "Don't let expressive chrome crowd the canvas, palette, or image being explored."
+    ]
+  }
+}

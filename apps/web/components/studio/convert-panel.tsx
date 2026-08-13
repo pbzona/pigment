@@ -1,7 +1,14 @@
 "use client";
 
-import { useId } from "react";
+import { useId, useState } from "react";
+import { ChevronDown, Sparkles, X } from "lucide-react";
 
+import { Button } from "@pigment/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@pigment/ui/collapsible";
 import { Label } from "@pigment/ui/label";
 import {
   Select,
@@ -31,6 +38,8 @@ type ConvertPanelProps = Readonly<{
   onInputAdjustmentsChange: (adjustments: InputAdjustments) => void;
   onPreserveTransparencyChange: (preserve: boolean) => void;
   onAlphaThresholdChange: (threshold: number) => void;
+  firstResultGuide?: boolean;
+  onDismissFirstResultGuide?: () => void;
 }>;
 
 export function ConvertPanel({
@@ -43,56 +52,90 @@ export function ConvertPanel({
   onInputAdjustmentsChange,
   onPreserveTransparencyChange,
   onAlphaThresholdChange,
+  firstResultGuide = false,
+  onDismissFirstResultGuide,
 }: ConvertPanelProps) {
   const methodId = useId();
   const preserveTransparencyId = useId();
+  const [advancedOpen, setAdvancedOpen] = useState(!firstResultGuide);
 
   return (
     <div className="divide-y divide-border pb-6">
       <section className="px-4 pb-6">
-        <div className="mb-5 flex items-center justify-between gap-3">
+        <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <p className="text-xs font-medium">Source</p>
-            <p className="mt-1 text-[10px] text-muted-foreground">Adjust before sampling.</p>
+            <p className="mt-1 text-[10px] text-muted-foreground">Sampled at {source.width}×{source.height} pixels.</p>
           </div>
-          <span className="font-mono text-[10px] text-muted-foreground">
-            {source.width}×{source.height}
-          </span>
         </div>
-        <SourceAdjustments value={inputAdjustments} onChange={onInputAdjustmentsChange} compact />
-        <div className="mt-6 border-t pt-5">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <Label htmlFor={preserveTransparencyId}>Preserve transparency</Label>
-              <p className="mt-1 text-[11px] leading-4 text-muted-foreground">Keep empty source areas empty.</p>
-            </div>
-            <Switch
-              id={preserveTransparencyId}
-              checked={preserveTransparency}
-              onCheckedChange={onPreserveTransparencyChange}
-            />
-          </div>
-          {preserveTransparency ? (
-            <label className="mt-5 block">
-              <span className="mb-2 flex items-center justify-between text-xs">
-                <span>Alpha threshold</span>
-                <span className="font-mono text-muted-foreground">{alphaThreshold}</span>
-              </span>
-              <Slider
-                aria-label="Alpha threshold"
-                min={0}
-                max={255}
-                step={1}
-                value={[alphaThreshold]}
-                onValueChange={([value]: number[]) => onAlphaThresholdChange(value)}
+        <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
+          <CollapsibleTrigger asChild>
+            <Button variant="outline" size="sm" className="w-full justify-between">
+              Source adjustments
+              <ChevronDown
+                className={`transition-transform ${advancedOpen ? "rotate-180" : ""}`}
+                aria-hidden="true"
               />
-            </label>
-          ) : null}
-        </div>
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pt-5">
+            <SourceAdjustments value={inputAdjustments} onChange={onInputAdjustmentsChange} compact />
+            <div className="mt-6 border-t pt-5">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <Label htmlFor={preserveTransparencyId}>Preserve transparency</Label>
+                  <p className="mt-1 text-[11px] leading-4 text-muted-foreground">Keep empty source areas empty.</p>
+                </div>
+                <Switch
+                  id={preserveTransparencyId}
+                  checked={preserveTransparency}
+                  onCheckedChange={onPreserveTransparencyChange}
+                />
+              </div>
+              {preserveTransparency ? (
+                <label className="mt-5 block">
+                  <span className="mb-2 flex items-center justify-between text-xs">
+                    <span>Alpha threshold</span>
+                    <span className="font-mono text-muted-foreground">{alphaThreshold}</span>
+                  </span>
+                  <Slider
+                    aria-label="Alpha threshold"
+                    min={0}
+                    max={255}
+                    step={1}
+                    value={[alphaThreshold]}
+                    onValueChange={([value]: number[]) => onAlphaThresholdChange(value)}
+                  />
+                </label>
+              ) : null}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       </section>
 
       <section className="px-4 py-6">
-        <Label htmlFor={methodId} className="mb-3">Quantization method</Label>
+        {firstResultGuide ? (
+          <div className="mb-5 border-2 border-primary bg-primary/10 p-3 shadow-[3px_3px_0_var(--primary)]">
+            <div className="flex items-start gap-3">
+              <Sparkles className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold">Try another algorithm</p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  Pick a method below and watch the same image make a different color decision.
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                aria-label="Dismiss first experiment suggestion"
+                onClick={onDismissFirstResultGuide}
+              >
+                <X />
+              </Button>
+            </div>
+          </div>
+        ) : null}
+        <Label htmlFor={methodId} className="mb-3">Pixel color method</Label>
         <Select value={method} onValueChange={(value: string) => onMethodChange(value as ConversionMethod)}>
           <SelectTrigger id={methodId} className="h-9 w-full rounded-none py-0">
             <SelectValue>{CONVERSION_METHODS.find((entry) => entry.value === method)?.label}</SelectValue>
@@ -109,7 +152,7 @@ export function ConvertPanel({
           </SelectContent>
         </Select>
         <p className="mt-2 text-xs leading-5 text-muted-foreground">
-          {CONVERSION_METHODS.find((entry) => entry.value === method)?.description}.
+          This algorithm {CONVERSION_METHODS.find((entry) => entry.value === method)?.description.toLowerCase()}.
         </p>
       </section>
     </div>

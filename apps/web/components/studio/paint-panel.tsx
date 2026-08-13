@@ -133,7 +133,7 @@ export function PaintPanel({
         {selectionCount === null
           ? "Drag to paint."
           : `Paint is limited to ${selectionCount} selected cells.`}{" "}
-        Use <kbd className="font-mono text-foreground">⌘Z</kbd> to undo a complete stroke.
+        Use <kbd className="font-mono text-foreground">⌘/Ctrl Z</kbd> to undo a complete stroke.
       </div>
     </div>
   );

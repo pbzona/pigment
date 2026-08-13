@@ -10,6 +10,7 @@ import {
 import {
   BookOpenText,
   Download,
+  HelpCircle,
   PanelRight,
   Redo2,
   SlidersHorizontal,
@@ -32,6 +33,11 @@ import {
 } from "@pigment/ui/alert-dialog";
 import { BrandMark } from "@pigment/ui/brand-mark";
 import { Button } from "@pigment/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@pigment/ui/popover";
 import {
   Sheet,
   SheetContent,
@@ -96,6 +102,7 @@ import type {
 import { UploadDropzone } from "./upload-dropzone";
 
 const CUSTOM_PALETTES_KEY = "pixide:palettes:v1";
+const FIRST_RESULT_GUIDE_KEY = "pigment:first-result-guide:v1";
 const MAX_HISTORY_BYTES = 24 * 1024 * 1024;
 
 const clampGrid = (value: number) =>
@@ -344,6 +351,7 @@ export function PixelStudio() {
   const [exportScale, setExportScale] = useState(4);
   const [exporting, setExporting] = useState(false);
   const [pendingPaletteDelete, setPendingPaletteDelete] = useState<Palette | null>(null);
+  const [firstResultGuide, setFirstResultGuide] = useState(false);
 
   useEffect(() => {
     const media = window.matchMedia("(min-width: 1024px)");
@@ -586,6 +594,10 @@ export function PixelStudio() {
       );
       setProcessing(true);
       setSourceVersion((value) => value + 1);
+      if (localStorage.getItem(FIRST_RESULT_GUIDE_KEY) !== "dismissed") {
+        setFirstResultGuide(true);
+        setMode("convert");
+      }
     } catch (error) {
       if (uploadRequest !== uploadRequestRef.current) return;
       const message = error instanceof Error ? error.message : "Image upload failed.";
@@ -1172,15 +1184,23 @@ export function PixelStudio() {
     setPaletteOpen(open);
   };
 
+  const dismissFirstResultGuide = () => {
+    setFirstResultGuide(false);
+    localStorage.setItem(FIRST_RESULT_GUIDE_KEY, "dismissed");
+  };
+
   const convertProps = {
     source,
     method,
     inputAdjustments,
     preserveTransparency,
     alphaThreshold,
+    firstResultGuide,
+    onDismissFirstResultGuide: dismissFirstResultGuide,
     onMethodChange: (nextMethod: ConversionMethod) => {
       setMethod(nextMethod);
       updateMatchingPalette(activePalette);
+      if (firstResultGuide) dismissFirstResultGuide();
     },
     onInputAdjustmentsChange: (nextAdjustments: InputAdjustments) => {
       setInputAdjustments(nextAdjustments);
@@ -1310,7 +1330,7 @@ export function PixelStudio() {
                 <span className="sr-only">Undo</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Undo</TooltipContent>
+            <TooltipContent>Undo · ⌘/Ctrl Z</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -1324,8 +1344,41 @@ export function PixelStudio() {
                 <span className="sr-only">Redo</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Redo</TooltipContent>
+            <TooltipContent>Redo · ⌘/Ctrl Shift Z</TooltipContent>
           </Tooltip>
+          <Popover>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon-sm" aria-label="Open shortcuts and help">
+                    <HelpCircle />
+                  </Button>
+                </PopoverTrigger>
+              </TooltipTrigger>
+              <TooltipContent>Shortcuts and help</TooltipContent>
+            </Tooltip>
+            <PopoverContent align="end" className="w-[min(22rem,calc(100vw-2rem))] p-0">
+              <div className="border-b-2 p-4">
+                <p className="font-heading text-base font-bold">Shortcuts</p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  Switch tools without leaving the canvas. Shortcuts pause while you type in a field.
+                </p>
+              </div>
+              <dl className="grid grid-cols-[1fr_auto] gap-x-6 gap-y-3 p-4 text-xs">
+                <dt>Undo / redo</dt><dd className="font-mono text-muted-foreground">⌘/Ctrl Z · Shift Z</dd>
+                <dt>Paint tools</dt><dd className="font-mono text-muted-foreground">P · F · I · E</dd>
+                <dt>Select</dt><dd className="font-mono text-muted-foreground">S</dd>
+                <dt>Move cell cursor</dt><dd className="font-mono text-muted-foreground">Arrow keys</dd>
+                <dt>Use active tool</dt><dd className="font-mono text-muted-foreground">Enter</dd>
+                <dt>Pan canvas</dt><dd className="font-mono text-muted-foreground">Space + drag</dd>
+              </dl>
+              <div className="border-t-2 p-3">
+                <Button asChild variant="link" size="sm" className="h-auto px-1">
+                  <Link href="/learn" target="_blank" rel="noreferrer">Open the learning lab</Link>
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
           <span className="mx-1 h-4 w-px bg-border" />
           <div className="hidden sm:block">
             <UploadDropzone
@@ -1347,7 +1400,7 @@ export function PixelStudio() {
             </SheetTrigger>
             <SheetContent
               side="bottom"
-              className="overflow-hidden rounded-t-xl p-0 data-[side=bottom]:h-[82svh] data-[side=bottom]:max-h-[82svh]"
+              className="overflow-hidden rounded-none p-0 data-[side=bottom]:h-[82svh] data-[side=bottom]:max-h-[82svh]"
             >
               <SheetHeader className="border-b text-left">
                 <SheetTitle>Controls</SheetTitle>

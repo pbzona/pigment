@@ -102,7 +102,7 @@ export function UploadDropzone({
             Turn an image into pixels.
           </span>
           <span className="mt-3 max-w-md text-sm leading-6 text-muted-foreground">
-            Drop a PNG, JPEG, or WebP here, or click to choose one.
+            Drop a PNG, JPEG, WebP, or GIF here, or click to choose one.
           </span>
           <span className="mt-8 inline-flex items-center gap-2 text-xs text-muted-foreground">
             <LockKeyhole className="size-3.5" />
