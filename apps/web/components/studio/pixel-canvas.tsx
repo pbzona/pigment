@@ -80,6 +80,11 @@ export const increaseCanvasZoom = (zoom: number) => {
   return Math.min(MAX_ZOOM, zoom + 2);
 };
 
+export const shouldRefitCanvas = (
+  previous: Readonly<{ width: number; height: number }>,
+  next: Readonly<{ width: number; height: number }>,
+) => previous.width !== next.width || previous.height !== next.height;
+
 export const fittedCanvasZoom = (
   viewportWidth: number,
   viewportHeight: number,
@@ -183,12 +188,14 @@ export function PixelCanvas({
   onCropChange,
   onCropApply,
 }: PixelCanvasProps) {
+  const containerRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const selectionCanvasRef = useRef<HTMLCanvasElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const gestureRef = useRef<CanvasGesture | null>(null);
   const panGestureRef = useRef<PanGesture | null>(null);
   const spaceHeldRef = useRef(false);
+  const zoomRef = useRef(12);
   const [zoom, setZoom] = useState(12);
   const [showGrid, setShowGrid] = useState(true);
   const [spaceHeld, setSpaceHeld] = useState(false);
@@ -196,6 +203,10 @@ export function PixelCanvas({
   const [keyboardCell, setKeyboardCell] = useState({ x: 0, y: 0 });
   const [keyboardActive, setKeyboardActive] = useState(false);
   const [selectionPreview, setSelectionPreview] = useState<SelectionMask | null>(null);
+
+  useEffect(() => {
+    zoomRef.current = zoom;
+  }, [zoom]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -269,31 +280,26 @@ export function PixelCanvas({
     };
   }, []);
 
-  const fitCanvas = () => {
+  const applyFittedZoom = () => {
     const viewport = viewportRef.current;
     if (!viewport) return;
-    setZoom(fittedCanvasZoom(viewport.clientWidth, viewport.clientHeight, width, height));
+    const nextZoom = fittedCanvasZoom(viewport.clientWidth, viewport.clientHeight, width, height);
+    zoomRef.current = nextZoom;
+    setZoom(nextZoom);
   };
 
-  const fitCanvasToViewport = useEffectEvent(fitCanvas);
+  const fitCanvas = () => {
+    applyFittedZoom();
+  };
+
+  const fitCanvasToViewport = useEffectEvent(applyFittedZoom);
 
   useEffect(() => {
-    const viewport = viewportRef.current;
-    if (!viewport) return;
+    const container = containerRef.current;
+    if (!container) return;
 
-    let frame = 0;
-    const fit = () => {
-      window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(fitCanvasToViewport);
-    };
-    const observer = new ResizeObserver(fit);
-    observer.observe(viewport);
-    fit();
-
-    return () => {
-      observer.disconnect();
-      window.cancelAnimationFrame(frame);
-    };
+    const frame = window.requestAnimationFrame(fitCanvasToViewport);
+    return () => window.cancelAnimationFrame(frame);
   }, [width, height]);
 
   const cellFromPointer = (
@@ -622,11 +628,23 @@ export function PixelCanvas({
   };
 
   return (
-    <section className="relative min-h-0 min-w-0 flex-1 overflow-hidden bg-[#0e0f11]">
+    <section ref={containerRef} className="relative min-h-0 min-w-0 flex-1 overflow-hidden bg-[#0e0f11]">
       <div className="absolute top-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 border-2 border-border bg-card p-1 shadow-[4px_4px_0_var(--shadow)]">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon-sm" className="size-11 sm:size-8" onClick={() => setZoom((value) => Math.max(MIN_ZOOM, value - (value <= 2 ? 0.25 : 2)))}>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="size-11 sm:size-8"
+              onClick={() => {
+                const nextZoom = Math.max(
+                  MIN_ZOOM,
+                  zoomRef.current - (zoomRef.current <= 2 ? 0.25 : 2),
+                );
+                zoomRef.current = nextZoom;
+                setZoom(nextZoom);
+              }}
+            >
               <Minus />
               <span className="sr-only">Zoom out</span>
             </Button>
@@ -636,7 +654,16 @@ export function PixelCanvas({
         <span className="w-11 text-center font-mono text-[10px] tabular-nums">{Number(zoom.toFixed(2))}×</span>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon-sm" className="size-11 sm:size-8" onClick={() => setZoom(increaseCanvasZoom)}>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="size-11 sm:size-8"
+              onClick={() => {
+                const nextZoom = increaseCanvasZoom(zoomRef.current);
+                zoomRef.current = nextZoom;
+                setZoom(nextZoom);
+              }}
+            >
               <Plus />
               <span className="sr-only">Zoom in</span>
             </Button>

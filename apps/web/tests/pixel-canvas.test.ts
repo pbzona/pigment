@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   fittedCanvasZoom,
   increaseCanvasZoom,
+  shouldRefitCanvas,
 } from "@/components/studio/pixel-canvas";
 
 describe("canvas zoom", () => {
@@ -34,5 +35,17 @@ describe("canvas zoom", () => {
 
     expect(zoom).toBe(8);
     expect(64 * zoom + 130).toBeLessThanOrEqual(668);
+  });
+
+  it("lets a fitted high-resolution grid advance by a visible zoom step", () => {
+    const fitted = fittedCanvasZoom(1040, 900, 512, 512);
+
+    expect(fitted).toBe(1);
+    expect(increaseCanvasZoom(fitted)).toBeGreaterThanOrEqual(fitted * 1.25);
+  });
+
+  it("does not refit when zoom only changes the scrollable canvas content", () => {
+    expect(shouldRefitCanvas({ width: 832, height: 948 }, { width: 832, height: 948 })).toBe(false);
+    expect(shouldRefitCanvas({ width: 832, height: 948 }, { width: 640, height: 948 })).toBe(true);
   });
 });

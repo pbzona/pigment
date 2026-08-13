@@ -340,7 +340,7 @@ export function PaletteDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[88svh] w-[calc(100%-1.5rem)] max-w-2xl overflow-hidden rounded-none p-0 sm:max-w-2xl">
+      <DialogContent className="max-h-[90svh] w-[calc(100%-1.5rem)] max-w-5xl overflow-hidden rounded-none p-0 sm:max-w-5xl">
         <DialogHeader className="border-b px-5 py-4">
           <DialogTitle>Palette workshop</DialogTitle>
           <DialogDescription>Choose, import, or tune the colors used by every pixel.</DialogDescription>
@@ -355,7 +355,7 @@ export function PaletteDialog({
           </TabsList>
 
           <TabsContent value="library" className="min-h-0">
-            <ScrollArea className="h-[52svh] max-h-[470px]">
+            <ScrollArea className="h-[62svh] max-h-[650px]">
               <div className="space-y-6 p-5">
                 <section>
                   <div className="mb-3 flex items-baseline justify-between gap-3">
@@ -364,7 +364,7 @@ export function PaletteDialog({
                       Built-in and local
                     </span>
                   </div>
-                  <div className="grid gap-2 sm:grid-cols-2">
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {palettes.map((palette) => (
                       <PaletteCard
                         key={paletteIdentity(palette)}
@@ -395,7 +395,7 @@ export function PaletteDialog({
           </TabsContent>
 
           <TabsContent value="palette-town" className="min-h-0">
-            <ScrollArea className="h-[52svh] max-h-[470px]">
+            <ScrollArea className="h-[62svh] max-h-[650px]">
               <div className="p-5">
                 <div className="mb-4">
                   <h3 className="text-sm font-medium">Discover palettes</h3>
@@ -627,7 +627,7 @@ export function PaletteDialog({
                     No palettes match these filters.
                   </div>
                 ) : (
-                  <div className={cn("mt-3 grid gap-2 sm:grid-cols-2", remoteLoading && "opacity-60")}>
+                  <div className={cn("mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3", remoteLoading && "opacity-60")}>
                     {remotePalettes.map((palette) => (
                       <PaletteCard
                         key={paletteIdentity(palette)}

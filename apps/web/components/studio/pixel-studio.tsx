@@ -99,6 +99,7 @@ import type {
   SelectionTool,
   SourceMeta,
 } from "./types";
+import { sampleImageFile } from "./sample-images";
 import { UploadDropzone } from "./upload-dropzone";
 
 const CUSTOM_PALETTES_KEY = "pixide:palettes:v1";
@@ -1167,6 +1168,13 @@ export function PixelStudio() {
       <div className="min-h-svh bg-background text-foreground">
         <UploadDropzone
           onFile={(file) => void handleImageFile(file)}
+          onSample={(sample) => {
+            void sampleImageFile(sample)
+              .then(handleImageFile)
+              .catch((error: unknown) => {
+                setUploadError(error instanceof Error ? error.message : "Pigment could not open that sample.");
+              });
+          }}
           error={uploadError}
           disabled={uploading}
         />

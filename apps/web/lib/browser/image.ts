@@ -8,7 +8,7 @@ export const MAX_SOURCE_PIXELS = 40_000_000;
 
 export const decodeImageFile = async (file: File): Promise<DecodedImage> => {
   if (!file.type.startsWith("image/")) {
-    throw new Error("Choose a PNG, JPEG, or WebP image.");
+    throw new Error("Choose a PNG, JPEG, WebP, or GIF image.");
   }
   if (file.type === "image/svg+xml") {
     throw new Error("SVG files are not supported. Export the image as PNG first.");
