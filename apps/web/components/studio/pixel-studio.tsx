@@ -1309,7 +1309,7 @@ export function PixelStudio() {
         <div className="flex items-center gap-1">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button asChild variant="ghost" size="icon-sm">
+              <Button asChild variant="ghost" size="icon-sm" className="hidden sm:inline-flex">
                 <Link href="/learn" target="_blank" rel="noreferrer">
                   <BookOpenText />
                   <span className="sr-only">Open learning lab in a new tab</span>
@@ -1323,6 +1323,7 @@ export function PixelStudio() {
               <Button
                 variant="ghost"
                 size="icon-sm"
+                className="size-11 sm:size-8"
                 disabled={!canUndo || uploading}
                 onClick={undo}
               >
@@ -1337,6 +1338,7 @@ export function PixelStudio() {
               <Button
                 variant="ghost"
                 size="icon-sm"
+                className="size-11 sm:size-8"
                 disabled={!canRedo || uploading}
                 onClick={redo}
               >
@@ -1350,7 +1352,7 @@ export function PixelStudio() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon-sm" aria-label="Open shortcuts and help">
+                  <Button variant="ghost" size="icon-sm" className="size-11 sm:size-8" aria-label="Open shortcuts and help">
                     <HelpCircle />
                   </Button>
                 </PopoverTrigger>
@@ -1392,6 +1394,7 @@ export function PixelStudio() {
               <Button
                 variant="outline"
                 size="icon-sm"
+                className="size-11 sm:size-8"
                 disabled={uploading}
               >
                 <SlidersHorizontal />
@@ -1431,7 +1434,7 @@ export function PixelStudio() {
           </Sheet> : null}
           {!desktopControls ? <Sheet open={outputOpen} onOpenChange={setOutputOpen}>
             <SheetTrigger asChild>
-              <Button variant="outline" size="icon-sm" disabled={uploading}>
+              <Button variant="outline" size="icon-sm" className="size-11 sm:size-8" disabled={uploading}>
                 <PanelRight />
                 <span className="sr-only">Open output controls</span>
               </Button>
@@ -1449,6 +1452,7 @@ export function PixelStudio() {
           </Sheet> : null}
           <Button
             aria-label="Export PNG"
+            className="size-11 px-0 sm:h-10 sm:w-auto sm:px-4"
             disabled={!finalColorIds || processing || uploading}
             onClick={() => setExportOpen(true)}
           >

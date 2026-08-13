@@ -63,6 +63,12 @@ export default async function PalettesPage({
           <PigMascot className="catalog-mascot" />
         </div>
 
+        <nav className="catalog-nav" aria-label="Pigment sections">
+          <Link href="/">Home</Link>
+          <Link href="/learn">Learn</Link>
+          <Link href="/studio" prefetch={false}>Studio</Link>
+        </nav>
+
         <dl className="header-stats">
           <div>
             <dt>Palettes</dt>

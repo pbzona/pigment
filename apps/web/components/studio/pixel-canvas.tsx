@@ -626,7 +626,7 @@ export function PixelCanvas({
       <div className="absolute top-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 border-2 border-border bg-card p-1 shadow-[4px_4px_0_var(--shadow)]">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon-sm" onClick={() => setZoom((value) => Math.max(MIN_ZOOM, value - (value <= 2 ? 0.25 : 2)))}>
+            <Button variant="ghost" size="icon-sm" className="size-11 sm:size-8" onClick={() => setZoom((value) => Math.max(MIN_ZOOM, value - (value <= 2 ? 0.25 : 2)))}>
               <Minus />
               <span className="sr-only">Zoom out</span>
             </Button>
@@ -636,7 +636,7 @@ export function PixelCanvas({
         <span className="w-11 text-center font-mono text-[10px] tabular-nums">{Number(zoom.toFixed(2))}×</span>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon-sm" onClick={() => setZoom(increaseCanvasZoom)}>
+            <Button variant="ghost" size="icon-sm" className="size-11 sm:size-8" onClick={() => setZoom(increaseCanvasZoom)}>
               <Plus />
               <span className="sr-only">Zoom in</span>
             </Button>
@@ -646,7 +646,7 @@ export function PixelCanvas({
         <span className="mx-1 h-4 w-px bg-border" />
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon-sm">
+            <Button variant="ghost" size="icon-sm" className="size-11 sm:size-8">
               <Columns2 />
               <span className="sr-only">Compare source and pixel output</span>
             </Button>
@@ -669,7 +669,7 @@ export function PixelCanvas({
         </Popover>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon-sm" onClick={fitCanvas}>
+            <Button variant="ghost" size="icon-sm" className="size-11 sm:size-8" onClick={fitCanvas}>
               <Maximize2 />
               <span className="sr-only">Fit canvas</span>
             </Button>
@@ -681,6 +681,7 @@ export function PixelCanvas({
             <Button
               variant={crop ? "secondary" : "ghost"}
               size="icon-sm"
+              className="size-11 sm:size-8"
               disabled={cropping}
               aria-pressed={crop !== null}
               onClick={() =>
@@ -700,6 +701,7 @@ export function PixelCanvas({
             <Button
               variant={showGrid ? "secondary" : "ghost"}
               size="icon-sm"
+              className="size-11 sm:size-8"
               onClick={() => setShowGrid((value) => !value)}
             >
               <Grid3X3 />
@@ -713,6 +715,7 @@ export function PixelCanvas({
             <Button
               variant={showGuides ? "secondary" : "ghost"}
               size="icon-sm"
+              className="size-11 sm:size-8"
               aria-pressed={showGuides}
             >
               <Grid2X2 />

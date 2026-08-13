@@ -15,10 +15,10 @@ function BrandMark({ className, ...props }: BrandMarkProps) {
       )}
       {...props}
     >
-      <span className="bg-yellow" />
+      <span className="bg-[var(--accent-yellow)]" />
       <span className="bg-primary" />
-      <span className="bg-blue" />
-      <span className="bg-green" />
+      <span className="bg-[var(--accent-blue)]" />
+      <span className="bg-[var(--accent-green)]" />
     </span>
   );
 }

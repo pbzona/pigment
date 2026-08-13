@@ -34,7 +34,7 @@ Accounts may be added later for optional persistence or synchronization, but acc
 - Artwork exports as a crisp PNG at 1×, 2×, 4×, or 8× logical-pixel scale. These current import and export formats must be preserved when capabilities expand.
 - Palettes can be extracted, edited, reordered, adjusted in perceptual color space, loaded from the catalog, and stored locally in the browser.
 - Catalog palettes contain no more than 64 colors. The shared catalog may use PostgreSQL, but private artwork processing remains local.
-- Pigment is free and open source under the MIT License. The repository must include and preserve the applicable MIT license notice; it is currently missing a LICENSE file and package license metadata.
+- Pigment is free and open source under the MIT License. The repository includes the applicable MIT license notice and declares MIT package metadata; both must be preserved.
 - The web app and `packages/ui` share one product context. `packages/ui` provides the reusable React components and styles that support Pigment's interfaces.
 
 ## Brand Commitments
@@ -52,7 +52,7 @@ Accounts may be added later for optional persistence or synchronization, but acc
 - `apps/web/palettes/` contains the palette-strip source assets used by the catalog.
 - `assets/pigment-pig.svg`, `packages/ui/src/pig-mascot.tsx`, and `packages/ui/src/brand-mark.tsx` are existing brand assets.
 - Current code demonstrates local image processing and PNG export. No testimonials, customer claims, usage benchmarks, or formal product research are on hand and future work must not fabricate them.
-- The product owner confirmed MIT licensing, but the repository currently has no LICENSE file. This is an implementation gap, not evidence of a different license.
+- The product owner confirmed MIT licensing. `LICENSE` and the workspace package metadata record that commitment.
 
 ## Product Principles
 

@@ -114,7 +114,7 @@ export function QuantizationLab() {
 
   return (
     <div className="min-h-svh bg-background text-foreground">
-      <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-foreground/10 bg-background/95 px-4 backdrop-blur sm:px-6">
+      <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b-2 border-border bg-background px-4 sm:px-6">
         <Link href="/" className="flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <BrandMark />
           <span className="text-xs font-semibold tracking-[-0.02em]">PIGMENT</span>
@@ -142,10 +142,7 @@ export function QuantizationLab() {
           />
           <div className="relative mx-auto grid min-h-[calc(100svh-3.5rem)] max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(22rem,0.9fr)] lg:px-8">
             <div className="max-w-3xl">
-              <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.18em] text-primary">
-                <FlaskConical className="size-4" />
-                Interactive pixelation guide
-              </div>
+              <FlaskConical className="size-5 text-primary" aria-hidden="true" />
               <h1 className="mt-6 text-balance text-5xl font-medium leading-[0.95] tracking-[-0.065em] sm:text-7xl lg:text-[5.6rem]">
                 Learn how Pigment converts an image to pixels.
               </h1>
@@ -179,7 +176,7 @@ export function QuantizationLab() {
 
             <div className="relative mx-auto w-full max-w-md lg:mr-0">
               <div className="absolute -left-5 -top-5 size-20 border-l border-t border-primary/55" aria-hidden="true" />
-              <div className="border border-foreground/15 bg-card p-4 shadow-[12px_12px_0_0_rgba(255,255,255,0.045)] sm:p-6">
+              <div className="border-2 border-border bg-card p-4 shadow-[6px_6px_0_var(--shadow)] sm:p-6">
                 <div className="mb-5 flex items-center justify-between">
                   <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">Example image / 8×8</span>
                   <span className="font-mono text-[9px] text-primary">RGBA → ID</span>
@@ -211,7 +208,7 @@ export function QuantizationLab() {
           </div>
         </section>
 
-        <div ref={mobileNavRef} className="sticky top-14 z-40 overflow-x-auto border-b border-foreground/10 bg-background/95 backdrop-blur lg:hidden">
+        <div ref={mobileNavRef} className="sticky top-14 z-40 overflow-x-auto border-b-2 border-border bg-background lg:hidden">
           <LearningNav method={method} onMethodChange={changeMethod} mobile />
         </div>
 
