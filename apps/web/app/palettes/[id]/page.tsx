@@ -7,6 +7,7 @@ import { parsePaletteId } from "@pigment/palette-catalog";
 import { getPalette } from "@pigment/palette-catalog/server/runtime";
 
 import { CopyColorButton } from "@/components/catalog/copy-color-button";
+import { SiteHeader } from "@/components/site-header";
 import { FavoriteButton } from "@/components/catalog/favorite-button";
 
 function formatBytes(bytes: number) {
@@ -56,7 +57,9 @@ export default async function PaletteDetail({
   if (!palette) notFound();
 
   return (
-    <main className="detail-shell">
+    <>
+      <SiteHeader active="palettes" context="Palette record" />
+      <main className="detail-shell">
       <nav className="detail-nav" aria-label="Breadcrumb">
         <Link href="/palettes">← All palettes</Link>
         <span>PT-{String(palette.id).padStart(3, "0")}</span>
@@ -64,7 +67,6 @@ export default async function PaletteDetail({
 
       <header className="detail-header">
         <div className="detail-heading">
-          <p className="eyebrow">Palette record</p>
           <h1>{palette.displayName}</h1>
           <p>{palette.filename}</p>
         </div>
@@ -186,6 +188,7 @@ export default async function PaletteDetail({
           </div>
         </dl>
       </section>
-    </main>
+      </main>
+    </>
   );
 }

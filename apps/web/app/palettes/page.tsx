@@ -3,8 +3,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import type { RawSearchParams } from "@pigment/palette-catalog";
 import { getCatalogPage } from "@pigment/palette-catalog/server/runtime";
-import { BrandMark } from "@pigment/ui/brand-mark";
-import { PigMascot } from "@pigment/ui/pig-mascot";
+import { SiteHeader } from "@/components/site-header";
 
 import { ColorFilter } from "@/components/catalog/color-filter";
 import { Pagination } from "@/components/catalog/pagination";
@@ -52,23 +51,10 @@ export default async function PalettesPage({
   }
 
   return (
-    <main className="site-shell">
-      <header className="site-header">
-        <div className="brand-lockup">
-          <BrandMark />
-          <div>
-            <p className="eyebrow">Pigment color archive</p>
-            <p className="brand-name">Palettes</p>
-          </div>
-          <PigMascot className="catalog-mascot" />
-        </div>
-
-        <nav className="catalog-nav" aria-label="Pigment sections">
-          <Link href="/">Home</Link>
-          <Link href="/learn">Learn</Link>
-          <Link href="/studio" prefetch={false}>Studio</Link>
-        </nav>
-
+    <>
+      <SiteHeader active="palettes" context="Color archive" />
+      <main className="site-shell">
+      <header className="catalog-summary">
         <dl className="header-stats">
           <div>
             <dt>Palettes</dt>
@@ -90,7 +76,12 @@ export default async function PalettesPage({
       </header>
 
       <section className="catalog-intro" aria-labelledby="catalog-heading">
-        <p className="section-index">01 / CATALOG</p>
+        <div aria-hidden="true" className="grid size-12 grid-cols-2 border-2 border-border shadow-[3px_3px_0_var(--primary)]">
+          <span className="bg-[var(--accent-yellow)]" />
+          <span className="bg-primary" />
+          <span className="bg-[var(--accent-blue)]" />
+          <span className="bg-[var(--accent-green)]" />
+        </div>
         <div>
           <h1 id="catalog-heading">Find the color system you already saved.</h1>
           <p>
@@ -200,8 +191,8 @@ export default async function PalettesPage({
       </Form>
 
       <div className="results-toolbar">
-        <p className="section-index">
-          02 / {catalog.filters.favoritesOnly ? "FAVORITES" : "RESULTS"}
+        <p className="font-mono text-xs font-semibold uppercase tracking-[0.08em] text-primary">
+          {catalog.filters.favoritesOnly ? "Favorite palettes" : "Palette results"}
         </p>
         <p>
           Showing <strong>{firstResult}</strong>–<strong>{lastResult}</strong> of{" "}
@@ -235,6 +226,7 @@ export default async function PalettesPage({
         <span>{stats.uniqueColorCount} distinct colors</span>
         <span>Source: palettes/</span>
       </footer>
-    </main>
+      </main>
+    </>
   );
 }

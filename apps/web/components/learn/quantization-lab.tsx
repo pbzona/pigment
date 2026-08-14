@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { ArrowDown, ArrowUpRight, FlaskConical } from "lucide-react";
+import { ArrowDown, FlaskConical } from "lucide-react";
 
-import { BrandMark } from "@pigment/ui/brand-mark";
 import { Button } from "@pigment/ui/button";
+import { SiteHeader } from "@/components/site-header";
 import {
   CONVERSION_METHODS,
   type ConversionMethod,
@@ -114,20 +113,7 @@ export function QuantizationLab() {
 
   return (
     <div className="min-h-svh bg-background text-foreground">
-      <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b-2 border-border bg-background px-4 sm:px-6">
-        <Link href="/" className="flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-          <BrandMark />
-          <span className="text-xs font-semibold tracking-[-0.02em]">PIGMENT</span>
-          <span className="hidden h-4 w-px bg-border sm:block" />
-          <span className="hidden font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground sm:block">Pixelation guide</span>
-        </Link>
-        <Button asChild variant="outline" size="sm">
-          <Link href="/studio" prefetch={false}>
-            Open studio
-            <ArrowUpRight data-icon="inline-end" />
-          </Link>
-        </Button>
-      </header>
+      <SiteHeader active="learn" context="Pixelation guide" />
 
       <main>
         <section className="relative overflow-hidden border-b border-foreground/10">

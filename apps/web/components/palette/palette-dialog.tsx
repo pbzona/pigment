@@ -26,7 +26,6 @@ import {
 } from "@pigment/ui/dialog";
 import { Input } from "@pigment/ui/input";
 import { Label } from "@pigment/ui/label";
-import { ScrollArea } from "@pigment/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -340,7 +339,7 @@ export function PaletteDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90svh] w-[calc(100%-1.5rem)] max-w-5xl overflow-hidden rounded-none p-0 sm:max-w-5xl">
+      <DialogContent className="w-[calc(100%-1.5rem)] max-w-6xl overflow-visible rounded-none p-0 sm:max-w-6xl">
         <DialogHeader className="border-b px-5 py-4">
           <DialogTitle>Palette workshop</DialogTitle>
           <DialogDescription>Choose, import, or tune the colors used by every pixel.</DialogDescription>
@@ -355,8 +354,7 @@ export function PaletteDialog({
           </TabsList>
 
           <TabsContent value="library" className="min-h-0">
-            <ScrollArea className="h-[62svh] max-h-[650px]">
-              <div className="space-y-6 p-5">
+            <div className="space-y-6 p-5">
                 <section>
                   <div className="mb-3 flex items-baseline justify-between gap-3">
                     <h3 className="text-sm font-medium">Your palettes</h3>
@@ -364,7 +362,7 @@ export function PaletteDialog({
                       Built-in and local
                     </span>
                   </div>
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                     {palettes.map((palette) => (
                       <PaletteCard
                         key={paletteIdentity(palette)}
@@ -390,13 +388,11 @@ export function PaletteDialog({
                     </button>
                   </div>
                 </section>
-              </div>
-            </ScrollArea>
+            </div>
           </TabsContent>
 
           <TabsContent value="palette-town" className="min-h-0">
-            <ScrollArea className="h-[62svh] max-h-[650px]">
-              <div className="p-5">
+            <div className="p-5">
                 <div className="mb-4">
                   <h3 className="text-sm font-medium">Discover palettes</h3>
                   <p className="mt-1 text-xs text-muted-foreground">
@@ -454,7 +450,7 @@ export function PaletteDialog({
                 </div>
 
                 {remoteFiltersOpen ? (
-                  <div className="mt-3 space-y-4 border bg-muted/20 p-3">
+                  <div className="mt-3 space-y-3 border bg-muted/20 p-3">
                     <fieldset>
                       <legend className="mb-2 text-xs font-medium">Tags match all selected</legend>
                       {remoteTags.length > 0 ? (
@@ -493,7 +489,7 @@ export function PaletteDialog({
                       )}
                     </fieldset>
 
-                    <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="grid gap-2 sm:grid-cols-3">
                       <fieldset>
                         <legend className="mb-2 text-xs font-medium">Color count</legend>
                         <div className="grid grid-cols-2 gap-2">
@@ -627,7 +623,7 @@ export function PaletteDialog({
                     No palettes match these filters.
                   </div>
                 ) : (
-                  <div className={cn("mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3", remoteLoading && "opacity-60")}>
+                  <div className={cn("mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4", remoteLoading && "opacity-60")}>
                     {remotePalettes.map((palette) => (
                       <PaletteCard
                         key={paletteIdentity(palette)}
@@ -662,13 +658,11 @@ export function PaletteDialog({
                     </Button>
                   </div>
                 ) : null}
-              </div>
-            </ScrollArea>
+            </div>
           </TabsContent>
 
           <TabsContent value="edit" className="min-h-0">
-            <ScrollArea className="h-[52svh] max-h-[470px]">
-              <div className="space-y-6 p-5">
+            <div className="space-y-6 p-5">
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={onDuplicate}>
                     <Copy data-icon="inline-start" /> Duplicate
@@ -780,8 +774,7 @@ export function PaletteDialog({
                   ) : null}
                   {error ? <p className="mt-3 text-xs text-destructive">{error}</p> : null}
                 </div>
-              </div>
-            </ScrollArea>
+            </div>
           </TabsContent>
 
           <TabsContent value="import" className="min-h-0">

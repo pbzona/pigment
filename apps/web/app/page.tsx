@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 import { BrandMark } from "@pigment/ui/brand-mark";
-import { Button } from "@pigment/ui/button";
+import { SiteHeader } from "@/components/site-header";
 import { CONVERSION_METHODS } from "@pigment/quantization/methods";
 
 export const metadata: Metadata = {
@@ -65,25 +65,7 @@ function PixelGrid({
 export default function Home() {
   return (
     <div className="min-h-svh bg-background text-foreground">
-      <header className="sticky top-0 z-50 border-b border-foreground/10 bg-background/90 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-3">
-            <BrandMark />
-            <span className="text-xs font-semibold tracking-[-0.02em]">PIGMENT</span>
-          </Link>
-          <nav className="flex items-center gap-1" aria-label="Main navigation">
-            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-              <Link href="/learn">Learn</Link>
-            </Button>
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/palettes">Palettes</Link>
-            </Button>
-            <Button asChild size="sm">
-              <Link href="/studio" prefetch={false}>Create</Link>
-            </Button>
-          </nav>
-        </div>
-      </header>
+      <SiteHeader active="home" />
 
       <main>
         <section className="relative overflow-hidden border-b border-foreground/10">
@@ -99,9 +81,7 @@ export default function Home() {
           />
           <div className="relative mx-auto grid min-h-[calc(100svh-3.5rem)] max-w-7xl items-center gap-14 px-4 py-16 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(24rem,.95fr)] lg:px-8">
             <div className="max-w-3xl">
-              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary">
-                Pigment color tools
-              </p>
+              <Palette className="size-6 text-primary" aria-hidden="true" />
               <h1 className="mt-6 text-balance text-5xl font-medium leading-[0.94] tracking-[-0.065em] sm:text-7xl lg:text-[5.5rem]">
                 Make pixels with intentional color.
               </h1>
@@ -112,18 +92,18 @@ export default function Home() {
                 <Link
                   href="/studio"
                   prefetch={false}
-                  className="group flex min-h-28 items-center justify-between border border-primary/55 bg-primary/10 p-5 transition-colors hover:bg-primary/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="group flex min-h-28 items-center justify-between border-2 border-border bg-primary p-5 text-primary-foreground shadow-[4px_4px_0_var(--shadow)] transition-[transform,box-shadow] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <span>
-                    <Brush className="mb-3 size-5 text-primary" />
+                    <Brush className="mb-3 size-5" />
                     <span className="block text-base font-medium">Create pixel art</span>
-                    <span className="mt-1 block text-xs text-muted-foreground">Open the browser editor</span>
+                    <span className="mt-1 block text-xs opacity-70">Open the browser editor</span>
                   </span>
                   <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
                 </Link>
                 <Link
                   href="/learn"
-                  className="group flex min-h-28 items-center justify-between border border-primary/55 bg-primary/10 p-5 transition-colors hover:bg-primary/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="group flex min-h-28 items-center justify-between border-2 border-border bg-card p-5 shadow-[4px_4px_0_var(--shadow)] transition-[transform,box-shadow] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <span>
                     <BookOpenText className="mb-3 size-5 text-primary" />
@@ -137,7 +117,7 @@ export default function Home() {
 
             <div className="relative mx-auto w-full max-w-lg lg:mr-0">
               <div className="absolute -left-5 -top-5 size-24 border-l border-t border-primary/55" aria-hidden="true" />
-              <div className="border border-foreground/15 bg-card p-4 shadow-[12px_12px_0_0_rgba(255,255,255,0.045)] sm:p-6">
+              <div className="border-2 border-border bg-card p-4 shadow-[8px_8px_0_var(--shadow)] sm:p-6">
                 <div className="mb-5 flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
                   <span>Source image</span>
                   <span className="text-primary">Image → color IDs</span>
@@ -168,8 +148,7 @@ export default function Home() {
           <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
             <div className="grid gap-10 lg:grid-cols-[.72fr_1.28fr]">
               <div>
-                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary">How it works</p>
-                <h2 className="mt-4 max-w-md text-4xl font-medium tracking-[-0.05em] sm:text-5xl">Automation you can inspect.</h2>
+                <h2 className="max-w-md text-4xl font-medium tracking-[-0.05em] sm:text-5xl">Automation you can inspect.</h2>
               </div>
               <div className="grid gap-px border border-foreground/10 bg-foreground/10 sm:grid-cols-3">
                 {[
@@ -198,8 +177,7 @@ export default function Home() {
           <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
             <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
               <div>
-                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary">Quantization methods</p>
-                <h2 className="mt-4 text-4xl font-medium tracking-[-0.05em] sm:text-5xl">One image, different decisions.</h2>
+                <h2 className="text-4xl font-medium tracking-[-0.05em] sm:text-5xl">One image, different decisions.</h2>
               </div>
             </div>
             <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

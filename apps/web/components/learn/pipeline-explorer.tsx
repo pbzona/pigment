@@ -101,8 +101,7 @@ export function PipelineExplorer() {
   return (
     <section id="pipeline" className="scroll-mt-24 border-t border-foreground/10 pt-16 sm:pt-24">
       <div className="mb-8 max-w-2xl">
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary">01 / Image pipeline</p>
-        <h2 className="mt-3 text-3xl font-medium tracking-[-0.045em] sm:text-5xl">Inspect one output cell through the pipeline.</h2>
+        <h2 className="text-3xl font-medium tracking-[-0.045em] sm:text-5xl">Inspect one output cell through the pipeline.</h2>
         <p className="mt-4 text-sm leading-6 text-muted-foreground sm:text-base">
           Select an output cell. Then select each processing step. The page highlights the source pixels and shows the calculated values.
         </p>
@@ -131,7 +130,7 @@ export function PipelineExplorer() {
         </div>
       </div>
 
-      <div className="mt-6 grid gap-6 border border-foreground/10 bg-card/45 p-4 sm:p-6 xl:grid-cols-[minmax(0,1fr)_15rem_minmax(0,1fr)] xl:items-center">
+      <div className="mt-6 grid gap-6 border-2 border-border bg-card p-4 shadow-[6px_6px_0_var(--shadow)] sm:p-6 xl:grid-cols-[minmax(0,1fr)_15rem_minmax(0,1fr)] xl:items-center">
         <div className="min-w-0">
           <div className="mb-3 flex items-center justify-between gap-3">
             <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Source / 8×8</span>
