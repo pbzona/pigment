@@ -527,7 +527,7 @@ export function PaletteDialog({
                           />
                           <Input
                             type="number"
-                            min={1}
+                            min={2}
                             max={64}
                             value={remoteMaxColors}
                             placeholder="Max"
