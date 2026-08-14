@@ -749,7 +749,7 @@ export function PixelCanvas({
               <span className="sr-only">Configure guidelines</span>
             </Button>
           </PopoverTrigger>
-          <PopoverContent align="end" className="w-64 rounded-none p-4">
+          <PopoverContent align="end" className="w-56 rounded-none p-4">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <Label htmlFor="canvas-guides">Guidelines</Label>
@@ -757,29 +757,21 @@ export function PixelCanvas({
               </div>
               <Switch id="canvas-guides" checked={showGuides} onCheckedChange={onShowGuidesChange} />
             </div>
-            <div className="mt-4 flex gap-2">
-              <Button
-                variant={guideColumns === 3 && guideRows === 3 ? "secondary" : "outline"}
-                size="xs"
-                onClick={() => {
-                  onGuideColumnsChange(3);
-                  onGuideRowsChange(3);
-                  onShowGuidesChange(true);
-                }}
-              >
-                Thirds · 3×3
-              </Button>
-              <Button
-                variant={guideColumns === 10 && guideRows === 10 ? "secondary" : "outline"}
-                size="xs"
-                onClick={() => {
-                  onGuideColumnsChange(10);
-                  onGuideRowsChange(10);
-                  onShowGuidesChange(true);
-                }}
-              >
-                Transfer · 10×10
-              </Button>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              {[3, 4].map((size) => (
+                <Button
+                  key={size}
+                  variant={guideColumns === size && guideRows === size ? "secondary" : "outline"}
+                  size="sm"
+                  onClick={() => {
+                    onGuideColumnsChange(size);
+                    onGuideRowsChange(size);
+                    onShowGuidesChange(true);
+                  }}
+                >
+                  {size}×{size}
+                </Button>
+              ))}
             </div>
             <div className="mt-4 grid grid-cols-2 gap-3">
               <label>
