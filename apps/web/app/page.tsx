@@ -107,10 +107,10 @@ export default function Home() {
             <div className="max-w-3xl">
               <Palette className="size-6 text-primary" aria-hidden="true" />
               <h1 className="mt-6 max-w-3xl text-balance text-5xl font-semibold leading-[0.94] tracking-[-0.04em] sm:text-7xl lg:text-[5.25rem]">
-                Turn images into pixels you can shape.
+                See how much image a few pixels can hold.
               </h1>
               <p className="mt-7 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-                Try different image algorithms, tune the palette, then refine the result cell by cell—all in your browser.
+                Reduce an image with different algorithms, reshape its palette, and refine what survives—cell by cell, in your browser.
               </p>
               <div className="mt-9 grid max-w-2xl gap-3 sm:grid-cols-2">
                 <Link
