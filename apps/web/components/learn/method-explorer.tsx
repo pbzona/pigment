@@ -578,10 +578,9 @@ export function MethodExplorer({ method, onMethodChange }: MethodExplorerProps) 
     <section id="methods" className="relative scroll-mt-24 border-t border-foreground/10 pt-16 sm:pt-24">
       {CONVERSION_METHODS.map((entry) => <span key={entry.slug} id={entry.slug} className="absolute -top-20" />)}
       <div className="mb-8 max-w-3xl">
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary">02 / Quantization methods</p>
-        <h2 className="mt-3 text-3xl font-medium tracking-[-0.045em] sm:text-5xl">Compare the methods.</h2>
+        <h2 className="text-3xl font-medium tracking-[-0.04em] sm:text-5xl">Compare the methods.</h2>
         <p className="mt-4 text-sm leading-6 text-muted-foreground sm:text-base">
-          Each method reduces source samples to one palette ID. Select a method and an output cell. Then review each calculation step.
+          Every method turns the same source pixels into one palette color differently. Pick a method and an output cell to follow its decisions.
         </p>
       </div>
 

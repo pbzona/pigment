@@ -65,7 +65,7 @@ export function ConvertPanel({
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <p className="text-xs font-medium">Source</p>
-            <p className="mt-1 text-[10px] text-muted-foreground">Sampled at {source.width}×{source.height} pixels.</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">Source: {source.width}×{source.height} pixels</p>
           </div>
         </div>
         <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
@@ -145,7 +145,7 @@ export function ConvertPanel({
               <SelectItem key={entry.value} value={entry.value} className="rounded-none py-2">
                 <span className="flex flex-col items-start">
                   <span>{entry.label}</span>
-                  <span className="text-[10px] text-muted-foreground">{entry.description}</span>
+                  <span className="text-[11px] text-muted-foreground">{entry.description}</span>
                 </span>
               </SelectItem>
             ))}

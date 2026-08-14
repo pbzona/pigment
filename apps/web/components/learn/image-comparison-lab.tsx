@@ -236,8 +236,7 @@ export function ImageComparisonLab() {
   return (
     <section id="compare" className="scroll-mt-24 border-t border-foreground/10 pt-16 sm:pt-24">
       <div className="mb-8 max-w-3xl">
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary">04 / Your image</p>
-        <h2 className="mt-3 text-3xl font-medium tracking-[-0.045em] sm:text-5xl">Compare two methods on your image.</h2>
+        <h2 className="text-3xl font-medium tracking-[-0.04em] sm:text-5xl">Put two methods side by side.</h2>
         <p className="mt-4 text-sm leading-6 text-muted-foreground sm:text-base">
           The two outputs use the same source, grid, palette, and transparency settings. Select a different method for each output.
         </p>

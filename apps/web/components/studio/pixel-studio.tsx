@@ -935,7 +935,7 @@ export function PixelStudio() {
     toast.success(
       shouldSelect
         ? `${action} ${colors.length} colors`
-        : `${action} palette added to the library`,
+        : `${action} palette added to your palettes`,
     );
   };
 
@@ -1331,7 +1331,7 @@ export function PixelStudio() {
           <span className="hidden h-4 w-px bg-border sm:block" />
           <div className="min-w-0">
             <p className="truncate text-xs font-medium">{source.name}</p>
-            <p className="font-mono text-[9px] uppercase tracking-[0.1em] text-muted-foreground">
+            <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
               {gridWidth}×{gridHeight} cells
             </p>
           </div>
@@ -1544,7 +1544,7 @@ export function PixelStudio() {
           <aside className="flex min-h-0 min-w-0 w-80 shrink-0 flex-col border-l bg-background">
             <div className="shrink-0 border-b px-4 py-3">
               <p className="text-xs font-medium">Output</p>
-              <p className="mt-0.5 text-[10px] text-muted-foreground">Cell grid and palette</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">Grid and palette</p>
             </div>
             <OutputSidebar {...outputProps} />
           </aside>

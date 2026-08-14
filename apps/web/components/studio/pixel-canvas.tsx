@@ -651,7 +651,7 @@ export function PixelCanvas({
           </TooltipTrigger>
           <TooltipContent>Zoom out</TooltipContent>
         </Tooltip>
-        <span className="w-11 text-center font-mono text-[10px] tabular-nums">{Number(zoom.toFixed(2))}×</span>
+        <span className="w-11 text-center font-mono text-[11px] tabular-nums">{Number(zoom.toFixed(2))}×</span>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -753,7 +753,7 @@ export function PixelCanvas({
             <div className="flex items-center justify-between gap-4">
               <div>
                 <Label htmlFor="canvas-guides">Guidelines</Label>
-                <p className="mt-1 text-[10px] text-muted-foreground">Editor only. Not included in export.</p>
+                <p className="mt-1 text-[11px] text-muted-foreground">Editor only—not included in export.</p>
               </div>
               <Switch id="canvas-guides" checked={showGuides} onCheckedChange={onShowGuidesChange} />
             </div>
@@ -775,7 +775,7 @@ export function PixelCanvas({
             </div>
             <div className="mt-4 grid grid-cols-2 gap-3">
               <label>
-                <span className="mb-1.5 block text-[10px] text-muted-foreground">Columns</span>
+                <span className="mb-1.5 block text-[11px] text-muted-foreground">Columns</span>
                 <Input
                   type="number"
                   min={2}
@@ -786,7 +786,7 @@ export function PixelCanvas({
                 />
               </label>
               <label>
-                <span className="mb-1.5 block text-[10px] text-muted-foreground">Rows</span>
+                <span className="mb-1.5 block text-[11px] text-muted-foreground">Rows</span>
                 <Input
                   type="number"
                   min={2}

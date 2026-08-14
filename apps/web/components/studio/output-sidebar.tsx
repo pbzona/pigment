@@ -95,6 +95,23 @@ export function OutputSidebar({
       : null;
   const matchingColorCount = palette.colors.length - excludedColorIds.size;
 
+  const insertMidpoint = (colorId: number) => {
+    const index = palette.colors.findIndex((swatch) => swatch.id === colorId);
+    const nextColor = palette.colors[index + 1];
+    if (!nextColor) return;
+    const result = insertMidpointSwatch(palette, colorId, nextColor.id);
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+    const newId = nextSwatchId(palette.colors);
+    const newColor = result.value.colors.find((color) => color.id === newId);
+    onPaletteChange(result.value);
+    onSelectedSwatchChange(newId);
+    if (newColor) setEditColor(newColor.hex);
+    setError(null);
+  };
+
   const updateColor = () => {
     if (selectedSwatchId === null) return;
     const result = replaceSwatch(palette, selectedSwatchId, editColor);
@@ -175,7 +192,7 @@ export function OutputSidebar({
               />
             </label>
           </div>
-          <div className="mt-1 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] gap-2 text-center font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+          <div className="mt-1 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] gap-2 text-center font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
             <span>width</span>
             <span className="w-8" />
             <span>height</span>
@@ -204,37 +221,48 @@ export function OutputSidebar({
                 const isolated = isolatedColorIds.has(swatch.id);
 
                 return (
-                  <button
-                    key={swatch.id}
-                    type="button"
-                    className={cn(
-                      "relative size-9 shrink-0 touch-manipulation border border-white/15 outline-offset-2 transition-transform hover:-translate-y-0.5 focus-visible:z-20 focus-visible:outline-2 focus-visible:outline-ring",
-                      excluded && "opacity-40 grayscale",
-                      isolated && "ring-2 ring-[#ef6a47] ring-offset-2 ring-offset-background",
-                      selectedSwatchId === swatch.id && "z-10 outline-2 outline-foreground",
-                    )}
-                    style={{ backgroundColor: swatch.hex }}
-                    aria-label={`Edit color ${index + 1} of ${palette.colors.length}, ${swatch.hex}${excluded ? ", excluded from matching" : ""}${isolated ? ", isolated in previews" : ""}`}
-                    aria-pressed={selectedSwatchId === swatch.id}
-                    onClick={() => {
-                      onSelectedSwatchChange(swatch.id);
-                      setEditColor(swatch.hex);
-                      setError(null);
-                    }}
-                  >
-                    {excluded ? (
-                      <CircleSlash2
-                        className="absolute inset-0 m-auto size-4 text-white drop-shadow-[0_1px_2px_rgb(0_0_0)]"
-                        aria-hidden="true"
-                      />
+                  <div key={swatch.id} className="group relative shrink-0">
+                    <button
+                      type="button"
+                      className={cn(
+                        "relative block size-9 touch-manipulation border border-white/15 outline-offset-2 transition-transform hover:-translate-y-0.5 focus-visible:z-20 focus-visible:outline-2 focus-visible:outline-ring",
+                        excluded && "opacity-40 grayscale",
+                        isolated && "ring-2 ring-[#ef6a47] ring-offset-2 ring-offset-background",
+                        selectedSwatchId === swatch.id && "z-10 outline-2 outline-foreground",
+                      )}
+                      style={{ backgroundColor: swatch.hex }}
+                      aria-label={`Edit color ${index + 1} of ${palette.colors.length}, ${swatch.hex}${excluded ? ", excluded from matching" : ""}${isolated ? ", isolated in previews" : ""}`}
+                      aria-pressed={selectedSwatchId === swatch.id}
+                      onClick={() => {
+                        onSelectedSwatchChange(swatch.id);
+                        setEditColor(swatch.hex);
+                        setError(null);
+                      }}
+                    >
+                      {excluded ? (
+                        <CircleSlash2
+                          className="absolute inset-0 m-auto size-4 text-white drop-shadow-[0_1px_2px_rgb(0_0_0)]"
+                          aria-hidden="true"
+                        />
+                      ) : null}
+                      {isolated ? (
+                        <Eye
+                          className="absolute -top-1.5 -right-1.5 size-3.5 bg-background p-0.5 text-[#ef6a47]"
+                          aria-hidden="true"
+                        />
+                      ) : null}
+                    </button>
+                    {index < palette.colors.length - 1 ? (
+                      <button
+                        type="button"
+                        aria-label={`Insert a midpoint after color ${index + 1}`}
+                        className="absolute -right-2.5 top-1/2 z-30 grid size-5 -translate-y-1/2 translate-x-1/2 place-items-center border-2 border-border bg-primary text-primary-foreground opacity-0 shadow-[2px_2px_0_var(--shadow)] transition-[opacity,transform] hover:scale-110 focus:scale-110 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring group-hover:opacity-100"
+                        onClick={() => insertMidpoint(swatch.id)}
+                      >
+                        <Plus className="size-3" aria-hidden="true" />
+                      </button>
                     ) : null}
-                    {isolated ? (
-                      <Eye
-                        className="absolute -top-1.5 -right-1.5 size-3.5 bg-background p-0.5 text-[#ef6a47]"
-                        aria-hidden="true"
-                      />
-                    ) : null}
-                  </button>
+                  </div>
                 );
               })}
             </div>
@@ -308,7 +336,7 @@ export function OutputSidebar({
                 </Button>
                 <p
                   id={insertionDescriptionId}
-                  className="mt-2 text-[10px] leading-4 text-muted-foreground"
+                  className="mt-2 text-[11px] leading-4 text-muted-foreground"
                 >
                   {selectedInsertion?.ok &&
                   selectedMidpoint?.ok &&
@@ -342,7 +370,7 @@ export function OutputSidebar({
                   {isolatedColorIds.has(selectedColor.id) ? "Isolated" : "Isolate"}
                 </Button>
               </div>
-              <p className="mt-2 text-[10px] leading-4 text-muted-foreground">
+              <p className="mt-2 text-[11px] leading-4 text-muted-foreground">
                 Exclude changes matching. Isolate only changes on-screen previews.
               </p>
               {error ? (
@@ -350,7 +378,7 @@ export function OutputSidebar({
               ) : null}
             </div>
           ) : (
-            <p className="mt-3 text-[10px] leading-4 text-muted-foreground">
+            <p className="mt-3 text-[11px] leading-4 text-muted-foreground">
               Select a swatch to edit it or insert a midpoint.
             </p>
           )}
@@ -360,7 +388,7 @@ export function OutputSidebar({
               className="mt-3 flex flex-wrap items-center justify-between gap-3 border bg-muted/20 px-3 py-2"
               aria-live="polite"
             >
-              <p className="text-[10px] leading-4 text-muted-foreground">
+              <p className="text-[11px] leading-4 text-muted-foreground">
                 {excludedColorIds.size > 0
                   ? `${excludedColorIds.size} excluded`
                   : "All colors matching"}

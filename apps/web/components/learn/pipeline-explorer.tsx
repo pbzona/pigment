@@ -101,9 +101,9 @@ export function PipelineExplorer() {
   return (
     <section id="pipeline" className="scroll-mt-24 border-t border-foreground/10 pt-16 sm:pt-24">
       <div className="mb-8 max-w-2xl">
-        <h2 className="text-3xl font-medium tracking-[-0.045em] sm:text-5xl">Inspect one output cell through the pipeline.</h2>
+        <h2 className="text-3xl font-medium tracking-[-0.04em] sm:text-5xl">Follow one cell from image to palette.</h2>
         <p className="mt-4 text-sm leading-6 text-muted-foreground sm:text-base">
-          Select an output cell. Then select each processing step. The page highlights the source pixels and shows the calculated values.
+          Pick an output cell, then step through the pipeline to see which source pixels and calculations shaped its final color.
         </p>
       </div>
 

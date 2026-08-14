@@ -23,13 +23,13 @@ typography:
     fontSize: "clamp(3rem, 6vw, 6.5rem)"
     fontWeight: 680
     lineHeight: 0.9
-    letterSpacing: "-0.075em"
+    letterSpacing: "-0.04em"
   headline:
     fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif"
     fontSize: "clamp(2rem, 4vw, 4rem)"
     fontWeight: 670
     lineHeight: 1
-    letterSpacing: "-0.055em"
+    letterSpacing: "-0.04em"
   title:
     fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif"
     fontSize: "1.25rem"
@@ -154,8 +154,8 @@ The palette sets warm paper-like ink against carbon surfaces, then uses four sat
 **Character:** The sans family is plainspoken and compact enough for a working tool, while the mono family makes methods, measurements, controls, and indexes feel observable. Large type becomes expressive through tight tracking and scale rather than through a decorative display face.
 
 ### Hierarchy
-- **Display** (weight 680, fluid 3rem–6.5rem, line-height 0.9): Rare, oversized titles on palette details and major expressive moments.
-- **Headline** (weight 670, fluid 2rem–4rem, line-height 1): Section and empty-state headings with tightly fitted rhythm.
+- **Display** (weight 680, fluid 3rem–6.5rem, line-height 0.9): Rare, oversized titles on palette details and major expressive moments; tracking never tighter than -0.04em.
+- **Headline** (weight 670, fluid 2rem–4rem, line-height 1): Section and empty-state headings with tightly fitted rhythm; tracking never tighter than -0.04em.
 - **Title** (weight 720, 1.25rem, line-height 1.2): Product lockups, panel titles, and prominent card names.
 - **Body** (weight 400, 1rem, line-height 1.6): Explanations and instructional prose, generally held below roughly 65 characters per line.
 - **Label** (weight 650, 0.72rem, letter-spacing 0.08em, uppercase): Field labels, indexes, statistics, dimensions, status, and compact controls.

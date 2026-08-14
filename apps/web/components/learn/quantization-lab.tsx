@@ -129,11 +129,11 @@ export function QuantizationLab() {
           <div className="relative mx-auto grid min-h-[calc(100svh-3.5rem)] max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(22rem,0.9fr)] lg:px-8">
             <div className="max-w-3xl">
               <FlaskConical className="size-5 text-primary" aria-hidden="true" />
-              <h1 className="mt-6 text-balance text-5xl font-medium leading-[0.95] tracking-[-0.065em] sm:text-7xl lg:text-[5.6rem]">
-                Learn how Pigment converts an image to pixels.
+              <h1 className="mt-6 text-balance text-5xl font-semibold leading-[0.95] tracking-[-0.04em] sm:text-7xl lg:text-[5.25rem]">
+                See how an image becomes a grid of color.
               </h1>
               <p className="mt-7 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-                Pigment divides the image into output cells. It samples source pixels for each cell. A quantization method selects one palette color for each output cell. Use this page to inspect each step.
+                Pigment splits an image into cells, reduces the source pixels in each cell, then chooses the nearest palette color. Change the method and inspect every step.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button asChild size="lg">
@@ -143,7 +143,7 @@ export function QuantizationLab() {
                   </a>
                 </Button>
                 <Button asChild variant="outline" size="lg">
-                  <a href="#dominant-vote" onClick={() => changeMethod("dominant")}>Compare the methods</a>
+                  <a href="#dominant-vote" onClick={() => changeMethod("dominant")}>Try the methods</a>
                 </Button>
               </div>
               <div className="mt-12 grid max-w-xl grid-cols-3 gap-px border-y border-foreground/10 bg-foreground/10">

@@ -80,8 +80,7 @@ export function PaletteExtractionExplorer() {
   return (
     <section id="palette-extraction" className="scroll-mt-24 border-t border-foreground/10 pt-16 sm:pt-24">
       <div className="mb-8 max-w-3xl">
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary">03 / Palette extraction</p>
-        <h2 className="mt-3 text-3xl font-medium tracking-[-0.045em] sm:text-5xl">Learn how Pigment extracts a palette.</h2>
+        <h2 className="text-3xl font-medium tracking-[-0.04em] sm:text-5xl">See how Pigment finds a palette in an image.</h2>
         <p className="mt-4 text-sm leading-6 text-muted-foreground sm:text-base">
           Pigment keeps exact colors when the image has 64 or fewer unique colors. For larger color sets, Pigment uses weighted median cut.
         </p>

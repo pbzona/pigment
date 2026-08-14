@@ -106,11 +106,11 @@ export default function Home() {
           <div className="relative mx-auto grid min-h-[calc(100svh-3.5rem)] max-w-7xl items-center gap-14 px-4 py-16 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(24rem,.95fr)] lg:px-8">
             <div className="max-w-3xl">
               <Palette className="size-6 text-primary" aria-hidden="true" />
-              <h1 className="mt-6 text-balance text-5xl font-medium leading-[0.94] tracking-[-0.065em] sm:text-7xl lg:text-[5.5rem]">
-                Make pixels with intentional color.
+              <h1 className="mt-6 max-w-3xl text-balance text-5xl font-semibold leading-[0.94] tracking-[-0.04em] sm:text-7xl lg:text-[5.25rem]">
+                Turn images into pixels you can shape.
               </h1>
               <p className="mt-7 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-                Pigment brings a browser pixel studio, interactive color lessons, and a searchable palette archive into one focused workspace.
+                Try different image algorithms, tune the palette, then refine the result cell by cell—all in your browser.
               </p>
               <div className="mt-9 grid max-w-2xl gap-3 sm:grid-cols-2">
                 <Link
@@ -120,8 +120,8 @@ export default function Home() {
                 >
                   <span>
                     <Brush className="mb-3 size-5" />
-                    <span className="block text-base font-medium">Create pixel art</span>
-                    <span className="mt-1 block text-xs opacity-70">Open the browser editor</span>
+                    <span className="block text-base font-medium">Open the studio</span>
+                    <span className="mt-1 block text-xs opacity-70">Start with your image or a sample</span>
                   </span>
                   <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
                 </Link>
@@ -131,8 +131,8 @@ export default function Home() {
                 >
                   <span>
                     <BookOpenText className="mb-3 size-5 text-primary" />
-                    <span className="block text-base font-medium">Learn pixelation</span>
-                    <span className="mt-1 block text-xs text-muted-foreground">Explore the interactive lab</span>
+                    <span className="block text-base font-medium">Explore the algorithms</span>
+                    <span className="mt-1 block text-xs text-muted-foreground">See how each method changes the pixels</span>
                   </span>
                   <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
                 </Link>
@@ -172,13 +172,13 @@ export default function Home() {
           <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
             <div className="grid gap-10 lg:grid-cols-[.72fr_1.28fr]">
               <div>
-                <h2 className="max-w-md text-4xl font-medium tracking-[-0.05em] sm:text-5xl">Automation you can inspect.</h2>
+                <h2 className="max-w-md text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">Automation you can inspect.</h2>
               </div>
               <div className="grid gap-px border border-foreground/10 bg-foreground/10 sm:grid-cols-3">
                 {[
-                  [Grid3X3, "01", "Sample", "Divide the source into cells and inspect the pixels inside each one."],
-                  [Palette, "02", "Quantize", "Reduce each cell to a color, then match it against the active palette."],
-                  [Brush, "03", "Refine", "Select regions, change methods, or paint individual cells by hand."],
+                  [Grid3X3, "01", "Sample", "Split the image into cells and inspect the source pixels inside each one."],
+                  [Palette, "02", "Choose", "Let an algorithm reduce each cell, then match the result to your palette."],
+                  [Brush, "03", "Refine", "Change methods by region or paint individual cells by hand."],
                 ].map(([Icon, number, title, description]) => {
                   const StepIcon = Icon as typeof Grid3X3;
                   return (
@@ -201,7 +201,7 @@ export default function Home() {
           <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
             <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
               <div>
-                <h2 className="text-4xl font-medium tracking-[-0.05em] sm:text-5xl">One image, different decisions.</h2>
+                <h2 className="text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">One image. Many ways to reduce it.</h2>
               </div>
             </div>
             <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

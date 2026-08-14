@@ -49,7 +49,6 @@ export function UploadDropzone({
         />
         <Button
           variant="outline"
-          size="sm"
           disabled={disabled}
           onClick={() => inputRef.current?.click()}
         >
