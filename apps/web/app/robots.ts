@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://pigment.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://pigment.phil.bingo";
 
 export default function robots(): MetadataRoute.Robots {
   return {

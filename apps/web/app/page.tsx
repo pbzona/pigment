@@ -67,7 +67,7 @@ export default function Home() {
     "@context": "https://schema.org",
     "@type": "WebApplication",
     name: "Pigment",
-    url: "https://pigment.vercel.app",
+    url: "https://pigment.phil.bingo",
     applicationCategory: "DesignApplication",
     operatingSystem: "Any modern web browser",
     description:

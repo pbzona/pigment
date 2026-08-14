@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 const siteUrl = new URL(
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://pigment.vercel.app",
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://pigment.phil.bingo",
 );
 
 export const viewport: Viewport = {
