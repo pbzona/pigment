@@ -244,7 +244,7 @@ Palette cards are the signature bridge between archive and artwork. A full-width
 
 ### Brand Mark and Mascot
 
-The brand mark is a square 2×2 pigment sampler using Token Yellow, Kiln Orange, Electric Ultramarine, and Signal Green. It uses a heavy frame and offset shadow and must remain crisp at small sizes. The pig mascot is a purposeful moment of humor; use it at welcome, catalog, learning, or empty-state moments rather than repeating it as wallpaper.
+The brand mark is a square 2×2 checker that matches the favicon: Carbon Canvas and Kiln Orange alternate inside a Warm Pixel Paper frame. It uses a heavy frame and Kiln Orange offset shadow and must remain crisp at small sizes. The four-color palette remains available for interface semantics, but it is not part of the primary logo. The pig mascot is a purposeful moment of humor; use it at welcome, catalog, learning, or empty-state moments rather than repeating it as wallpaper.
 
 ## Do's and Don'ts
 

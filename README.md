@@ -43,6 +43,7 @@ Create `apps/web/.env.local` as needed. Never commit secret values.
 
 | Variable                      | Purpose                                                        |
 | ----------------------------- | -------------------------------------------------------------- |
+| `NEXT_PUBLIC_SITE_URL`        | Canonical production origin for metadata, robots, and sitemap  |
 | `DATABASE_URL`                | PostgreSQL connection used by the palette catalog              |
 | `PALETTE_DIRECTORY`           | Portable repository-relative directory containing palette PNGs |
 | `PALETTE_API_KEY`             | Bearer token for protected palette API access                  |

@@ -16,7 +16,7 @@ import { CONVERSION_METHODS } from "@pigment/quantization/methods";
 
 export const metadata: Metadata = {
   description:
-    "Create palette-driven pixel art in your browser and explore the image sampling and quantization behind it.",
+    "Make pixel art, test color ideas, and explore image algorithms in a private browser-based visual workshop for artists.",
 };
 
 const SOURCE_PIXELS = [
@@ -63,8 +63,32 @@ function PixelGrid({
 }
 
 export default function Home() {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "Pigment",
+    url: "https://pigment.vercel.app",
+    applicationCategory: "DesignApplication",
+    operatingSystem: "Any modern web browser",
+    description:
+      "A private browser-based visual workshop for pixel art, color palettes, and image algorithms.",
+    isAccessibleForFree: true,
+    license: "https://opensource.org/license/mit",
+    featureList: [
+      "Local browser image processing",
+      "Palette-driven pixel art",
+      "Image quantization and dithering",
+      "Interactive algorithm lessons",
+      "PNG export",
+    ],
+  };
+
   return (
     <div className="min-h-svh bg-background text-foreground">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       <SiteHeader active="home" />
 
       <main>

@@ -95,9 +95,9 @@
     {
       "name": "Brand Mark",
       "kind": "custom",
-      "description": "A crisp four-cell sampler that compresses Pigment's interface palette into one mark.",
+      "description": "A crisp two-color checker matching Pigment's favicon and primary identity.",
       "html": "<span class=\"ds-brand-mark\" aria-label=\"Pigment\"><i></i><i></i><i></i><i></i></span>",
-      "css": ".ds-brand-mark{display:grid;width:40px;height:40px;grid-template-columns:1fr 1fr;border:2px solid var(--border,#f5f2e8);background:var(--border,#f5f2e8);box-shadow:3px 3px 0 var(--primary,#f06a32)}.ds-brand-mark i:nth-child(1){background:var(--accent-yellow,#f2cf45)}.ds-brand-mark i:nth-child(2){background:var(--primary,#f06a32)}.ds-brand-mark i:nth-child(3){background:var(--accent-blue,#4d7cff)}.ds-brand-mark i:nth-child(4){background:var(--accent-green,#3ebd78)}"
+      "css": ".ds-brand-mark{display:grid;width:40px;height:40px;grid-template-columns:1fr 1fr;border:2px solid var(--border,#f5f2e8);background:var(--border,#f5f2e8);box-shadow:3px 3px 0 var(--primary,#f06a32)}.ds-brand-mark i:nth-child(1),.ds-brand-mark i:nth-child(4){background:var(--background,#11100f)}.ds-brand-mark i:nth-child(2),.ds-brand-mark i:nth-child(3){background:var(--primary,#f06a32)}"
     }
   ],
   "narrative": {

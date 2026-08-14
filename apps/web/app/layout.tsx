@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import "@pigment/ui/styles.css";
@@ -15,13 +15,63 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = new URL(
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://pigment.vercel.app",
+);
+
+export const viewport: Viewport = {
+  themeColor: "#11100f",
+  colorScheme: "dark",
+};
+
 export const metadata: Metadata = {
+  metadataBase: siteUrl,
+  applicationName: "Pigment",
   title: {
-    default: "Pigment — Color tools for pixel artists",
+    default: "Pigment — A visual color workshop for artists",
     template: "%s — Pigment",
   },
   description:
-    "Create palette-driven pixel art, study quantization, and browse color systems.",
+    "Make pixel art, test color ideas, and learn image algorithms in a private browser-based visual workshop.",
+  keywords: [
+    "pixel art",
+    "color palette",
+    "image quantization",
+    "dithering",
+    "browser image editor",
+    "artist tools",
+  ],
+  authors: [{ name: "Phil Zona", url: "https://github.com/pbzona" }],
+  creator: "Phil Zona",
+  publisher: "Pigment",
+  category: "design",
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "/",
+    siteName: "Pigment",
+    title: "Pigment — A visual color workshop for artists",
+    description:
+      "Make pixel art, test color ideas, and learn image algorithms in a private browser-based visual workshop.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Pigment — A visual color workshop for artists",
+    description:
+      "Make pixel art, test color ideas, and learn image algorithms in a private browser-based visual workshop.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
 };
 
 export default function RootLayout({
