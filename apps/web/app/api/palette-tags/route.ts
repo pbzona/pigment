@@ -16,7 +16,7 @@ export async function GET() {
     const parsedBody = parsePaletteTownTags(body);
     if (!parsedBody.ok) {
       return NextResponse.json(
-        { error: "Palette Town returned invalid data." },
+        { error: "The palette archive returned invalid data." },
         { status: 502 },
       );
     }

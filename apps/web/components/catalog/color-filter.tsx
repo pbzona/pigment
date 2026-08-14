@@ -20,14 +20,15 @@ export function ColorFilter({
 
   return (
     <fieldset className="color-filter">
-      <legend>Color proximity</legend>
+      <legend>Find by color</legend>
+      <p className="color-filter-description">Choose a color already in your work and find palettes that sit near it.</p>
       <label className="check-label">
         <input
           type="checkbox"
           checked={enabled}
           onChange={(event) => setEnabled(event.target.checked)}
         />
-        Match a color
+        Use color matching
       </label>
       <div className="color-input-row" data-disabled={!enabled}>
         <input

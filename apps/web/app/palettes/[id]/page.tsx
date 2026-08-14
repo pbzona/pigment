@@ -179,7 +179,7 @@ export default async function PaletteDetail({
             <dd>{formatDate(palette.mtimeMs)}</dd>
           </div>
           <div>
-            <dt>Last indexed</dt>
+            <dt>Added to Pigment</dt>
             <dd>{formatDate(palette.scannedAt)}</dd>
           </div>
           <div className="metadata-hash">

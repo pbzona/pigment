@@ -61,6 +61,7 @@ type PaletteDialogProps = Readonly<{
   onChange: (palette: Palette) => void;
   onCreate: () => void;
   onDuplicate: () => void;
+  onSaveToLibrary: (palette: Palette) => void;
   onDelete: () => void;
   onImport: (file: File, colorCount: number) => Promise<void>;
 }>;
@@ -84,9 +85,11 @@ type PaletteCardProps = Readonly<{
   palette: Palette;
   active: boolean;
   onSelect: () => void;
+  onSave?: () => void;
+  saved?: boolean;
 }>;
 
-function PaletteCard({ palette, active, onSelect }: PaletteCardProps) {
+function PaletteCard({ palette, active, onSelect, onSave, saved = false }: PaletteCardProps) {
   return (
     <div
       className={cn(
@@ -119,7 +122,7 @@ function PaletteCard({ palette, active, onSelect }: PaletteCardProps) {
         </span>
       </button>
       {palette.author || palette.attribution?.license ? (
-        <div className="flex min-w-0 gap-1 px-3 pb-3 text-[10px] text-muted-foreground">
+        <div className="flex min-w-0 gap-1 px-3 pb-3 text-[11px] text-muted-foreground">
           {palette.author?.url ? (
             <a
               href={palette.author.url}
@@ -147,6 +150,22 @@ function PaletteCard({ palette, active, onSelect }: PaletteCardProps) {
           ) : null}
         </div>
       ) : null}
+      {onSave ? (
+        <div className="grid grid-cols-2 border-t-2 border-border">
+          <Button variant="ghost" size="sm" className="border-0" onClick={onSelect}>
+            Use now
+          </Button>
+          <Button
+            variant={saved ? "secondary" : "outline"}
+            size="sm"
+            className="border-y-0 border-r-0"
+            disabled={saved}
+            onClick={onSave}
+          >
+            {saved ? "Saved" : "Save to yours"}
+          </Button>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -160,6 +179,7 @@ export function PaletteDialog({
   onChange,
   onCreate,
   onDuplicate,
+  onSaveToLibrary,
   onDelete,
   onImport,
 }: PaletteDialogProps) {
@@ -191,7 +211,7 @@ export function PaletteDialog({
   const [activeTab, setActiveTab] = useState("library");
 
   useEffect(() => {
-    if (!open || activeTab !== "palette-town") return;
+    if (!open || activeTab !== "archive") return;
     const controller = new AbortController();
     const timeout = window.setTimeout(
       () => {
@@ -220,12 +240,12 @@ export function PaletteDialog({
                 "error" in body &&
                 typeof body.error === "string"
                   ? body.error
-                  : "Palette Town is unavailable. Try again.",
+                  : "The palette archive is unavailable. Try again.",
               );
             }
             if (body === null) {
               throw new Error(
-                "Palette Town returned an invalid response. Try again.",
+                "The palette archive returned an invalid response. Try again.",
               );
             }
             const parsed = parsePaletteTownList(body);
@@ -236,7 +256,7 @@ export function PaletteDialog({
           .catch((fetchError: unknown) => {
             if (controller.signal.aborted) return;
             setRemoteError(
-              fetchError instanceof Error ? fetchError.message : "Palette Town is unavailable.",
+              fetchError instanceof Error ? fetchError.message : "The palette archive is unavailable.",
             );
           })
           .finally(() => {
@@ -266,7 +286,7 @@ export function PaletteDialog({
   ]);
 
   useEffect(() => {
-    if (!open || activeTab !== "palette-town" || remoteTags.length > 0) return;
+    if (!open || activeTab !== "archive" || remoteTags.length > 0) return;
     const controller = new AbortController();
     void fetch("/api/palette-tags", { signal: controller.signal })
       .then(async (response) => {
@@ -347,10 +367,10 @@ export function PaletteDialog({
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="min-h-0 gap-0">
           <TabsList variant="line" className="mx-5 mt-2">
-            <TabsTrigger value="library">Library</TabsTrigger>
-            <TabsTrigger value="palette-town">Palette Town</TabsTrigger>
+            <TabsTrigger value="library">Your palettes</TabsTrigger>
+            <TabsTrigger value="archive">Archive</TabsTrigger>
             <TabsTrigger value="edit">Edit current</TabsTrigger>
-            <TabsTrigger value="import">Import</TabsTrigger>
+            <TabsTrigger value="import">Import file</TabsTrigger>
           </TabsList>
 
           <TabsContent value="library" className="min-h-0">
@@ -391,7 +411,7 @@ export function PaletteDialog({
             </div>
           </TabsContent>
 
-          <TabsContent value="palette-town" className="min-h-0">
+          <TabsContent value="archive" className="min-h-0">
             <div className="p-5">
                 <div className="mb-4">
                   <h3 className="text-sm font-medium">Discover palettes</h3>
@@ -407,7 +427,7 @@ export function PaletteDialog({
                       value={remoteQuery}
                       className="pl-8"
                       placeholder="Search names and tags"
-                      aria-label="Search Palette Town"
+                      aria-label="Search palette archive"
                       onChange={(event) => {
                         const nextQuery = event.target.value;
                         setRemoteQuery(nextQuery);
@@ -615,7 +635,7 @@ export function PaletteDialog({
                   <div className="grid min-h-40 place-items-center text-sm text-muted-foreground">
                     <span className="flex items-center gap-2">
                       <LoaderCircle className="size-4 animate-spin motion-reduce:animate-none" />
-                      Loading Palette Town
+                      Loading palette archive
                     </span>
                   </div>
                 ) : remotePalettes.length === 0 ? (
@@ -624,14 +644,23 @@ export function PaletteDialog({
                   </div>
                 ) : (
                   <div className={cn("mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4", remoteLoading && "opacity-60")}>
-                    {remotePalettes.map((palette) => (
-                      <PaletteCard
-                        key={paletteIdentity(palette)}
-                        palette={palette}
-                        active={paletteIdentity(activePalette) === paletteIdentity(palette)}
-                        onSelect={() => choosePalette(palette)}
-                      />
-                    ))}
+                    {remotePalettes.map((palette) => {
+                      const saved = customPalettes.some(
+                        (savedPalette) =>
+                          savedPalette.colors.map((color) => color.hex).join(",") ===
+                          palette.colors.map((color) => color.hex).join(","),
+                      );
+                      return (
+                        <PaletteCard
+                          key={paletteIdentity(palette)}
+                          palette={palette}
+                          active={paletteIdentity(activePalette) === paletteIdentity(palette)}
+                          onSelect={() => choosePalette(palette)}
+                          onSave={() => onSaveToLibrary(palette)}
+                          saved={saved}
+                        />
+                      );
+                    })}
                   </div>
                 )}
 

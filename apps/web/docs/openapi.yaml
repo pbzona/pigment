@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Palette Town API
+  title: Pigment Palette Archive API
   version: 1.0.0
   description: Read-only palette discovery API.
 servers:

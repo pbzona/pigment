@@ -9,16 +9,6 @@ import { ColorFilter } from "@/components/catalog/color-filter";
 import { Pagination } from "@/components/catalog/pagination";
 import { PaletteCard } from "@/components/catalog/palette-card";
 
-function formatScanTime(value: string | null) {
-  if (!value) return "Not scanned yet";
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(value));
-}
-
 export default async function PalettesPage({
   searchParams,
 }: {
@@ -37,9 +27,9 @@ export default async function PalettesPage({
     "Increase the color tolerance, change the color range, or clear the search.";
 
   if (stats.paletteCount === 0) {
-    emptyTitle = "The catalog is empty.";
+    emptyTitle = "No palettes are available yet.";
     emptyDescription =
-      "Run a directory scan to index the PNG strips in palettes/.";
+      "Return soon to explore the collection as it grows.";
   } else if (catalog.filters.favoritesOnly && stats.favoriteCount === 0) {
     emptyTitle = "No favorites yet.";
     emptyDescription =
@@ -54,141 +44,123 @@ export default async function PalettesPage({
     <>
       <SiteHeader active="palettes" context="Color archive" />
       <main className="site-shell">
-      <header className="catalog-summary">
-        <dl className="header-stats">
+        <section className="catalog-intro" aria-labelledby="catalog-heading">
           <div>
-            <dt>Palettes</dt>
-            <dd>{stats.paletteCount}</dd>
+            <h1 id="catalog-heading">Find a palette for the next experiment.</h1>
+            <p>
+              Search by name, narrow the color count, or find palettes near a color
+              already in your work.
+            </p>
           </div>
-          <div>
-            <dt>Swatches</dt>
-            <dd>{stats.colorCount}</dd>
+          <aside className="lospec-credit" aria-label="Lospec attribution">
+            <div className="lospec-credit-mark" aria-hidden="true">L</div>
+            <div>
+              <p>Collection credit</p>
+              <h2>Many palettes here were curated from Lospec.</h2>
+              <p>
+                Explore their much larger palette collection and consider supporting
+                the work that keeps it available to artists.
+              </p>
+              <a href="https://lospec.com/palette-list" target="_blank" rel="noreferrer">
+                Visit Lospec palette list <span aria-hidden="true">↗</span>
+              </a>
+            </div>
+          </aside>
+        </section>
+
+        <Form action="/palettes" className="filter-panel">
+          <div className="filter-search">
+            <label className="field field-search">
+              <span>Search the archive</span>
+              <input
+                className="text-input"
+                type="search"
+                name="q"
+                defaultValue={catalog.filters.query}
+                placeholder="Sunset, ink, forest, game boy…"
+                autoComplete="off"
+              />
+            </label>
+            <p>Names and source filenames are searched together.</p>
           </div>
-          <div>
-            <dt>Favorites</dt>
-            <dd>{stats.favoriteCount}</dd>
+
+          <ColorFilter
+            key={`${catalog.filters.color}-${catalog.filters.tolerance}`}
+            defaultColor={catalog.filters.color}
+            defaultTolerance={catalog.filters.tolerance}
+          />
+
+          <div className="filter-refine">
+            <div className="filter-refine-heading">
+              <span>Refine</span>
+              <label className="favorite-filter">
+                <input
+                  type="checkbox"
+                  name="favorites"
+                  value="1"
+                  defaultChecked={catalog.filters.favoritesOnly}
+                />
+                Favorites only
+              </label>
+            </div>
+            <div className="filter-refine-grid">
+              <fieldset className="color-count-fieldset">
+                <legend>Number of colors</legend>
+                <label>
+                  <span className="sr-only">Minimum colors</span>
+                  <input
+                    className="text-input"
+                    type="number"
+                    name="minColors"
+                    min="1"
+                    max="64"
+                    defaultValue={catalog.filters.minColorCount ?? ""}
+                    placeholder="Min"
+                  />
+                </label>
+                <span aria-hidden="true">—</span>
+                <label>
+                  <span className="sr-only">Maximum colors</span>
+                  <input
+                    className="text-input"
+                    type="number"
+                    name="maxColors"
+                    min="1"
+                    max="64"
+                    defaultValue={catalog.filters.maxColorCount ?? ""}
+                    placeholder="Max"
+                  />
+                </label>
+              </fieldset>
+              <label className="field">
+                <span>Arrange by</span>
+                <select className="text-input" name="sort" defaultValue={catalog.filters.sort}>
+                  <option value="name">Name</option>
+                  <option value="colors">Color count</option>
+                  <option value="modified">Recently added</option>
+                  <option value="lightness">Average lightness</option>
+                  <option value="chroma">Average chroma</option>
+                  <option value="distance">Closest color</option>
+                </select>
+              </label>
+              <label className="field">
+                <span>Direction</span>
+                <select className="text-input" name="direction" defaultValue={catalog.filters.direction}>
+                  <option value="asc">Ascending</option>
+                  <option value="desc">Descending</option>
+                </select>
+              </label>
+            </div>
           </div>
-          <div>
-            <dt>Last scan</dt>
-            <dd>{formatScanTime(stats.lastScannedAt)}</dd>
+
+          <div className="filter-actions">
+            <p>Color distance uses OKLab: 0 is exact, 3 is close, and 10 is broad.</p>
+            <div className="filter-buttons">
+              <button className="primary-button" type="submit">Show palettes</button>
+              <Link className="secondary-button" href="/palettes">Reset</Link>
+            </div>
           </div>
-        </dl>
-      </header>
-
-      <section className="catalog-intro" aria-labelledby="catalog-heading">
-        <div aria-hidden="true" className="grid size-12 grid-cols-2 border-2 border-border shadow-[3px_3px_0_var(--primary)]">
-          <span className="bg-[var(--accent-yellow)]" />
-          <span className="bg-primary" />
-          <span className="bg-[var(--accent-blue)]" />
-          <span className="bg-[var(--accent-green)]" />
-        </div>
-        <div>
-          <h1 id="catalog-heading">Find the color system you already saved.</h1>
-          <p>
-            Search filenames, count swatches, or match any color using perceptual
-            distance.
-          </p>
-        </div>
-      </section>
-
-      <Form action="/palettes" className="filter-panel">
-        <div className="filter-fields">
-          <label className="field field-search">
-            <span>Name or filename</span>
-            <input
-              className="text-input"
-              type="search"
-              name="q"
-              defaultValue={catalog.filters.query}
-              placeholder="Try sunset, ink, witchy..."
-              autoComplete="off"
-            />
-          </label>
-
-          <label className="field">
-            <span>Minimum colors</span>
-            <input
-              className="text-input"
-              type="number"
-              name="minColors"
-              min="1"
-              max="64"
-              defaultValue={catalog.filters.minColorCount ?? ""}
-              placeholder="Min"
-            />
-          </label>
-
-          <label className="field">
-            <span>Maximum colors</span>
-            <input
-              className="text-input"
-              type="number"
-              name="maxColors"
-              min="1"
-              max="64"
-              defaultValue={catalog.filters.maxColorCount ?? ""}
-              placeholder="Max"
-            />
-          </label>
-
-          <label className="field">
-            <span>Sort property</span>
-            <select
-              className="text-input"
-              name="sort"
-              defaultValue={catalog.filters.sort}
-            >
-              <option value="name">Name</option>
-              <option value="colors">Color count</option>
-              <option value="modified">File modified</option>
-              <option value="lightness">Average lightness</option>
-              <option value="chroma">Average chroma</option>
-              <option value="distance">Closest color</option>
-            </select>
-          </label>
-
-          <label className="field">
-            <span>Direction</span>
-            <select
-              className="text-input"
-              name="direction"
-              defaultValue={catalog.filters.direction}
-            >
-              <option value="asc">Ascending</option>
-              <option value="desc">Descending</option>
-            </select>
-          </label>
-        </div>
-
-        <ColorFilter
-          key={`${catalog.filters.color}-${catalog.filters.tolerance}`}
-          defaultColor={catalog.filters.color}
-          defaultTolerance={catalog.filters.tolerance}
-        />
-
-        <div className="filter-actions">
-          <label className="favorite-filter">
-            <input
-              type="checkbox"
-              name="favorites"
-              value="1"
-              defaultChecked={catalog.filters.favoritesOnly}
-            />
-            Favorites only ({stats.favoriteCount})
-          </label>
-          <div className="filter-buttons">
-            <button className="primary-button" type="submit">
-              Apply filters
-            </button>
-            <Link className="secondary-button" href="/palettes">
-              Clear all
-            </Link>
-          </div>
-          <p>
-            Tolerance uses OKLab distance: 0 is exact, 3 is close, 10 is broad.
-          </p>
-        </div>
-      </Form>
+        </Form>
 
       <div className="results-toolbar">
         <p className="font-mono text-xs font-semibold uppercase tracking-[0.08em] text-primary">
@@ -221,11 +193,12 @@ export default async function PalettesPage({
 
       <Pagination catalog={catalog} />
 
-      <footer className="site-footer">
-        <span>Postgres-backed</span>
-        <span>{stats.uniqueColorCount} distinct colors</span>
-        <span>Source: palettes/</span>
-      </footer>
+        <footer className="site-footer">
+          <span>Curated for Pigment</span>
+          <a href="https://lospec.com/palette-list" target="_blank" rel="noreferrer">
+            Discover more palettes on Lospec ↗
+          </a>
+        </footer>
       </main>
     </>
   );

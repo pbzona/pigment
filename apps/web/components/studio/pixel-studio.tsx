@@ -857,6 +857,29 @@ export function PixelStudio() {
     selectPalette(result.value);
   };
 
+  const savePaletteToLibrary = (palette: Palette) => {
+    const alreadySaved = customPalettes.some(
+      (savedPalette) =>
+        savedPalette.colors.map((color) => color.hex).join(",") ===
+        palette.colors.map((color) => color.hex).join(","),
+    );
+    if (alreadySaved) {
+      toast.info(`${palette.name} is already in your palettes`);
+      return;
+    }
+    const result = createPalette(
+      customPaletteId(),
+      palette.name,
+      palette.colors.map((swatch) => swatch.hex),
+    );
+    if (!result.ok) {
+      toast.error(result.error);
+      return;
+    }
+    setCustomPalettes((palettes) => [...palettes, result.value]);
+    toast.success(`${palette.name} saved to your palettes`);
+  };
+
   const duplicateActivePalette = () => {
     const palette = activePaletteRef.current;
     const result = createPalette(
@@ -1545,6 +1568,7 @@ export function PixelStudio() {
         onChange={changePalette}
         onCreate={createNewPalette}
         onDuplicate={duplicateActivePalette}
+        onSaveToLibrary={savePaletteToLibrary}
         onDelete={() => {
           setPaletteDialogOpen(false);
           setPendingPaletteDelete(activePalette);

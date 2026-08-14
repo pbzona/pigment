@@ -25,7 +25,7 @@ beforeEach(() => {
   );
 });
 
-describe("integrated Palette Town routes", () => {
+describe("integrated palette archive routes", () => {
   it("loads palettes from Pigment's catalog database", async () => {
     catalog.queryApiCatalog.mockResolvedValue({
       palettes: [
