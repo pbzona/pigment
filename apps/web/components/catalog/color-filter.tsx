@@ -20,8 +20,8 @@ export function ColorFilter({
 
   return (
     <fieldset className="color-filter">
-      <legend>02 / Match color</legend>
-      <p className="color-filter-description">Find palettes near a color already in your work.</p>
+      <legend>01 / Match color</legend>
+      <p className="color-filter-description">Find palettes near a color already in your work. Distance uses OKLab: 0 is exact, 3 is close, and 10 is broad.</p>
       <label className="check-label">
         <input
           type="checkbox"
@@ -54,7 +54,7 @@ export function ColorFilter({
       </div>
       <label className="tolerance-label" data-disabled={!enabled}>
         <span>
-          Tolerance <output>{tolerance}</output>
+          Color distance <output>{tolerance}</output>
         </span>
         <input
           type="range"

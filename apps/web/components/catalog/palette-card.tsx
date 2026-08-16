@@ -1,41 +1,91 @@
-import Link from "next/link";
+"use client";
+
+import { useState } from "react";
 
 import type { PaletteSummary } from "@pigment/palette-catalog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@pigment/ui/dialog";
 
-import { FavoriteButton } from "./favorite-button";
 import { PaletteStrip } from "./palette-strip";
 
+const percent = (value: number) => Math.round(value * 100);
+const chroma = (value: number) => (value * 100).toFixed(1);
+
 export function PaletteCard({ palette }: { palette: PaletteSummary }) {
+  const [open, setOpen] = useState(false);
+
   return (
-    <article className="palette-card">
-      <Link
-        className="palette-card-link"
-        href={`/palettes/${palette.id}`}
-        aria-label={`View ${palette.displayName}, ${palette.colorCount} colors`}
-      >
-        <header className="palette-card-header">
-          <span className="archive-number">PT-{String(palette.id).padStart(3, "0")}</span>
-          {palette.distance !== null ? (
-            <span className="distance-badge">ΔOK {palette.distance.toFixed(1)}</span>
-          ) : null}
-        </header>
-        <PaletteStrip colors={palette.colors} />
-        <div className="palette-card-body">
-          <h2>{palette.displayName}</h2>
-          <p>{palette.colorCount} color palette</p>
-        </div>
-        <footer className="palette-card-footer">
-          <span>{palette.colorCount} colors</span>
-          <span>L {Math.round(palette.averageLightness * 100)}</span>
-          <span>C {(palette.averageChroma * 100).toFixed(1)}</span>
-        </footer>
-      </Link>
-      <FavoriteButton
-        paletteId={palette.id}
-        paletteName={palette.displayName}
-        isFavorite={palette.isFavorite}
-        variant="card"
-      />
-    </article>
+    <>
+      <article className="palette-card">
+        <button
+          type="button"
+          className="palette-card-link"
+          aria-label={`Inspect ${palette.displayName}, ${palette.colorCount} colors`}
+          onClick={() => setOpen(true)}
+        >
+          <PaletteStrip colors={palette.colors} />
+          <div className="palette-card-body">
+            <h2>{palette.displayName}</h2>
+          </div>
+          <footer className="palette-card-footer">
+            <span>{palette.colorCount} colors</span>
+            <span>Lightness {percent(palette.averageLightness)}</span>
+            <span>Chroma {chroma(palette.averageChroma)}</span>
+            {palette.distance !== null ? (
+              <span>Color distance {palette.distance.toFixed(1)}</span>
+            ) : null}
+          </footer>
+        </button>
+      </article>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="palette-inspector max-h-[min(86svh,54rem)] overflow-y-auto rounded-none p-0 sm:max-w-4xl">
+          <DialogHeader className="border-b border-foreground/15 px-5 py-5 pr-14 sm:px-7">
+            <DialogTitle className="text-2xl sm:text-3xl">{palette.displayName}</DialogTitle>
+            <DialogDescription>
+              {palette.colorCount} colors · lightness {percent(palette.minLightness)}–{percent(palette.maxLightness)} · average chroma {chroma(palette.averageChroma)}
+            </DialogDescription>
+          </DialogHeader>
+
+          <PaletteStrip colors={palette.colors} />
+
+          <dl className="palette-inspector-summary">
+            <div><dt>Colors</dt><dd>{palette.colorCount}</dd></div>
+            <div><dt>Average lightness</dt><dd>{percent(palette.averageLightness)}</dd></div>
+            <div><dt>Lightness range</dt><dd>{percent(palette.minLightness)}–{percent(palette.maxLightness)}</dd></div>
+            <div><dt>Average chroma</dt><dd>{chroma(palette.averageChroma)}</dd></div>
+            {palette.distance !== null ? <div><dt>Color distance</dt><dd>{palette.distance.toFixed(1)}</dd></div> : null}
+          </dl>
+
+          <section className="palette-inspector-colors" aria-labelledby={`palette-${palette.id}-colors`}>
+            <div className="palette-inspector-heading">
+              <h3 id={`palette-${palette.id}-colors`}>Color characteristics</h3>
+              <p>Source order</p>
+            </div>
+            <div className="palette-inspector-grid">
+              {palette.colors.map((color) => (
+                <article key={color.id} className="palette-inspector-color">
+                  <div className="palette-inspector-swatch" style={{ backgroundColor: color.hex }} />
+                  <div className="palette-inspector-color-name">
+                    <span>{String(color.position + 1).padStart(2, "0")}</span>
+                    <strong>{color.hex}</strong>
+                  </div>
+                  <dl>
+                    <div><dt>Lightness</dt><dd>{percent(color.okL)}</dd></div>
+                    <div><dt>Chroma</dt><dd>{chroma(color.chroma)}</dd></div>
+                    <div><dt>Hue</dt><dd>{color.hue === null ? "—" : `${Math.round(color.hue)}°`}</dd></div>
+                  </dl>
+                </article>
+              ))}
+            </div>
+          </section>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
