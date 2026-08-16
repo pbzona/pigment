@@ -37,47 +37,53 @@ const methodForHash = (hash: string): ConversionMethod | null => {
 
 type LearningNavProps = Readonly<{
   method: ConversionMethod;
-  onMethodChange: (method: ConversionMethod) => void;
   mobile?: boolean;
 }>;
 
-function LearningNav({ method, onMethodChange, mobile = false }: LearningNavProps) {
+const LAB_SECTIONS = [
+  { href: "#pipeline", label: "Procedure", detail: "Follow one cell" },
+  { href: "#methods", label: "Methods", detail: "Compare decisions" },
+  { href: "#palette-extraction", label: "Palette", detail: "Extract color" },
+  { href: "#compare", label: "Your image", detail: "Run an experiment" },
+] as const;
+
+function LearningNav({ method, mobile = false }: LearningNavProps) {
+  const activeMethod = CONVERSION_METHODS.find((entry) => entry.value === method);
+
   return (
     <nav
-      aria-label="Learning page sections"
+      aria-label="Lab sections"
       className={cn(
         mobile
           ? "flex min-w-max items-center gap-1 px-4 py-2"
-          : "space-y-1 border-l border-foreground/10 pl-4",
+          : "border-l border-foreground/10",
       )}
     >
-      <a className={cn("block text-xs text-muted-foreground hover:text-foreground", mobile ? "border px-3 py-2" : "py-1.5")} href="#pipeline">
-        Pipeline
-      </a>
-      {!mobile ? <p className="pb-1 pt-4 font-mono text-[8px] uppercase tracking-[0.16em] text-muted-foreground/65">Methods</p> : null}
-      {CONVERSION_METHODS.map((entry) => (
+      {LAB_SECTIONS.map((section, index) => (
         <a
-          key={entry.value}
-          href={`#${entry.slug}`}
-          aria-current={method === entry.value ? "page" : undefined}
+          key={section.href}
+          href={section.href}
           className={cn(
-            "block text-xs transition-colors",
-            mobile ? "border px-3 py-2" : "py-1.5",
-            method === entry.value
-              ? "border-primary bg-primary/10 text-foreground"
-              : "border-transparent text-muted-foreground hover:text-foreground",
+            "group transition-colors hover:text-foreground",
+            mobile
+              ? "border border-foreground/10 px-3 py-2 text-xs text-muted-foreground"
+              : "grid grid-cols-[1.5rem_1fr] gap-2 border-l border-transparent py-3 pl-4 pr-2 text-muted-foreground hover:border-primary/60 hover:bg-primary/5",
           )}
-          onClick={() => onMethodChange(entry.value)}
         >
-          {entry.shortLabel}
+          {!mobile ? <span className="font-mono text-[8px] text-muted-foreground/60">{String(index + 1).padStart(2, "0")}</span> : null}
+          <span>
+            <span className="block text-xs text-foreground/90">{section.label}</span>
+            {!mobile ? <span className="mt-1 block text-[9px] leading-4 text-muted-foreground">{section.detail}</span> : null}
+          </span>
         </a>
       ))}
-      <a className={cn("block text-xs text-muted-foreground hover:text-foreground", mobile ? "border px-3 py-2" : "mt-3 py-1.5")} href="#palette-extraction">
-        Palette extraction
-      </a>
-      <a className={cn("block text-xs text-muted-foreground hover:text-foreground", mobile ? "border px-3 py-2" : "py-1.5")} href="#compare">
-        Your image
-      </a>
+      {!mobile ? (
+        <div className="ml-4 mt-5 border-t border-foreground/10 pt-4">
+          <p className="font-mono text-[8px] uppercase tracking-[0.14em] text-muted-foreground/60">On the bench</p>
+          <p className="mt-2 text-xs text-primary">{activeMethod?.label}</p>
+          <p className="mt-1 text-[9px] leading-4 text-muted-foreground">{activeMethod?.description}</p>
+        </div>
+      ) : null}
     </nav>
   );
 }
@@ -197,14 +203,17 @@ export function QuantizationLab() {
         </section>
 
         <div ref={mobileNavRef} className="sticky top-14 z-40 overflow-x-auto border-b-2 border-border bg-background lg:hidden">
-          <LearningNav method={method} onMethodChange={changeMethod} mobile />
+          <LearningNav method={method} mobile />
         </div>
 
         <div className="mx-auto grid max-w-7xl gap-10 px-4 pb-24 sm:px-6 lg:grid-cols-[11rem_minmax(0,1fr)] lg:px-8">
           <aside className="hidden lg:block">
             <div className="sticky top-24 pt-16">
-              <p className="mb-4 font-mono text-[8px] uppercase tracking-[0.16em] text-muted-foreground/65">Guide</p>
-              <LearningNav method={method} onMethodChange={changeMethod} />
+              <div className="mb-5 flex items-center justify-between gap-3">
+                <p className="font-mono text-[8px] uppercase tracking-[0.16em] text-muted-foreground/65">Lab index</p>
+                <span className="size-1.5 bg-primary" aria-hidden="true" />
+              </div>
+              <LearningNav method={method} />
             </div>
           </aside>
           <div className="min-w-0">

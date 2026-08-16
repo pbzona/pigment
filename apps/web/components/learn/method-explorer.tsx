@@ -573,6 +573,12 @@ export function MethodExplorer({ method, onMethodChange }: MethodExplorerProps) 
   const selectedPaletteIndex = cell.details.kind === "dominant"
     ? cell.details.selectedPaletteIndex
     : resultPaletteIndex >= 0 ? resultPaletteIndex : match?.nearestPaletteIndex ?? null;
+  const methodFamilies = [
+    { id: "sample", label: "Sample", methods: CONVERSION_METHODS.filter((entry) => entry.family === "sample") },
+    { id: "reducer", label: "Reduce", methods: CONVERSION_METHODS.filter((entry) => entry.family === "reducer") },
+    { id: "diffusion", label: "Diffuse", methods: CONVERSION_METHODS.filter((entry) => entry.family === "diffusion") },
+    { id: "ordered", label: "Pattern", methods: CONVERSION_METHODS.filter((entry) => entry.family === "ordered") },
+  ].filter((family) => family.methods.length > 0);
 
   return (
     <section id="methods" className="relative scroll-mt-24 border-t border-foreground/10 pt-16 sm:pt-24">
@@ -585,23 +591,36 @@ export function MethodExplorer({ method, onMethodChange }: MethodExplorerProps) 
       </div>
 
       <div ref={methodTabsRef} className="overflow-x-auto border-y border-foreground/10 py-3">
-        <div className="flex min-w-max gap-1" role="tablist" aria-label="Quantization methods">
-          {CONVERSION_METHODS.map((entry) => (
-            <button
-              key={entry.value}
-              type="button"
-              role="tab"
-              aria-selected={method === entry.value}
+        <div className="flex min-w-max items-stretch" role="tablist" aria-label="Image reduction methods">
+          {methodFamilies.map((family, familyIndex) => (
+            <div
+              key={family.id}
               className={cn(
-                "border px-3 py-2 text-xs transition-colors",
-                method === entry.value
-                  ? "border-primary bg-primary/10 text-foreground"
-                  : "border-transparent text-muted-foreground hover:border-foreground/15 hover:text-foreground",
+                "flex items-stretch gap-1 px-3",
+                familyIndex > 0 && "border-l border-foreground/10",
               )}
-              onClick={() => onMethodChange(entry.value)}
             >
-              {entry.shortLabel}
-            </button>
+              <span className="flex w-12 shrink-0 items-center font-mono text-[8px] uppercase tracking-[0.12em] text-muted-foreground/60">
+                {family.label}
+              </span>
+              {family.methods.map((entry) => (
+                <button
+                  key={entry.value}
+                  type="button"
+                  role="tab"
+                  aria-selected={method === entry.value}
+                  className={cn(
+                    "border px-3 py-2 text-xs transition-colors",
+                    method === entry.value
+                      ? "border-primary bg-primary/10 text-foreground"
+                      : "border-transparent text-muted-foreground hover:border-foreground/15 hover:text-foreground",
+                  )}
+                  onClick={() => onMethodChange(entry.value)}
+                >
+                  {entry.shortLabel}
+                </button>
+              ))}
+            </div>
           ))}
         </div>
       </div>
