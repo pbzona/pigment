@@ -10,7 +10,6 @@ import {
   ImageIcon,
   LoaderCircle,
   Plus,
-  Search,
   SlidersHorizontal,
   Trash2,
   X,
@@ -26,13 +25,6 @@ import {
 } from "@pigment/ui/dialog";
 import { Input } from "@pigment/ui/input";
 import { Label } from "@pigment/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@pigment/ui/select";
 import { Slider } from "@pigment/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@pigment/ui/tabs";
 import {
@@ -41,14 +33,11 @@ import {
   moveSwatch,
   paletteIdentity,
   parsePaletteTownList,
-  parsePaletteTownTags,
   removeSwatch,
   replaceSwatch,
   serializePaletteTownQuery,
   type Palette,
   type PaletteTownPagination,
-  type PaletteTownSort,
-  type PaletteTownTag,
 } from "@pigment/palette";
 import { cn } from "@/lib/utils";
 
@@ -193,16 +182,12 @@ export function PaletteDialog({
   const [remotePalettes, setRemotePalettes] = useState<readonly Palette[]>([]);
   const [remotePagination, setRemotePagination] =
     useState<PaletteTownPagination>(EMPTY_PAGINATION);
-  const [remoteTags, setRemoteTags] = useState<readonly PaletteTownTag[]>([]);
-  const [remoteQuery, setRemoteQuery] = useState("");
-  const [remoteSelectedTags, setRemoteSelectedTags] = useState<readonly string[]>([]);
   const [remoteMinColors, setRemoteMinColors] = useState("");
   const [remoteMaxColors, setRemoteMaxColors] = useState("");
   const [remoteColor, setRemoteColor] = useState("");
   const [remoteColorTolerance, setRemoteColorTolerance] = useState("3");
   const [remoteHue, setRemoteHue] = useState("");
   const [remoteHueTolerance, setRemoteHueTolerance] = useState("15");
-  const [remoteSort, setRemoteSort] = useState<PaletteTownSort>("popularity");
   const [remotePage, setRemotePage] = useState(1);
   const [remoteFiltersOpen, setRemoteFiltersOpen] = useState(false);
   const [remoteLoading, setRemoteLoading] = useState(false);
@@ -218,15 +203,13 @@ export function PaletteDialog({
         setRemoteLoading(true);
         setRemoteError(null);
         const params = serializePaletteTownQuery({
-          ...(remoteQuery.trim() ? { q: remoteQuery.trim() } : {}),
-          ...(remoteSelectedTags.length > 0 ? { tags: remoteSelectedTags } : {}),
           ...(remoteMinColors ? { minColors: Number(remoteMinColors) } : {}),
           ...(remoteMaxColors ? { maxColors: Number(remoteMaxColors) } : {}),
           ...(remoteColor ? { color: remoteColor } : {}),
           ...(remoteColor ? { colorTolerance: Number(remoteColorTolerance) } : {}),
           ...(remoteHue ? { hue: Number(remoteHue) } : {}),
           ...(remoteHue ? { hueTolerance: Number(remoteHueTolerance) } : {}),
-          sort: remoteSort,
+          sort: "name",
           page: remotePage,
           pageSize: 12,
         });
@@ -279,33 +262,15 @@ export function PaletteDialog({
     remoteMaxColors,
     remoteMinColors,
     remotePage,
-    remoteQuery,
     remoteRequest,
-    remoteSelectedTags,
-    remoteSort,
   ]);
 
-  useEffect(() => {
-    if (!open || activeTab !== "archive" || remoteTags.length > 0) return;
-    const controller = new AbortController();
-    void fetch("/api/palette-tags", { signal: controller.signal })
-      .then(async (response) => {
-        if (!response.ok) return;
-        const parsed = parsePaletteTownTags(await readJsonResponse(response));
-        if (parsed.ok) setRemoteTags(parsed.value);
-      })
-      .catch(() => undefined);
-    return () => controller.abort();
-  }, [activeTab, open, remoteTags.length]);
-
   const advancedFilterCount =
-    remoteSelectedTags.length +
     Number(Boolean(remoteMinColors || remoteMaxColors)) +
     Number(Boolean(remoteColor)) +
     Number(Boolean(remoteHue));
 
   const clearRemoteFilters = () => {
-    setRemoteSelectedTags([]);
     setRemoteMinColors("");
     setRemoteMaxColors("");
     setRemoteColor("");
@@ -413,52 +378,13 @@ export function PaletteDialog({
 
           <TabsContent value="archive" className="min-h-0">
             <div className="p-5">
-                <div className="mb-4">
-                  <h3 className="text-sm font-medium">Discover palettes</h3>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Search by name, tags, color count, hue, or a matching color.
-                  </p>
-                </div>
-
-                <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
-                  <label className="relative">
-                    <Search className="pointer-events-none absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
-                    <Input
-                      value={remoteQuery}
-                      className="pl-8"
-                      placeholder="Search names and tags"
-                      aria-label="Search palette archive"
-                      onChange={(event) => {
-                        const nextQuery = event.target.value;
-                        setRemoteQuery(nextQuery);
-                        if (nextQuery.trim() && !remoteQuery.trim()) {
-                          setRemoteSort("relevance");
-                        } else if (!nextQuery.trim() && remoteSort === "relevance") {
-                          setRemoteSort("popularity");
-                        }
-                        setRemotePage(1);
-                      }}
-                    />
-                  </label>
-                  <Select
-                    value={remoteSort}
-                    onValueChange={(value: string) => {
-                      setRemoteSort(value as PaletteTownSort);
-                      setRemotePage(1);
-                    }}
-                  >
-                    <SelectTrigger className="w-full sm:w-32" aria-label="Sort palettes">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {remoteQuery.trim() ? (
-                        <SelectItem value="relevance">Relevance</SelectItem>
-                      ) : null}
-                      <SelectItem value="popularity">Popular</SelectItem>
-                      <SelectItem value="recency">Recent</SelectItem>
-                      <SelectItem value="name">Name</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="mb-4 flex items-end justify-between gap-4">
+                  <div>
+                    <h3 className="text-sm font-medium">Discover palettes</h3>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Filter by color count, a matching color, or hue.
+                    </p>
+                  </div>
                   <Button
                     variant="outline"
                     aria-expanded={remoteFiltersOpen}
@@ -471,44 +397,6 @@ export function PaletteDialog({
 
                 {remoteFiltersOpen ? (
                   <div className="mt-3 space-y-3 border bg-muted/20 p-3">
-                    <fieldset>
-                      <legend className="mb-2 text-xs font-medium">Tags match all selected</legend>
-                      {remoteTags.length > 0 ? (
-                        <div className="flex max-h-24 flex-wrap gap-1 overflow-y-auto">
-                          {remoteTags.map((tag) => {
-                            const selected = remoteSelectedTags.includes(tag.name);
-                            return (
-                              <button
-                                type="button"
-                                key={tag.name}
-                                aria-pressed={selected}
-                                disabled={!selected && remoteSelectedTags.length >= 10}
-                                className={cn(
-                                  "border px-2 py-1 text-[11px] transition-colors",
-                                  "disabled:cursor-not-allowed disabled:opacity-40",
-                                  selected
-                                    ? "border-foreground bg-foreground text-background"
-                                    : "hover:bg-muted",
-                                )}
-                                onClick={() => {
-                                  setRemoteSelectedTags((current) =>
-                                    current.includes(tag.name)
-                                      ? current.filter((name) => name !== tag.name)
-                                      : [...current, tag.name],
-                                  );
-                                  setRemotePage(1);
-                                }}
-                              >
-                                {tag.name} <span className="opacity-60">{tag.paletteCount}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <p className="text-xs text-muted-foreground">Tags are unavailable.</p>
-                      )}
-                    </fieldset>
-
                     <div className="grid gap-2 sm:grid-cols-3">
                       <fieldset>
                         <legend className="mb-2 text-xs font-medium">Color count</legend>
@@ -521,7 +409,14 @@ export function PaletteDialog({
                             placeholder="Min"
                             aria-label="Minimum colors"
                             onChange={(event) => {
-                              setRemoteMinColors(event.target.value);
+                              const nextMin = event.target.value;
+                              setRemoteMinColors(nextMin);
+                              if (
+                                nextMin &&
+                                (!remoteMaxColors || Number(remoteMaxColors) < Number(nextMin))
+                              ) {
+                                setRemoteMaxColors(nextMin);
+                              }
                               setRemotePage(1);
                             }}
                           />
@@ -533,7 +428,14 @@ export function PaletteDialog({
                             placeholder="Max"
                             aria-label="Maximum colors"
                             onChange={(event) => {
-                              setRemoteMaxColors(event.target.value);
+                              const nextMax = event.target.value;
+                              setRemoteMaxColors(nextMax);
+                              if (
+                                nextMax &&
+                                (!remoteMinColors || Number(remoteMinColors) > Number(nextMax))
+                              ) {
+                                setRemoteMinColors(nextMax);
+                              }
                               setRemotePage(1);
                             }}
                           />
