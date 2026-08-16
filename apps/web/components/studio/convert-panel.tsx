@@ -40,6 +40,7 @@ type ConvertPanelProps = Readonly<{
   onAlphaThresholdChange: (threshold: number) => void;
   firstResultGuide?: boolean;
   onDismissFirstResultGuide?: () => void;
+  compact?: boolean;
 }>;
 
 export function ConvertPanel({
@@ -54,6 +55,7 @@ export function ConvertPanel({
   onAlphaThresholdChange,
   firstResultGuide = false,
   onDismissFirstResultGuide,
+  compact = false,
 }: ConvertPanelProps) {
   const methodId = useId();
   const preserveTransparencyId = useId();
@@ -61,7 +63,7 @@ export function ConvertPanel({
 
   return (
     <div className="divide-y divide-border pb-6">
-      <section className="px-4 pb-6">
+      {!compact ? <section className="px-4 pb-6">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <p className="text-xs font-medium">Source</p>
@@ -111,9 +113,9 @@ export function ConvertPanel({
             </div>
           </CollapsibleContent>
         </Collapsible>
-      </section>
+      </section> : null}
 
-      <section className="px-4 py-6">
+      <section className={compact ? "px-4 pb-5" : "px-4 py-6"}>
         {firstResultGuide ? (
           <div className="mb-5 border-2 border-primary bg-primary/10 p-3 shadow-[3px_3px_0_var(--primary)]">
             <div className="flex items-start gap-3">
@@ -135,7 +137,7 @@ export function ConvertPanel({
             </div>
           </div>
         ) : null}
-        <Label htmlFor={methodId} className="mb-3">Pixel color method</Label>
+        <Label htmlFor={methodId} className="mb-3">Sampling method</Label>
         <Select value={method} onValueChange={(value: string) => onMethodChange(value as ConversionMethod)}>
           <SelectTrigger id={methodId} className="h-9 w-full rounded-none py-0">
             <SelectValue>{CONVERSION_METHODS.find((entry) => entry.value === method)?.label}</SelectValue>

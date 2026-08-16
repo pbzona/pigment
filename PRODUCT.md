@@ -46,9 +46,9 @@ Accounts may be added later for optional persistence or synchronization, but acc
 
 ## Evidence on Hand
 
-- The unified Next.js application contains the studio at `/studio`, interactive lessons at `/learn`, and the palette catalog at `/palettes`.
+- The unified Next.js application contains the procedural Studio at `/studio`, the shared-project experiment Lab at `/lab`, and the palette catalog at `/palettes`.
 - `apps/web/components/studio/` contains the browser editor, conversion controls, selection and painting tools, palette adjustments, and preview surfaces.
-- `apps/web/components/learn/` contains interactive explanations and experiments for the image-processing pipeline.
+- `apps/web/components/learn/` contains the Lab's interactive explanations and focused experiments for the image-processing pipeline.
 - `apps/web/palettes/` contains the palette-strip source assets used by the catalog.
 - `assets/pigment-pig.svg`, `packages/ui/src/pig-mascot.tsx`, and `packages/ui/src/brand-mark.tsx` are existing brand assets.
 - Current code demonstrates local image processing and PNG export. No testimonials, customer claims, usage benchmarks, or formal product research are on hand and future work must not fabricate them.

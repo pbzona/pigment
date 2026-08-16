@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import {
-  BookOpenText,
+  Beaker,
   Download,
   HelpCircle,
   PanelRight,
@@ -55,6 +55,7 @@ import {
 } from "@pigment/color";
 import { exportPixelPng } from "@/lib/browser/export";
 import { decodeImageFile } from "@/lib/browser/image";
+import { previewToThumbnail, writeProjectSnapshot } from "@/lib/browser/project-snapshot";
 import {
   createPalette,
   DEFAULT_PALETTE,
@@ -88,8 +89,8 @@ import {
   type SourceCrop,
 } from "@pigment/quantization";
 
-import { Inspector } from "./inspector";
 import { OutputSidebar } from "./output-sidebar";
+import { PipelinePanel } from "./pipeline-panel";
 import { PixelCanvas } from "./pixel-canvas";
 import type {
   EditorMode,
@@ -328,7 +329,7 @@ export function PixelStudio() {
 
   const [mode, setMode] = useState<EditorMode>("convert");
   const [tool, setTool] = useState<EditorTool>("pencil");
-  const [brushSize, setBrushSize] = useState(1);
+  const brushSize = 1;
   const [selectionTool, setSelectionTool] = useState<SelectionTool>("brush");
   const [selectionBrushSize, setSelectionBrushSize] = useState(1);
   const [selectionCombineMode, setSelectionCombineMode] =
@@ -371,10 +372,33 @@ export function PixelStudio() {
     [generated, overrides],
   );
   const selectedCount = useMemo(() => countSelection(selectionMask), [selectionMask]);
+  const interventionCount = useMemo(() => {
+    let count = 0;
+    for (const value of methodOverrides) count += Number(value !== METHOD_INHERIT);
+    return count;
+  }, [methodOverrides]);
 
   useEffect(() => {
     localStorage.setItem(CUSTOM_PALETTES_KEY, JSON.stringify(customPalettes));
   }, [customPalettes]);
+
+  useEffect(() => {
+    if (!source || !originalPreview) return;
+    writeProjectSnapshot({
+      name: source.name,
+      sourceWidth: source.width,
+      sourceHeight: source.height,
+      gridWidth,
+      gridHeight,
+      method,
+      paletteName: activePalette.name,
+      paletteColors: activePalette.colors.map((color) => color.hex),
+      inputAdjustments,
+      interventionCount,
+      thumbnail: previewToThumbnail(originalPreview),
+      updatedAt: Date.now(),
+    });
+  }, [source, originalPreview, gridWidth, gridHeight, method, activePalette, inputAdjustments, interventionCount]);
 
   useEffect(() => {
     activePaletteRef.current = activePalette;
@@ -1141,18 +1165,6 @@ export function PixelStudio() {
       return;
     }
     if (event.metaKey || event.ctrlKey || event.altKey) return;
-    const shortcuts: Partial<Record<string, EditorTool>> = {
-      p: "pencil",
-      f: "fill",
-      i: "eyedropper",
-      e: "restore",
-    };
-    const nextTool = shortcuts[event.key.toLowerCase()];
-    if (nextTool) {
-      setMode("paint");
-      setTool(nextTool);
-      return;
-    }
     if (event.key.toLowerCase() === "s") {
       setMode("select");
       setSelectionTool("brush");
@@ -1278,19 +1290,6 @@ export function PixelStudio() {
     onRerun: () => updateMatchingPalette(activePalette),
   };
 
-  const paintProps = {
-    palette: activePalette,
-    adjustments,
-    selectedColorId,
-    tool,
-    brushSize,
-    selectionCount: selectedCount,
-    onSelectedColorChange: setSelectedColorId,
-    onToolChange: setTool,
-    onBrushSizeChange: setBrushSize,
-    onOpenPalette: () => setPaletteDialogOpen(true),
-  };
-
   const selectionProps = {
     tool: selectionTool,
     combineMode: selectionCombineMode,
@@ -1338,17 +1337,12 @@ export function PixelStudio() {
         </div>
 
         <div className="flex items-center gap-1">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button asChild variant="ghost" size="icon-sm" className="hidden sm:inline-flex">
-                <Link href="/learn" target="_blank" rel="noreferrer">
-                  <BookOpenText />
-                  <span className="sr-only">Open learning lab in a new tab</span>
-                </Link>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>How image reduction works</TooltipContent>
-          </Tooltip>
+          <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+            <Link href="/lab">
+              <Beaker data-icon="inline-start" />
+              Inspect in Lab
+            </Link>
+          </Button>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -1399,15 +1393,14 @@ export function PixelStudio() {
               </div>
               <dl className="grid grid-cols-[1fr_auto] gap-x-6 gap-y-3 p-4 text-xs">
                 <dt>Undo / redo</dt><dd className="font-mono text-muted-foreground">⌘/Ctrl Z · Shift Z</dd>
-                <dt>Paint tools</dt><dd className="font-mono text-muted-foreground">P · F · I · E</dd>
-                <dt>Select</dt><dd className="font-mono text-muted-foreground">S</dd>
+                <dt>New intervention</dt><dd className="font-mono text-muted-foreground">S</dd>
                 <dt>Move cell cursor</dt><dd className="font-mono text-muted-foreground">Arrow keys</dd>
                 <dt>Use active tool</dt><dd className="font-mono text-muted-foreground">Enter</dd>
                 <dt>Pan canvas</dt><dd className="font-mono text-muted-foreground">Space + drag</dd>
               </dl>
               <div className="border-t-2 p-3">
                 <Button asChild variant="link" size="sm" className="h-auto px-1">
-                  <Link href="/learn" target="_blank" rel="noreferrer">Open the learning lab</Link>
+                  <Link href="/lab">Inspect this project in Lab</Link>
                 </Button>
               </div>
             </PopoverContent>
@@ -1439,7 +1432,7 @@ export function PixelStudio() {
               <SheetHeader className="border-b text-left">
                 <SheetTitle>Controls</SheetTitle>
                 <SheetDescription>
-                  Convert, select, and paint the current pixel grid.
+                  Shape the procedure and add regional interventions.
                 </SheetDescription>
               </SheetHeader>
               <div className="border-b px-4 py-3 sm:hidden">
@@ -1453,12 +1446,16 @@ export function PixelStudio() {
                 />
               </div>
               <div className="min-h-0 flex-1">
-                <Inspector
-                  mode={mode}
-                  onModeChange={setMode}
+                <PipelinePanel
                   convertProps={convertProps}
                   selectionProps={selectionProps}
-                  paintProps={paintProps}
+                  gridWidth={gridWidth}
+                  gridHeight={gridHeight}
+                  paletteName={activePalette.name}
+                  paletteColorCount={activePalette.colors.length}
+                  interventionCount={interventionCount}
+                  onOpenOutput={() => setOutputOpen(true)}
+                  onStartIntervention={() => setMode("select")}
                 />
               </div>
             </SheetContent>
@@ -1498,13 +1495,17 @@ export function PixelStudio() {
         inert={uploading || cropping}
         aria-busy={uploading || cropping}
       >
-        {desktopControls ? <aside className="min-h-0 min-w-0 w-72 shrink-0 border-r bg-background">
-          <Inspector
-            mode={mode}
-            onModeChange={setMode}
+        {desktopControls ? <aside className="flex min-h-0 min-w-0 w-80 shrink-0 flex-col border-r bg-background">
+          <PipelinePanel
             convertProps={convertProps}
             selectionProps={selectionProps}
-            paintProps={paintProps}
+            gridWidth={gridWidth}
+            gridHeight={gridHeight}
+            paletteName={activePalette.name}
+            paletteColorCount={activePalette.colors.length}
+            interventionCount={interventionCount}
+            onOpenOutput={() => setOutputOpen(true)}
+            onStartIntervention={() => setMode("select")}
           />
         </aside> : null}
         <PixelCanvas

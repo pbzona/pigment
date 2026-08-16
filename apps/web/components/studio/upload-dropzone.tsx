@@ -68,7 +68,7 @@ export function UploadDropzone({
             <span className="text-sm font-semibold tracking-[-0.02em]">PIGMENT STUDIO</span>
           </div>
           <Button asChild variant="ghost" size="sm" className="text-muted-foreground">
-            <Link href="/learn">
+            <Link href="/lab">
               <BookOpenText data-icon="inline-start" />
               <span className="hidden sm:inline">How image reduction works</span>
               <span className="sm:hidden">Learn</span>

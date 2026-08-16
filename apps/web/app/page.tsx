@@ -1,255 +1,73 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  ArrowDown,
-  ArrowRight,
-  BookOpenText,
-  Brush,
-  Grid3X3,
-  LockKeyhole,
-  Palette,
-} from "lucide-react";
+import { ArrowRight, Beaker, Layers3, Palette } from "lucide-react";
 
 import { BrandMark } from "@pigment/ui/brand-mark";
 import { SiteHeader } from "@/components/site-header";
-import { CONVERSION_METHODS } from "@pigment/quantization/methods";
 
 export const metadata: Metadata = {
   description:
-    "Transform images, test color ideas, and explore image algorithms in a private browser-based art workshop.",
+    "A creative computation playground for transforming images through color, geometry, and inspectable algorithms.",
 };
 
-const SOURCE_PIXELS = [
-  0, 0, 1, 1, 1, 0, 0, 0,
-  0, 1, 2, 2, 1, 1, 0, 0,
-  1, 2, 3, 3, 2, 1, 1, 0,
-  1, 2, 3, 3, 2, 2, 1, 0,
-  0, 1, 2, 2, 2, 1, 0, 0,
-  0, 1, 1, 2, 1, 1, 0, 0,
-  0, 0, 1, 1, 1, 0, 0, 0,
-  0, 0, 0, 1, 0, 0, 0, 0,
+const cells = [
+  "#11100f", "#526f74", "#526f74", "#f06a32", "#f06a32", "#f5f2e8",
+  "#526f74", "#526f74", "#f06a32", "#f5f2e8", "#f5f2e8", "#11100f",
+  "#11100f", "#f06a32", "#f06a32", "#f5f2e8", "#526f74", "#526f74",
+  "#526f74", "#f06a32", "#f5f2e8", "#f5f2e8", "#526f74", "#11100f",
 ] as const;
-
-const SOURCE_COLORS = ["#171513", "#48656a", "#ef6a47", "#f1e8d9"] as const;
-const METHOD_PREVIEWS = [
-  [0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 2, 2, 1, 1, 0, 0],
-  [0, 1, 1, 2, 2, 1, 0, 0, 1, 2, 3, 3, 2, 1, 0, 0],
-  [0, 0, 1, 2, 1, 0, 0, 0, 0, 1, 2, 3, 2, 1, 0, 0],
-  [0, 1, 0, 2, 1, 0, 0, 0, 1, 2, 3, 2, 1, 1, 0, 0],
-] as const;
-
-function PixelGrid({
-  pixels,
-  columns,
-}: Readonly<{
-  pixels: readonly number[];
-  columns: number;
-}>) {
-  return (
-    <div
-      className="grid gap-px bg-foreground/15 p-px"
-      style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
-      aria-hidden="true"
-    >
-      {pixels.map((color, index) => (
-        <span
-          key={index}
-          className="aspect-square"
-          style={{ backgroundColor: SOURCE_COLORS[color] }}
-        />
-      ))}
-    </div>
-  );
-}
 
 export default function Home() {
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    name: "Pigment",
-    url: "https://pigment.phil.bingo",
-    applicationCategory: "DesignApplication",
-    operatingSystem: "Any modern web browser",
-    description:
-      "A private browser-based art workshop for image experiments, color palettes, and inspectable algorithms.",
-    isAccessibleForFree: true,
-    license: "https://opensource.org/license/mit",
-    featureList: [
-      "Local browser image processing",
-      "Palette-driven image reduction",
-      "Image quantization and dithering",
-      "Interactive algorithm lessons",
-      "PNG export",
-    ],
-  };
-
   return (
     <div className="min-h-svh bg-background text-foreground">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
       <SiteHeader active="home" />
-
-      <main>
-        <section className="relative overflow-hidden border-b border-foreground/10">
-          <div
-            className="pointer-events-none absolute inset-0 opacity-[0.16]"
-            style={{
-              backgroundImage:
-                "linear-gradient(rgba(255,255,255,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.12) 1px, transparent 1px)",
-              backgroundSize: "32px 32px",
-              maskImage: "linear-gradient(to bottom, black, transparent 88%)",
-            }}
-            aria-hidden="true"
-          />
-          <div className="relative mx-auto grid min-h-[calc(100svh-3.5rem)] max-w-7xl items-center gap-14 px-4 py-16 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(24rem,.95fr)] lg:px-8">
-            <div className="max-w-3xl">
-              <Palette className="size-6 text-primary" aria-hidden="true" />
-              <h1 className="mt-6 max-w-3xl text-balance text-5xl font-semibold leading-[0.94] tracking-[-0.04em] sm:text-7xl lg:text-[5.25rem]">
-                See what an image becomes with fewer colors.
-              </h1>
-              <p className="mt-7 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-                Transform an image with different algorithms, reshape its palette, and refine what survives—cell by cell, in your browser.
-              </p>
-              <div className="mt-9 grid max-w-2xl gap-3 sm:grid-cols-2">
-                <Link
-                  href="/studio"
-                  prefetch={false}
-                  className="group flex min-h-28 items-center justify-between border-2 border-border bg-primary p-5 text-primary-foreground shadow-[4px_4px_0_var(--shadow)] transition-[transform,box-shadow] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <span>
-                    <Brush className="mb-3 size-5" />
-                    <span className="block text-base font-medium">Open the studio</span>
-                    <span className="mt-1 block text-xs opacity-70">Start with your image or a sample</span>
-                  </span>
-                  <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
-                </Link>
-                <Link
-                  href="/learn"
-                  className="group flex min-h-28 items-center justify-between border-2 border-border bg-card p-5 shadow-[4px_4px_0_var(--shadow)] transition-[transform,box-shadow] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <span>
-                    <BookOpenText className="mb-3 size-5 text-primary" />
-                    <span className="block text-base font-medium">Explore the algorithms</span>
-                    <span className="mt-1 block text-xs text-muted-foreground">See how each method changes the image</span>
-                  </span>
-                  <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
-                </Link>
-              </div>
-            </div>
-
-            <div className="relative mx-auto w-full max-w-lg lg:mr-0">
-              <div className="absolute -left-5 -top-5 size-24 border-l border-t border-primary/55" aria-hidden="true" />
-              <div className="border-2 border-border bg-card p-4 shadow-[8px_8px_0_var(--shadow)] sm:p-6">
-                <div className="mb-5 flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
-                  <span>Source image</span>
-                  <span className="text-primary">Image → color IDs</span>
-                </div>
-                <PixelGrid pixels={SOURCE_PIXELS} columns={8} />
-                <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-                  <div className="space-y-1">
-                    {SOURCE_COLORS.map((color) => (
-                      <span key={color} className="block h-2" style={{ backgroundColor: color }} />
-                    ))}
-                  </div>
-                  <ArrowDown className="size-4 -rotate-90 text-primary" />
-                  <div className="grid grid-cols-4 gap-px bg-foreground/15 p-px">
-                    {METHOD_PREVIEWS[0].map((color, index) => (
-                      <span key={index} className="aspect-square" style={{ backgroundColor: SOURCE_COLORS[color] }} />
-                    ))}
-                  </div>
-                </div>
-                <p className="mt-5 border-t border-foreground/10 pt-4 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
-                  Sample · Match · Refine
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="how-it-works" className="border-b border-foreground/10 scroll-mt-14">
-          <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
-            <div className="grid gap-10 lg:grid-cols-[.72fr_1.28fr]">
-              <div>
-                <h2 className="max-w-md text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">Automation you can inspect.</h2>
-              </div>
-              <div className="grid gap-px border border-foreground/10 bg-foreground/10 sm:grid-cols-3">
-                {[
-                  [Grid3X3, "01", "Sample", "Split the image into cells and inspect the source pixels inside each one."],
-                  [Palette, "02", "Choose", "Let an algorithm reduce each cell, then match the result to your palette."],
-                  [Brush, "03", "Refine", "Change methods by region or paint individual cells by hand."],
-                ].map(([Icon, number, title, description]) => {
-                  const StepIcon = Icon as typeof Grid3X3;
-                  return (
-                    <article key={number as string} className="bg-background p-6 sm:min-h-64">
-                      <div className="flex items-center justify-between">
-                        <StepIcon className="size-5 text-primary" />
-                        <span className="font-mono text-[10px] text-muted-foreground">{number as string}</span>
-                      </div>
-                      <h3 className="mt-12 text-xl font-medium">{title as string}</h3>
-                      <p className="mt-3 text-sm leading-6 text-muted-foreground">{description as string}</p>
-                    </article>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="border-b border-foreground/10">
-          <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
-            <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
-              <div>
-                <h2 className="text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">One image. Many ways to reduce it.</h2>
-              </div>
-            </div>
-            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {CONVERSION_METHODS.slice(0, METHOD_PREVIEWS.length).map((method, index) => (
-                <Link
-                  key={method.value}
-                  href={`/learn#${method.slug}`}
-                  className="group border border-foreground/12 bg-card p-4 transition-colors hover:border-primary/50"
-                >
-                  <PixelGrid pixels={METHOD_PREVIEWS[index]} columns={8} />
-                  <div className="mt-4 flex items-center justify-between">
-                    <span className="text-sm font-medium">{method.label}</span>
-                    <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" />
-                  </div>
-                  <p className="mt-1 text-xs leading-5 text-muted-foreground">{method.description}.</p>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <div className="mx-auto grid max-w-7xl gap-px bg-foreground/10 px-4 py-20 sm:px-6 sm:py-28 lg:grid-cols-2 lg:px-8">
-            <div className="bg-background p-8 sm:p-12">
-              <LockKeyhole className="size-5 text-primary" />
-              <h2 className="mt-6 text-3xl font-medium tracking-[-0.045em]">Your image stays yours.</h2>
-              <p className="mt-4 max-w-md text-sm leading-6 text-muted-foreground">Image decoding, conversion, editing, and export happen locally in your browser. Nothing is uploaded.</p>
-            </div>
-            <div className="grid gap-3 bg-background p-8 sm:grid-cols-2 sm:p-12">
-              <Link href="/studio" prefetch={false} className="group flex min-h-36 flex-col justify-between border border-primary/45 bg-primary/10 p-5">
-                <Brush className="size-5 text-primary" />
-                <span className="flex items-end justify-between gap-4 text-lg font-medium">Create <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" /></span>
+      <main className="relative min-h-[calc(100svh-3.5rem)] overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 opacity-[0.16]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.12) 1px, transparent 1px)", backgroundSize: "32px 32px", maskImage: "linear-gradient(to bottom, black, transparent 92%)" }} aria-hidden="true" />
+        <div className="relative mx-auto grid min-h-[calc(100svh-3.5rem)] max-w-7xl items-center gap-12 px-4 py-12 sm:px-6 lg:grid-cols-[minmax(0,.9fr)_minmax(36rem,1.1fr)] lg:px-8">
+          <section className="max-w-2xl">
+            <Palette className="size-6 text-primary" aria-hidden="true" />
+            <h1 className="mt-6 text-balance text-5xl font-semibold leading-[0.94] tracking-[-0.04em] sm:text-7xl">
+              Compose the procedure. Inspect the result.
+            </h1>
+            <p className="mt-7 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
+              Pigment is a creative computation playground for transforming images through color, geometry, and algorithms you can see and change.
+            </p>
+            <div className="mt-9 flex flex-wrap gap-3">
+              <Link href="/studio" prefetch={false} className="group flex min-h-24 min-w-56 items-center justify-between border-2 border-border bg-primary p-5 text-primary-foreground shadow-[4px_4px_0_var(--shadow)] transition-[transform,box-shadow] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <span><Layers3 className="mb-2 size-5" /><span className="block font-medium">Enter Studio</span><span className="mt-1 block text-xs opacity-70">Compose a transformation</span></span>
+                <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
               </Link>
-              <Link href="/learn" className="group flex min-h-36 flex-col justify-between border border-primary/45 bg-primary/10 p-5">
-                <BookOpenText className="size-5 text-primary" />
-                <span className="flex items-end justify-between gap-4 text-lg font-medium">Learn <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" /></span>
+              <Link href="/lab" className="group flex min-h-24 min-w-56 items-center justify-between border-2 border-border bg-card p-5 shadow-[4px_4px_0_var(--shadow)] transition-[transform,box-shadow] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <span><Beaker className="mb-2 size-5 text-primary" /><span className="block font-medium">Enter Lab</span><span className="mt-1 block text-xs text-muted-foreground">Understand the machinery</span></span>
+                <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
-          </div>
-        </section>
-      </main>
+          </section>
 
-      <footer className="border-t border-foreground/10">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-6 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3"><BrandMark className="size-5" /><span className="text-xs font-semibold">PIGMENT</span></div>
-          <p className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">Images, palettes, algorithms</p>
+          <section className="relative mx-auto w-full max-w-2xl" aria-label="Pigment procedure preview">
+            <div className="absolute -left-5 -top-5 size-24 border-l border-t border-primary/55" aria-hidden="true" />
+            <div className="grid border-2 border-border bg-card shadow-[10px_10px_0_var(--shadow)] lg:grid-cols-[13rem_1fr]">
+              <div className="border-b-2 border-border p-4 lg:border-b-0 lg:border-r-2">
+                <div className="flex items-center justify-between"><span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">Procedure</span><Layers3 className="size-4 text-primary" /></div>
+                <ol className="mt-4 space-y-1.5 text-xs">
+                  {["Source", "Frame", "Square partition", "Geometric median", "Map to palette", "No texture", "2 interventions", "Output"].map((step, index) => (
+                    <li key={step} className={`flex items-center gap-2 border p-2 ${index === 3 ? "border-primary bg-primary/10" : "border-foreground/10"}`}><span className="font-mono text-[9px] text-muted-foreground">{String(index + 1).padStart(2, "0")}</span><span>{step}</span></li>
+                  ))}
+                </ol>
+              </div>
+              <div className="p-5 sm:p-7">
+                <div className="flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground"><span>Image / procedure / output</span><span className="text-primary">Live</span></div>
+                <div className="mt-5 grid grid-cols-6 gap-px bg-foreground/15 p-px" aria-hidden="true">
+                  {cells.map((color, index) => <span key={index} className="aspect-square" style={{ backgroundColor: color }} />)}
+                </div>
+                <div className="mt-5 flex gap-2">{["#11100f", "#526f74", "#f06a32", "#f5f2e8"].map((color) => <span key={color} className="h-3 flex-1" style={{ backgroundColor: color }} />)}</div>
+                <p className="mt-5 border-t border-foreground/10 pt-4 text-sm leading-6 text-muted-foreground">Studio and Lab are two views of the same local project: one for composing, one for investigation.</p>
+              </div>
+            </div>
+          </section>
         </div>
-      </footer>
+      </main>
+      <footer className="border-t border-foreground/10"><div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-5 sm:px-6 lg:px-8"><div className="flex items-center gap-3"><BrandMark className="size-5" /><span className="text-xs font-semibold">PIGMENT</span></div><p className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">Studio / Lab · one shared project</p></div></footer>
     </div>
   );
 }

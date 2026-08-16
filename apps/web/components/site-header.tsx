@@ -5,13 +5,13 @@ import { Button } from "@pigment/ui/button";
 import { cn } from "@/lib/utils";
 
 type SiteHeaderProps = Readonly<{
-  active?: "home" | "studio" | "learn" | "palettes";
+  active?: "home" | "studio" | "lab" | "palettes";
   context?: string;
   className?: string;
 }>;
 
 const links = [
-  { key: "learn", href: "/learn", label: "Learn" },
+  { key: "lab", href: "/lab", label: "Lab" },
   { key: "palettes", href: "/palettes", label: "Palettes" },
 ] as const;
 
@@ -42,7 +42,7 @@ export function SiteHeader({ active, context, className }: SiteHeaderProps) {
               asChild
               variant={active === link.key ? "secondary" : "ghost"}
               size="sm"
-              className={cn(link.key === "learn" && "hidden sm:inline-flex")}
+              className={cn(link.key === "lab" && "hidden sm:inline-flex")}
             >
               <Link href={link.href} aria-current={active === link.key ? "page" : undefined}>
                 {link.label}

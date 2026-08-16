@@ -11,6 +11,7 @@ import {
 } from "@pigment/quantization";
 import { cn } from "@/lib/utils";
 
+import { CurrentProjectPanel } from "./current-project-panel";
 import { ImageComparisonLab } from "./image-comparison-lab";
 import { MethodExplorer } from "./method-explorer";
 import { PaletteExtractionExplorer } from "./palette-extraction-explorer";
@@ -113,7 +114,7 @@ export function QuantizationLab() {
 
   return (
     <div className="min-h-svh bg-background text-foreground">
-      <SiteHeader active="learn" context="Image reduction guide" />
+      <SiteHeader active="lab" context="Experiment lab" />
 
       <main>
         <section className="relative overflow-hidden border-b border-foreground/10">
@@ -126,14 +127,14 @@ export function QuantizationLab() {
             }}
             aria-hidden="true"
           />
-          <div className="relative mx-auto grid min-h-[calc(100svh-3.5rem)] max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(22rem,0.9fr)] lg:px-8">
+          <div className="relative mx-auto grid min-h-[calc(100svh-3.5rem)] max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(20rem,0.72fr)] lg:px-8">
             <div className="max-w-3xl">
               <FlaskConical className="size-5 text-primary" aria-hidden="true" />
               <h1 className="mt-6 text-balance text-5xl font-semibold leading-[0.95] tracking-[-0.04em] sm:text-7xl lg:text-[5.25rem]">
-                See how an image becomes a grid of color.
+                Put the procedure under glass.
               </h1>
               <p className="mt-7 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-                Pigment splits an image into cells, reduces the source pixels in each cell, then chooses the nearest palette color. Change the method and inspect every step.
+                Lab shares the project on your Studio workbench. Isolate a stage, compare its choices, and use focused experiments to understand what the procedure is doing.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button asChild size="lg">
@@ -162,7 +163,8 @@ export function QuantizationLab() {
 
             <div className="relative mx-auto w-full max-w-md lg:mr-0">
               <div className="absolute -left-5 -top-5 size-20 border-l border-t border-primary/55" aria-hidden="true" />
-              <div className="border-2 border-border bg-card p-4 shadow-[6px_6px_0_var(--shadow)] sm:p-6">
+              <CurrentProjectPanel />
+              <div className="mt-4 border-2 border-border bg-card p-4 shadow-[6px_6px_0_var(--shadow)] sm:p-6">
                 <div className="mb-5 flex items-center justify-between">
                   <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">Example image / 8×8</span>
                   <span className="font-mono text-[9px] text-primary">RGBA → ID</span>

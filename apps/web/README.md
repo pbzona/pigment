@@ -6,7 +6,7 @@ The unified Pigment Next.js application.
 
 - `/` Pigment home
 - `/studio` Pigment image and color studio
-- `/learn` interactive quantization guide
+- `/lab` shared-project experiment lab (`/learn` redirects here)
 - `/palettes` palette catalog
 - `/api/v1/*` authenticated public palette API
 - `/api/palettes` and `/api/palette-tags` browser BFF endpoints
