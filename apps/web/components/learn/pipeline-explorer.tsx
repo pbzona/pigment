@@ -107,27 +107,25 @@ export function PipelineExplorer() {
         </p>
       </div>
 
-      <div className="overflow-x-auto border-y border-foreground/10 py-3">
-        <div className="flex min-w-max items-center gap-1" role="tablist" aria-label="Image pipeline stages">
-          {PIPELINE_STAGES.map((entry, index) => (
-            <button
-              key={entry.label}
-              type="button"
-              role="tab"
-              aria-selected={stage === index}
-              className={cn(
-                "flex items-center gap-2 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.1em] transition-colors",
-                stage === index
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-transparent text-muted-foreground hover:border-foreground/15 hover:text-foreground",
-              )}
-              onClick={() => setStage(index)}
-            >
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              {entry.label}
-            </button>
-          ))}
-        </div>
+      <div className="grid grid-cols-2 gap-px border-y border-foreground/10 bg-foreground/10 sm:grid-cols-4 xl:grid-cols-7" role="tablist" aria-label="Image pipeline stages">
+        {PIPELINE_STAGES.map((entry, index) => (
+          <button
+            key={entry.label}
+            type="button"
+            role="tab"
+            aria-selected={stage === index}
+            className={cn(
+              "flex min-w-0 items-center gap-2 bg-background px-3 py-3 text-left font-mono text-[9px] uppercase tracking-[0.08em] transition-colors",
+              stage === index
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-card hover:text-foreground",
+            )}
+            onClick={() => setStage(index)}
+          >
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            {entry.label}
+          </button>
+        ))}
       </div>
 
       <div className="mt-6 grid gap-6 border-2 border-border bg-card p-4 shadow-[6px_6px_0_var(--shadow)] sm:p-6 xl:grid-cols-[minmax(0,1fr)_15rem_minmax(0,1fr)] xl:items-center">
@@ -136,9 +134,7 @@ export function PipelineExplorer() {
             <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Source / 8×8</span>
             <span className="font-mono text-[9px] text-muted-foreground">select an output cell</span>
           </div>
-          <div className="overflow-x-auto pb-2">
-            <PixelGrid width={8} height={8} pixels={sourcePixels} label="Source image pixels" compact />
-          </div>
+          <PixelGrid width={8} height={8} pixels={sourcePixels} label="Source image pixels" compact />
         </div>
 
         <div className="relative min-w-0 border-y border-foreground/10 py-6 text-center xl:border-x xl:border-y-0 xl:px-5 xl:py-10">
@@ -158,16 +154,14 @@ export function PipelineExplorer() {
             <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Output / 4×4</span>
             <span className="font-mono text-[9px] text-primary">ID {cell.resultColorId}</span>
           </div>
-          <div className="overflow-x-auto pb-2">
-            <PixelGrid
-              width={4}
-              height={4}
-              pixels={outputPixels}
-              label="Quantized output cells"
-              selectedIndex={selectedCell}
-              onSelect={setSelectedCell}
-            />
-          </div>
+          <PixelGrid
+            width={4}
+            height={4}
+            pixels={outputPixels}
+            label="Quantized output cells"
+            selectedIndex={selectedCell}
+            onSelect={setSelectedCell}
+          />
         </div>
       </div>
     </section>

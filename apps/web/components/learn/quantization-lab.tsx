@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowDown, FlaskConical } from "lucide-react";
 
 import { Button } from "@pigment/ui/button";
@@ -55,7 +55,7 @@ function LearningNav({ method, mobile = false }: LearningNavProps) {
       aria-label="Lab sections"
       className={cn(
         mobile
-          ? "flex min-w-max items-center gap-1 px-4 py-2"
+          ? "grid grid-cols-2 gap-px bg-foreground/10 p-px sm:grid-cols-4"
           : "border-l border-foreground/10",
       )}
     >
@@ -66,7 +66,7 @@ function LearningNav({ method, mobile = false }: LearningNavProps) {
           className={cn(
             "group transition-colors hover:text-foreground",
             mobile
-              ? "border border-foreground/10 px-3 py-2 text-xs text-muted-foreground"
+              ? "bg-background px-3 py-2.5 text-xs text-muted-foreground"
               : "grid grid-cols-[1.5rem_1fr] gap-2 border-l border-transparent py-3 pl-4 pr-2 text-muted-foreground hover:border-primary/60 hover:bg-primary/5",
           )}
         >
@@ -90,7 +90,6 @@ function LearningNav({ method, mobile = false }: LearningNavProps) {
 
 export function QuantizationLab() {
   const [method, setMethod] = useState<ConversionMethod>("dominant");
-  const mobileNavRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const syncHash = () => {
@@ -101,16 +100,6 @@ export function QuantizationLab() {
     window.addEventListener("hashchange", syncHash);
     return () => window.removeEventListener("hashchange", syncHash);
   }, []);
-
-  useEffect(() => {
-    const container = mobileNavRef.current;
-    const active = container?.querySelector<HTMLElement>("[aria-current=page]");
-    if (!container || !active) return;
-    container.scrollTo({
-      left: Math.max(0, active.offsetLeft - (container.clientWidth - active.offsetWidth) / 2),
-      behavior: "auto",
-    });
-  }, [method]);
 
   const changeMethod = (nextMethod: ConversionMethod) => {
     setMethod(nextMethod);
@@ -202,7 +191,7 @@ export function QuantizationLab() {
           </div>
         </section>
 
-        <div ref={mobileNavRef} className="sticky top-14 z-40 overflow-x-auto border-b-2 border-border bg-background lg:hidden">
+        <div className="sticky top-14 z-40 border-b-2 border-border bg-background lg:hidden">
           <LearningNav method={method} mobile />
         </div>
 

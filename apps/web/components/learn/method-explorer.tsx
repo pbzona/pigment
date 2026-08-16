@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 
 import { Button } from "@pigment/ui/button";
@@ -500,16 +500,6 @@ export function MethodExplorer({ method, onMethodChange }: MethodExplorerProps) 
   const data = useMemo(() => methodTrace(method), [method]);
   const [stage, setStage] = useState(0);
   const [selectedCell, setSelectedCell] = useState(method === "dither" || method === "atkinson" || method === "riemersma" ? 0 : 5);
-  const methodTabsRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const container = methodTabsRef.current;
-    const active = container?.querySelector<HTMLElement>("[aria-selected=true]");
-    if (!container || !active) return;
-    container.scrollTo({
-      left: Math.max(0, active.offsetLeft - (container.clientWidth - active.offsetWidth) / 2),
-      behavior: "auto",
-    });
-  }, [method]);
   const cell = data.trace.cells[selectedCell];
   const expectedKind = kindForMethod(method);
   if (!cell || cell.details.kind !== expectedKind) return null;
@@ -590,27 +580,19 @@ export function MethodExplorer({ method, onMethodChange }: MethodExplorerProps) 
         </p>
       </div>
 
-      <div ref={methodTabsRef} className="overflow-x-auto border-y border-foreground/10 py-3">
-        <div className="flex min-w-max items-stretch" role="tablist" aria-label="Image reduction methods">
-          {methodFamilies.map((family, familyIndex) => (
-            <div
-              key={family.id}
-              className={cn(
-                "flex items-stretch gap-1 px-3",
-                familyIndex > 0 && "border-l border-foreground/10",
-              )}
-            >
-              <span className="flex w-12 shrink-0 items-center font-mono text-[8px] uppercase tracking-[0.12em] text-muted-foreground/60">
-                {family.label}
-              </span>
+      <div className="grid gap-px border-y border-foreground/10 bg-foreground/10 md:grid-cols-2 xl:grid-cols-4" aria-label="Image reduction methods">
+        {methodFamilies.map((family) => (
+          <fieldset key={family.id} className="min-w-0 bg-background p-3">
+            <legend className="sr-only">{family.label} methods</legend>
+            <p className="mb-2 font-mono text-[8px] uppercase tracking-[0.12em] text-muted-foreground/60">{family.label}</p>
+            <div className="grid gap-1 sm:grid-cols-2 md:grid-cols-1 2xl:grid-cols-2">
               {family.methods.map((entry) => (
                 <button
                   key={entry.value}
                   type="button"
-                  role="tab"
-                  aria-selected={method === entry.value}
+                  aria-pressed={method === entry.value}
                   className={cn(
-                    "border px-3 py-2 text-xs transition-colors",
+                    "min-w-0 border px-3 py-2 text-left text-xs leading-4 transition-colors",
                     method === entry.value
                       ? "border-primary bg-primary/10 text-foreground"
                       : "border-transparent text-muted-foreground hover:border-foreground/15 hover:text-foreground",
@@ -621,8 +603,8 @@ export function MethodExplorer({ method, onMethodChange }: MethodExplorerProps) 
                 </button>
               ))}
             </div>
-          ))}
-        </div>
+          </fieldset>
+        ))}
       </div>
 
       <article className="mt-6 border border-foreground/10 bg-card/45">
@@ -646,8 +628,8 @@ export function MethodExplorer({ method, onMethodChange }: MethodExplorerProps) 
         </header>
 
         <div className="border-b border-foreground/10 p-4 sm:p-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex min-w-0 flex-1 overflow-x-auto" role="tablist" aria-label={`${definition.label} stages`}>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="grid min-w-0 flex-1 grid-cols-2 gap-px bg-foreground/10 sm:grid-cols-3 xl:grid-cols-5" role="tablist" aria-label={`${definition.label} stages`}>
               {lesson.stages.map((label, index) => (
                 <button
                   key={label}
@@ -655,7 +637,7 @@ export function MethodExplorer({ method, onMethodChange }: MethodExplorerProps) 
                   role="tab"
                   aria-selected={stage === index}
                   className={cn(
-                    "min-w-max border-b-2 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.08em] transition-colors",
+                    "min-w-0 border-b-2 bg-card px-2 py-2 text-left font-mono text-[8px] uppercase leading-4 tracking-[0.06em] transition-colors",
                     stage === index ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
                   )}
                   onClick={() => setStage(index)}
@@ -693,18 +675,14 @@ export function MethodExplorer({ method, onMethodChange }: MethodExplorerProps) 
                   <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">Source samples</span>
                   <span className="font-mono text-[9px] text-muted-foreground">8×8</span>
                 </div>
-                <div className="overflow-x-auto pb-2">
-                  <PixelGrid width={8} height={8} pixels={sourcePixels} label={`${definition.label} source example`} compact />
-                </div>
+                <PixelGrid width={8} height={8} pixels={sourcePixels} label={`${definition.label} source example`} compact />
               </div>
               <div className="min-w-0">
                 <div className="mb-3 flex items-center justify-between">
                   <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">Output cells</span>
                   <span className="font-mono text-[9px] text-primary">select an output cell</span>
                 </div>
-                <div className="overflow-x-auto pb-2">
-                  <PixelGrid width={4} height={4} pixels={outputPixels} label={`${definition.label} output example`} selectedIndex={selectedCell} onSelect={setSelectedCell} />
-                </div>
+                <PixelGrid width={4} height={4} pixels={outputPixels} label={`${definition.label} output example`} selectedIndex={selectedCell} onSelect={setSelectedCell} />
                 {sequential ? (
                   <div className="mt-3 flex items-center justify-between gap-2 border-t border-foreground/10 pt-3">
                     <Button variant="outline" size="xs" disabled={selectedSequenceIndex <= 0} onClick={() => setSelectedCell(sequence[Math.max(0, selectedSequenceIndex - 1)].index)}>Previous pixel</Button>

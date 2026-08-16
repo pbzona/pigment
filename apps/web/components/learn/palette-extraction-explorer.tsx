@@ -116,7 +116,7 @@ export function PaletteExtractionExplorer() {
         <div className="grid gap-px bg-foreground/10 lg:grid-cols-[18rem_minmax(0,1fr)]">
           <aside className="bg-background/70 p-4 sm:p-6">
             <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">Source colors</span>
-            <div className="mt-3 overflow-x-auto pb-2">
+            <div className="mt-3">
               <PixelGrid width={8} height={8} pixels={sourceGrid(data.pixels)} label="Palette extraction source pixels" compact />
             </div>
             <div className="mt-5 grid grid-cols-2 gap-px border border-foreground/10 bg-foreground/10">
