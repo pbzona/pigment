@@ -95,7 +95,7 @@ export function ComparisonPreview({
         </span>
       </div>
       <div
-        className={`${compact ? "h-40" : "h-48"} flex items-center justify-center overflow-hidden border bg-[length:12px_12px] bg-[position:0_0,0_6px,6px_-6px,-6px_0px] ${
+        className={`${compact ? "h-64" : "h-96"} flex items-center justify-center overflow-hidden border bg-[length:12px_12px] bg-[position:0_0,0_6px,6px_-6px,-6px_0px] ${
           lightCheckerboard
             ? "bg-[#d8d4ca] bg-[linear-gradient(45deg,#f5f2e8_25%,transparent_25%),linear-gradient(-45deg,#f5f2e8_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f5f2e8_75%),linear-gradient(-45deg,transparent_75%,#f5f2e8_75%)]"
             : "bg-[#151619] bg-[linear-gradient(45deg,#25272b_25%,transparent_25%),linear-gradient(-45deg,#25272b_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#25272b_75%),linear-gradient(-45deg,transparent_75%,#25272b_75%)]"

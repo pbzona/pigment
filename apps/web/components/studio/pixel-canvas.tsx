@@ -682,7 +682,7 @@ export function PixelCanvas({
           </PopoverTrigger>
           <PopoverContent
             align="center"
-            className="w-[min(20rem,calc(100vw-2rem))] rounded-none p-4"
+            className="w-[min(42rem,calc(100vw-2rem))] rounded-none p-4"
           >
             <ComparisonPreview
               width={width}
@@ -692,7 +692,6 @@ export function PixelCanvas({
               visibleColorIds={visibleColorIds}
               originalPreview={originalPreview}
               adjustedPreview={adjustedPreview}
-              compact
             />
           </PopoverContent>
         </Popover>

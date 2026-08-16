@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 
 import { Button } from "@pigment/ui/button";
 import { linearToSrgbByte, srgbByteToLinear } from "@pigment/color";
@@ -608,28 +607,14 @@ export function MethodExplorer({ method, onMethodChange }: MethodExplorerProps) 
       </div>
 
       <article className="mt-6 border border-foreground/10 bg-card/45">
-        <header className="grid gap-5 border-b border-foreground/10 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-end">
-          <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-primary">{lesson.eyebrow}</p>
-            <h3 className="mt-2 text-3xl font-medium tracking-[-0.04em] sm:text-4xl">{definition.label}</h3>
-            <p className="mt-3 max-w-2xl text-base leading-7">{lesson.principle}</p>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">{lesson.explanation}</p>
-          </div>
-          <div className="grid grid-cols-2 gap-px border border-foreground/10 bg-foreground/10">
-            <div className="bg-background/80 p-3">
-              <span className="font-mono text-[8px] uppercase tracking-[0.12em] text-muted-foreground">Family</span>
-              <p className="mt-1 text-xs capitalize">{definition.family}</p>
-            </div>
-            <div className="bg-background/80 p-3">
-              <span className="font-mono text-[8px] uppercase tracking-[0.12em] text-muted-foreground">Output</span>
-              <p className="mt-1 text-xs">Palette ID {cell.resultColorId}</p>
-            </div>
-          </div>
+        <header className="border-b border-foreground/10 p-5 sm:p-7">
+          <h3 className="text-3xl font-medium tracking-[-0.04em] sm:text-4xl">{definition.label}</h3>
+          <p className="mt-3 max-w-3xl text-base leading-7">{lesson.principle}</p>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">{lesson.explanation}</p>
         </header>
 
         <div className="border-b border-foreground/10 p-4 sm:p-5">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="grid min-w-0 flex-1 grid-cols-2 gap-px bg-foreground/10 sm:grid-cols-3 xl:grid-cols-5" role="tablist" aria-label={`${definition.label} stages`}>
+          <div className="grid min-w-0 grid-cols-2 gap-px bg-foreground/10 sm:grid-cols-3 xl:grid-cols-5" role="tablist" aria-label={`${definition.label} stages`}>
               {lesson.stages.map((label, index) => (
                 <button
                   key={label}
@@ -645,21 +630,6 @@ export function MethodExplorer({ method, onMethodChange }: MethodExplorerProps) 
                   {index + 1}. {label}
                 </button>
               ))}
-            </div>
-            <div className="flex gap-1">
-              <Button variant="outline" size="icon-sm" disabled={stage === 0} onClick={() => setStage((value) => Math.max(0, value - 1))}>
-                <ChevronLeft />
-                <span className="sr-only">Previous stage</span>
-              </Button>
-              <Button variant="outline" size="icon-sm" disabled={stage === lesson.stages.length - 1} onClick={() => setStage((value) => Math.min(lesson.stages.length - 1, value + 1))}>
-                <ChevronRight />
-                <span className="sr-only">Next stage</span>
-              </Button>
-              <Button variant="ghost" size="icon-sm" onClick={() => setStage(0)}>
-                <RotateCcw />
-                <span className="sr-only">Reset stages</span>
-              </Button>
-            </div>
           </div>
           <div className="mt-3 flex items-start gap-3 border-l-2 border-primary bg-primary/5 px-3 py-2.5">
             <span className="font-mono text-[10px] text-primary">{String(stage + 1).padStart(2, "0")}</span>

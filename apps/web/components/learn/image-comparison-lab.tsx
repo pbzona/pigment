@@ -16,6 +16,7 @@ import { Slider } from "@pigment/ui/slider";
 import { usePixelWorker } from "@/hooks/use-pixel-worker";
 import { DEFAULT_PALETTE_ADJUSTMENTS } from "@pigment/color";
 import { decodeImageFile } from "@/lib/browser/image";
+import { readProjectSource } from "@/lib/browser/project-source";
 import {
   CONVERSION_METHODS,
   colorIdsToRgba,
@@ -142,6 +143,7 @@ export function ImageComparisonLab() {
   const [leftResult, setLeftResult] = useState<ConversionResult | null>(null);
   const [rightResult, setRightResult] = useState<ConversionResult | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [restoringStudioImage, setRestoringStudioImage] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -233,6 +235,17 @@ export function ImageComparisonLab() {
     }
   };
 
+  useEffect(() => {
+    void readProjectSource()
+      .then((file) => {
+        if (file) return handleFile(file);
+      })
+      .catch(() => undefined)
+      .finally(() => setRestoringStudioImage(false));
+    // Load the current Studio source once when the Lab comparison mounts.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <section id="compare" className="scroll-mt-24 border-t border-foreground/10 pt-16 sm:pt-24">
       <div className="mb-8 max-w-3xl">
@@ -243,7 +256,11 @@ export function ImageComparisonLab() {
       </div>
 
       {!source ? (
-        <div
+        restoringStudioImage ? (
+          <div className="grid min-h-48 place-items-center border border-foreground/10 bg-card/45">
+            <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Loading Studio image…</p>
+          </div>
+        ) : <div
           className={cn(
             "relative grid min-h-80 place-items-center border border-dashed border-foreground/20 bg-card/45 p-6 text-center transition-colors",
             dragging && "border-primary bg-primary/5",
