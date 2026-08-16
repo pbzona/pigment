@@ -37,7 +37,7 @@
 
 .site-shell,
 .detail-shell {
-  width: min(100% - 40px, 1480px);
+  width: min(100% - 40px, 1280px);
   margin: 0 auto;
 }
 
@@ -178,18 +178,31 @@
 
 .catalog-intro {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(24rem, 0.75fr);
-  gap: 48px;
+  grid-template-columns: minmax(0, 1.35fr) minmax(22rem, 0.65fr);
+  gap: 64px;
   align-items: end;
-  padding: 56px 0 40px;
+  min-height: 430px;
+  padding: 72px 0 48px;
+  border-bottom: 1px solid color-mix(in oklab, var(--ink) 10%, transparent);
+}
+
+.catalog-kicker,
+.filter-section-index {
+  margin: 0;
+  color: var(--accent);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.65rem;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .catalog-intro h1 {
-  max-width: 820px;
-  margin: 0;
-  font-size: clamp(3rem, 5.8vw, 6rem);
+  max-width: 760px;
+  margin: 18px 0 0;
+  font-size: clamp(3.25rem, 6vw, 5.75rem);
   font-weight: 670;
-  letter-spacing: -0.065em;
+  letter-spacing: -0.04em;
   line-height: 0.92;
   text-wrap: balance;
 }
@@ -207,9 +220,8 @@
   grid-template-columns: auto 1fr;
   gap: 16px;
   padding: 18px;
-  border: 2px solid var(--ink);
-  background: var(--surface);
-  box-shadow: 5px 5px 0 var(--shadow);
+  border: 1px solid color-mix(in oklab, var(--ink) 18%, transparent);
+  background: color-mix(in oklab, var(--surface) 72%, transparent);
 }
 
 .lospec-credit-mark {
@@ -261,17 +273,17 @@
 
 .filter-panel {
   display: grid;
-  grid-template-columns: minmax(18rem, 1.05fr) minmax(18rem, 0.85fr) minmax(28rem, 1.4fr);
-  border: 2px solid var(--ink);
-  background: var(--surface);
-  box-shadow: 6px 6px 0 var(--shadow);
+  grid-template-columns: minmax(16rem, 0.9fr) minmax(16rem, 0.8fr) minmax(26rem, 1.3fr);
+  margin-top: 32px;
+  border: 1px solid color-mix(in oklab, var(--ink) 18%, transparent);
+  background: color-mix(in oklab, var(--surface) 65%, transparent);
 }
 
 .filter-search,
 .color-filter,
 .filter-refine {
   min-width: 0;
-  padding: 18px;
+  padding: 20px;
 }
 
 .filter-search,
@@ -285,6 +297,11 @@
   color: var(--muted);
   font-size: 0.72rem;
   line-height: 1.45;
+}
+
+.filter-search > .filter-section-index {
+  margin: 0 0 12px;
+  color: var(--muted);
 }
 
 .field {
@@ -329,6 +346,7 @@
   float: left;
   width: 100%;
   margin-bottom: 8px;
+  letter-spacing: 0.12em;
 }
 
 .check-label {
@@ -400,7 +418,7 @@
   justify-content: space-between;
   gap: 16px;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   color: var(--muted);
   font-family: var(--font-mono), monospace;
   font-size: 0.72rem;
@@ -503,8 +521,8 @@
   display: flex;
   justify-content: space-between;
   align-items: end;
-  padding: 54px 0 18px;
-  border-bottom: 1px solid var(--ink);
+  padding: 64px 0 18px;
+  border-bottom: 1px solid color-mix(in oklab, var(--ink) 18%, transparent);
 }
 
 .results-toolbar > p:last-child {
@@ -520,17 +538,17 @@
 .palette-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 24px;
-  padding: 24px 0 48px;
+  gap: 16px;
+  padding: 20px 0 56px;
 }
 
 .palette-card {
   position: relative;
   display: block;
   min-width: 0;
-  border: 1px solid var(--ink);
-  background: var(--surface);
-  box-shadow: 4px 4px 0 var(--ink);
+  border: 1px solid color-mix(in oklab, var(--ink) 18%, transparent);
+  background: color-mix(in oklab, var(--surface) 72%, transparent);
+  box-shadow: 3px 3px 0 var(--shadow);
   transition:
     transform 150ms ease,
     box-shadow 150ms ease;
@@ -540,9 +558,12 @@
   display: block;
 }
 
-.palette-card:hover {
-  transform: translate(-3px, -3px);
-  box-shadow: 8px 8px 0 var(--accent);
+.palette-card:hover,
+.palette-card:focus-within {
+  z-index: 2;
+  transform: translate(-2px, -2px);
+  border-color: color-mix(in oklab, var(--accent) 70%, var(--ink));
+  box-shadow: 6px 6px 0 var(--accent);
 }
 
 .palette-card-header,
@@ -556,7 +577,7 @@
 
 .palette-card-header {
   padding-right: 48px;
-  border-bottom: 1px solid var(--ink);
+  border-bottom: 1px solid color-mix(in oklab, var(--ink) 18%, transparent);
 }
 
 .favorite-button {
@@ -633,8 +654,8 @@
 }
 
 .palette-strip-card {
-  height: 112px;
-  border-bottom: 1px solid var(--ink);
+  height: 96px;
+  border-bottom: 1px solid color-mix(in oklab, var(--ink) 18%, transparent);
 }
 
 .palette-swatch {
@@ -671,7 +692,7 @@
   justify-content: flex-start;
   gap: 0;
   padding: 0;
-  border-top: 1px solid var(--ink);
+  border-top: 1px solid color-mix(in oklab, var(--ink) 18%, transparent);
   color: var(--muted);
 }
 
@@ -683,7 +704,7 @@
 }
 
 .palette-card-footer span + span {
-  border-left: 1px solid var(--ink);
+  border-left: 1px solid color-mix(in oklab, var(--ink) 18%, transparent);
 }
 
 .pagination {

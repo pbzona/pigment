@@ -20,8 +20,8 @@ export function ColorFilter({
 
   return (
     <fieldset className="color-filter">
-      <legend>Find by color</legend>
-      <p className="color-filter-description">Choose a color already in your work and find palettes that sit near it.</p>
+      <legend>02 / Match color</legend>
+      <p className="color-filter-description">Find palettes near a color already in your work.</p>
       <label className="check-label">
         <input
           type="checkbox"

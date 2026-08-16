@@ -46,23 +46,24 @@ export default async function PalettesPage({
       <main className="site-shell">
         <section className="catalog-intro" aria-labelledby="catalog-heading">
           <div>
-            <h1 id="catalog-heading">Find a palette for the next experiment.</h1>
+            <p className="catalog-kicker">Shared material</p>
+            <h1 id="catalog-heading">Color for the procedure.</h1>
             <p>
-              Search by name, narrow the color count, or find palettes near a color
-              already in your work.
+              Browse reusable color systems, inspect their structure, and bring one
+              into your next Studio experiment.
             </p>
           </div>
           <aside className="lospec-credit" aria-label="Lospec attribution">
             <div className="lospec-credit-mark" aria-hidden="true">L</div>
             <div>
-              <p>Collection credit</p>
-              <h2>Many palettes here were curated from Lospec.</h2>
+              <p>Collection source</p>
+              <h2>Curated with palettes from Lospec.</h2>
               <p>
-                Explore their much larger palette collection and consider supporting
-                the work that keeps it available to artists.
+                Pigment keeps the source visible. Explore the larger collection where
+                many of these palettes were first shared.
               </p>
               <a href="https://lospec.com/palette-list" target="_blank" rel="noreferrer">
-                Visit Lospec palette list <span aria-hidden="true">↗</span>
+                Visit Lospec <span aria-hidden="true">↗</span>
               </a>
             </div>
           </aside>
@@ -70,8 +71,9 @@ export default async function PalettesPage({
 
         <Form action="/palettes" className="filter-panel">
           <div className="filter-search">
+            <p className="filter-section-index">01 / Name</p>
             <label className="field field-search">
-              <span>Search the archive</span>
+              <span>Search palettes</span>
               <input
                 className="text-input"
                 type="search"
@@ -92,7 +94,7 @@ export default async function PalettesPage({
 
           <div className="filter-refine">
             <div className="filter-refine-heading">
-              <span>Refine</span>
+              <span>03 / Refine</span>
               <label className="favorite-filter">
                 <input
                   type="checkbox"
@@ -156,7 +158,7 @@ export default async function PalettesPage({
           <div className="filter-actions">
             <p>Color distance uses OKLab: 0 is exact, 3 is close, and 10 is broad.</p>
             <div className="filter-buttons">
-              <button className="primary-button" type="submit">Show palettes</button>
+              <button className="primary-button" type="submit">Apply filters</button>
               <Link className="secondary-button" href="/palettes">Reset</Link>
             </div>
           </div>
