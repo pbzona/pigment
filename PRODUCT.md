@@ -8,7 +8,7 @@ web
 
 ## Users
 
-Pigment is for artists of any discipline who want an approachable space to play with pixels and color. People may arrive to make something surprising, learn how image-processing algorithms behave, or test visual ideas they can carry into their own art practice. Pixel artists are part of the audience, not the boundary of it.
+Pigment is for artists and visually curious people who want an approachable space to play with images, grids, and color. People may arrive to make something surprising, learn how image-processing algorithms behave, or test visual ideas they can carry into their own creative practice. It is an experimental art tool, not a substitute for a handmade medium.
 
 ## Product Purpose
 
@@ -59,9 +59,9 @@ Accounts may be added later for optional persistence or synchronization, but acc
 1. **Play before productivity.** Optimize for immediate experimentation, surprising results, and the desire to keep tinkering; practical export supports the play rather than defining it.
 2. **Make the machinery tangible.** Let artists compare, inspect, and manipulate algorithmic decisions instead of presenting image processing as unexplained magic.
 3. **Keep private work local.** Artwork processing and editing stay in the browser, with clear language about what does and does not leave the device.
-4. **Welcome every artist.** Do not assume prior pixel-art or technical expertise; preserve depth without making curiosity pass a knowledge test.
+4. **Welcome every artist.** Do not assume prior image-processing or technical expertise; preserve depth without making curiosity pass a knowledge test.
 5. **Keep the playground open.** The core experience remains free, open source, and available without an account even if optional authenticated features arrive later.
 
 ## Accessibility & Inclusion
 
-Target WCAG 2.2 Level AA for the web experience. Core workflows must remain keyboard operable, expose meaningful names and states to assistive technology, provide visible focus, avoid relying on color alone, maintain sufficient contrast, support reduced motion, and remain usable under text zoom and responsive reflow. Visual and algorithmic concepts should be explained in plain language without assuming technical vocabulary or prior pixel-art experience.
+Target WCAG 2.2 Level AA for the web experience. Core workflows must remain keyboard operable, expose meaningful names and states to assistive technology, provide visible focus, avoid relying on color alone, maintain sufficient contrast, support reduced motion, and remain usable under text zoom and responsive reflow. Visual and algorithmic concepts should be explained in plain language without assuming technical vocabulary or prior image-processing experience.

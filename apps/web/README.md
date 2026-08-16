@@ -5,7 +5,7 @@ The unified Pigment Next.js application.
 ## Routes
 
 - `/` Pigment home
-- `/studio` Pigment image-to-pixel editor
+- `/studio` Pigment image and color studio
 - `/learn` interactive quantization guide
 - `/palettes` palette catalog
 - `/api/v1/*` authenticated public palette API

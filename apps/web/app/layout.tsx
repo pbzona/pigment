@@ -32,9 +32,9 @@ export const metadata: Metadata = {
     template: "%s — Pigment",
   },
   description:
-    "Make pixel art, test color ideas, and learn image algorithms in a private browser-based visual workshop.",
+    "Transform images, test color ideas, and learn image algorithms in a private browser-based art workshop.",
   keywords: [
-    "pixel art",
+    "creative image tools",
     "color palette",
     "image quantization",
     "dithering",
@@ -53,13 +53,13 @@ export const metadata: Metadata = {
     siteName: "Pigment",
     title: "Pigment — A visual color workshop for artists",
     description:
-      "Make pixel art, test color ideas, and learn image algorithms in a private browser-based visual workshop.",
+      "Transform images, test color ideas, and learn image algorithms in a private browser-based art workshop.",
   },
   twitter: {
     card: "summary_large_image",
     title: "Pigment — A visual color workshop for artists",
     description:
-      "Make pixel art, test color ideas, and learn image algorithms in a private browser-based visual workshop.",
+      "Transform images, test color ideas, and learn image algorithms in a private browser-based art workshop.",
   },
   robots: {
     index: true,

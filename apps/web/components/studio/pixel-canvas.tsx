@@ -32,6 +32,7 @@ import type {
   SelectionTool,
 } from "./types";
 import { ComparisonPreview } from "./comparison-preview";
+import { shouldUseLightCheckerboard } from "./checkerboard";
 
 type PixelCanvasProps = Readonly<{
   width: number;
@@ -203,6 +204,7 @@ export function PixelCanvas({
   const [keyboardCell, setKeyboardCell] = useState({ x: 0, y: 0 });
   const [keyboardActive, setKeyboardActive] = useState(false);
   const [selectionPreview, setSelectionPreview] = useState<SelectionMask | null>(null);
+  const lightCheckerboard = shouldUseLightCheckerboard(palette, visibleColorIds);
 
   useEffect(() => {
     zoomRef.current = zoom;
@@ -861,7 +863,10 @@ export function PixelCanvas({
         >
           <div
             className={cn(
-              "relative box-content shrink-0 overflow-hidden border border-white/20 bg-[#17191c] bg-[linear-gradient(45deg,#25282d_25%,transparent_25%),linear-gradient(-45deg,#25282d_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#25282d_75%),linear-gradient(-45deg,transparent_75%,#25282d_75%)] bg-[length:16px_16px] bg-[position:0_0,0_8px,8px_-8px,-8px_0px] shadow-[0_22px_70px_rgba(0,0,0,.55)]",
+              "relative box-content shrink-0 overflow-hidden border border-white/20 bg-[length:16px_16px] bg-[position:0_0,0_8px,8px_-8px,-8px_0px] shadow-[0_22px_70px_rgba(0,0,0,.55)]",
+              lightCheckerboard
+                ? "bg-[#d8d4ca] bg-[linear-gradient(45deg,#f5f2e8_25%,transparent_25%),linear-gradient(-45deg,#f5f2e8_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f5f2e8_75%),linear-gradient(-45deg,transparent_75%,#f5f2e8_75%)]"
+                : "bg-[#17191c] bg-[linear-gradient(45deg,#25282d_25%,transparent_25%),linear-gradient(-45deg,#25282d_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#25282d_75%),linear-gradient(-45deg,transparent_75%,#25282d_75%)]",
               panning && "cursor-grabbing",
               spaceHeld && !panning && "cursor-grab",
               !spaceHeld &&
@@ -871,7 +876,7 @@ export function PixelCanvas({
             )}
             style={{ width: width * zoom, height: height * zoom }}
             role="grid"
-            aria-label={`Editable pixel artwork, ${width} columns by ${height} rows`}
+            aria-label={`Editable image grid, ${width} columns by ${height} rows`}
             aria-describedby="pixel-canvas-instructions"
             aria-rowcount={height}
             aria-colcount={width}

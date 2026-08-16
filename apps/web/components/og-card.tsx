@@ -116,7 +116,7 @@ export function OgCard({ title, label, description }: OgCardProps) {
       </div>
 
       <div style={{ position: "absolute", left: 72, bottom: 44, display: "flex", color: "#aaa49a", fontFamily: "Geist Mono", fontSize: 14, letterSpacing: "0.13em", textTransform: "uppercase" }}>
-        Pixels · palettes · algorithms
+        Images · palettes · algorithms
       </div>
       <div style={{ position: "absolute", right: 72, bottom: 38, display: "flex", padding: "12px 18px", border: "3px solid #f5f2e8", background: "#f06a32", color: "#17100c", fontFamily: "Geist Mono", fontSize: 16, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", boxShadow: "5px 5px 0 #050505" }}>
         pigment.phil.bingo

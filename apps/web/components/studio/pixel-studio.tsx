@@ -1168,7 +1168,7 @@ export function PixelStudio() {
     if (!finalColorIds || !source) return;
     setExporting(true);
     try {
-      const baseName = source.name.replace(/\.[^.]+$/u, "") || "pixel-art";
+      const baseName = source.name.replace(/\.[^.]+$/u, "") || "pigment-image";
       await exportPixelPng(
         finalColorIds,
         gridWidth,
@@ -1347,7 +1347,7 @@ export function PixelStudio() {
                 </Link>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>How pixelation works</TooltipContent>
+            <TooltipContent>How image reduction works</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>

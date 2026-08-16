@@ -109,7 +109,7 @@ The interface combines the directness of graph paper and technical annotation wi
 - Kiln Orange carries primary action; ultramarine, green, and yellow annotate distinct states.
 - Square geometry and hard offset shadows make controls feel physical.
 - Geist Sans explains; Geist Mono labels, measures, indexes, and reports.
-- Pixel art and palette strips are working material, not decorative garnish.
+- Reduced images, cell grids, and palette strips are working material, not decorative garnish.
 
 ## Colors
 

@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Pigment — Visual color workshop",
     short_name: "Pigment",
     description:
-      "Make pixel art, test color ideas, and learn image algorithms in a private browser-based visual workshop.",
+      "Transform images, test color ideas, and learn image algorithms in a private browser-based art workshop.",
     start_url: "/studio",
     display: "standalone",
     background_color: "#11100f",

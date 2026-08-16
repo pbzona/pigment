@@ -16,7 +16,7 @@ import { CONVERSION_METHODS } from "@pigment/quantization/methods";
 
 export const metadata: Metadata = {
   description:
-    "Make pixel art, test color ideas, and explore image algorithms in a private browser-based visual workshop for artists.",
+    "Transform images, test color ideas, and explore image algorithms in a private browser-based art workshop.",
 };
 
 const SOURCE_PIXELS = [
@@ -71,12 +71,12 @@ export default function Home() {
     applicationCategory: "DesignApplication",
     operatingSystem: "Any modern web browser",
     description:
-      "A private browser-based visual workshop for pixel art, color palettes, and image algorithms.",
+      "A private browser-based art workshop for image experiments, color palettes, and inspectable algorithms.",
     isAccessibleForFree: true,
     license: "https://opensource.org/license/mit",
     featureList: [
       "Local browser image processing",
-      "Palette-driven pixel art",
+      "Palette-driven image reduction",
       "Image quantization and dithering",
       "Interactive algorithm lessons",
       "PNG export",
@@ -107,10 +107,10 @@ export default function Home() {
             <div className="max-w-3xl">
               <Palette className="size-6 text-primary" aria-hidden="true" />
               <h1 className="mt-6 max-w-3xl text-balance text-5xl font-semibold leading-[0.94] tracking-[-0.04em] sm:text-7xl lg:text-[5.25rem]">
-                See how much image a few pixels can hold.
+                See what an image becomes with fewer colors.
               </h1>
               <p className="mt-7 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-                Reduce an image with different algorithms, reshape its palette, and refine what survives—cell by cell, in your browser.
+                Transform an image with different algorithms, reshape its palette, and refine what survives—cell by cell, in your browser.
               </p>
               <div className="mt-9 grid max-w-2xl gap-3 sm:grid-cols-2">
                 <Link
@@ -132,7 +132,7 @@ export default function Home() {
                   <span>
                     <BookOpenText className="mb-3 size-5 text-primary" />
                     <span className="block text-base font-medium">Explore the algorithms</span>
-                    <span className="mt-1 block text-xs text-muted-foreground">See how each method changes the pixels</span>
+                    <span className="mt-1 block text-xs text-muted-foreground">See how each method changes the image</span>
                   </span>
                   <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
                 </Link>
@@ -247,7 +247,7 @@ export default function Home() {
       <footer className="border-t border-foreground/10">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3"><BrandMark className="size-5" /><span className="text-xs font-semibold">PIGMENT</span></div>
-          <p className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">Pixels, palettes, pigment</p>
+          <p className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">Images, palettes, algorithms</p>
         </div>
       </footer>
     </div>

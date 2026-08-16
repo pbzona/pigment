@@ -113,7 +113,7 @@ export function QuantizationLab() {
 
   return (
     <div className="min-h-svh bg-background text-foreground">
-      <SiteHeader active="learn" context="Pixelation guide" />
+      <SiteHeader active="learn" context="Image reduction guide" />
 
       <main>
         <section className="relative overflow-hidden border-b border-foreground/10">

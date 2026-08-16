@@ -1,6 +1,6 @@
 # Palette service client needs
 
-Pigment is a browser-based pixel-art editor. A palette service would primarily help users discover palettes and bring them into the editor, replacing the current small library of built-in and locally stored palettes.
+Pigment is a browser-based image and color studio. A palette service would primarily help users discover palettes and bring them into the studio, replacing the current small library of built-in and locally stored palettes.
 
 ## Minimum useful API
 

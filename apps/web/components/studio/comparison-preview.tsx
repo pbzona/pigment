@@ -8,6 +8,8 @@ import {
   type PixelPreview,
 } from "@pigment/quantization";
 
+import { shouldUseLightCheckerboard } from "./checkerboard";
+
 type ComparisonPreviewProps = Readonly<{
   width: number;
   height: number;
@@ -33,6 +35,7 @@ export function ComparisonPreview({
   const inputCanvasRef = useRef<HTMLCanvasElement>(null);
   const [position, setPosition] = useState(50);
   const [inputMode, setInputMode] = useState<"original" | "adjusted">("adjusted");
+  const lightCheckerboard = shouldUseLightCheckerboard(palette, visibleColorIds);
 
   useEffect(() => {
     const canvas = pixelCanvasRef.current;
@@ -91,9 +94,15 @@ export function ComparisonPreview({
           </button>
         </span>
       </div>
-      <div className={`${compact ? "h-40" : "h-48"} flex items-center justify-center overflow-hidden border bg-[#151619] bg-[linear-gradient(45deg,#25272b_25%,transparent_25%),linear-gradient(-45deg,#25272b_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#25272b_75%),linear-gradient(-45deg,transparent_75%,#25272b_75%)] bg-[length:12px_12px] bg-[position:0_0,0_6px,6px_-6px,-6px_0px]`}>
+      <div
+        className={`${compact ? "h-40" : "h-48"} flex items-center justify-center overflow-hidden border bg-[length:12px_12px] bg-[position:0_0,0_6px,6px_-6px,-6px_0px] ${
+          lightCheckerboard
+            ? "bg-[#d8d4ca] bg-[linear-gradient(45deg,#f5f2e8_25%,transparent_25%),linear-gradient(-45deg,#f5f2e8_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f5f2e8_75%),linear-gradient(-45deg,transparent_75%,#f5f2e8_75%)]"
+            : "bg-[#151619] bg-[linear-gradient(45deg,#25272b_25%,transparent_25%),linear-gradient(-45deg,#25272b_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#25272b_75%),linear-gradient(-45deg,transparent_75%,#25272b_75%)]"
+        }`}
+      >
         <div
-          className="relative max-h-full max-w-full overflow-hidden bg-background has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-background"
+          className="relative max-h-full max-w-full overflow-hidden has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-background"
           style={
             width / height >= 1
               ? { width: "100%", aspectRatio: width / height }
