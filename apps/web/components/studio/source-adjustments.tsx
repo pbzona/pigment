@@ -80,10 +80,9 @@ export function SourceAdjustments({ value, onChange, compact = false }: SourceAd
           </label>
         ))}
       </div>
-      <div className="mt-3 flex justify-between font-mono text-[9px] uppercase tracking-[0.1em] text-muted-foreground">
-        <span>Detail: soften</span>
-        <span>sharpen</span>
-      </div>
+      <p className="mt-4 text-[10px] leading-4 text-muted-foreground">
+        Detail moves from softer sampling at negative values to sharper local contrast at positive values.
+      </p>
     </section>
   );
 }

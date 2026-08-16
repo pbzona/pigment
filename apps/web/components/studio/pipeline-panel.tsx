@@ -1,7 +1,7 @@
 "use client";
 
 import type { ComponentProps } from "react";
-import { useState } from "react";
+import { useId, useState } from "react";
 import {
   Aperture,
   ChevronDown,
@@ -11,6 +11,7 @@ import {
   Layers3,
   Palette,
   ScanLine,
+  SlidersHorizontal,
   Sparkles,
 } from "lucide-react";
 
@@ -20,12 +21,16 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@pigment/ui/collapsible";
+import { Label } from "@pigment/ui/label";
 import { ScrollArea } from "@pigment/ui/scroll-area";
+import { Slider } from "@pigment/ui/slider";
+import { Switch } from "@pigment/ui/switch";
 import { cn } from "@/lib/utils";
-import { CONVERSION_METHODS } from "@pigment/quantization";
+import { CONVERSION_METHODS, inputAdjustmentsChanged } from "@pigment/quantization";
 
 import { ConvertPanel } from "./convert-panel";
 import { SelectionPanel } from "./selection-panel";
+import { SourceAdjustments } from "./source-adjustments";
 
 type PipelinePanelProps = Readonly<{
   convertProps: ComponentProps<typeof ConvertPanel>;
@@ -52,8 +57,14 @@ export function PipelinePanel({
   onOpenOutput,
   onStartIntervention,
 }: PipelinePanelProps) {
-  const [openStep, setOpenStep] = useState("sample");
+  const [openStep, setOpenStep] = useState("adjust");
+  const preserveTransparencyId = useId();
   const methodLabel = CONVERSION_METHODS.find((entry) => entry.value === convertProps.method)?.label;
+  const adjustmentsChanged = inputAdjustmentsChanged(convertProps.inputAdjustments);
+  const adjustmentCount = Object.values(convertProps.inputAdjustments).filter((value) => value !== 0).length;
+  const adjustmentSummary = adjustmentsChanged
+    ? `${adjustmentCount} ${adjustmentCount === 1 ? "adjustment" : "adjustments"}`
+    : "Source unchanged";
 
   const summaryStep = (
     id: string,
@@ -95,12 +106,66 @@ export function PipelinePanel({
         <div className="space-y-1.5" aria-label="Image procedure">
           {summaryStep("01", Image, "Source", `${convertProps.source.width}×${convertProps.source.height} pixels`)}
           {summaryStep("02", Crop, "Frame", "Full source image")}
-          {summaryStep("03", CircleDotDashed, "Partition", `Square · ${gridWidth}×${gridHeight}`, onOpenOutput)}
+
+          <Collapsible open={openStep === "adjust"} onOpenChange={(open) => setOpenStep(open ? "adjust" : "")}>
+            <CollapsibleTrigger asChild>
+              <button type="button" className={cn(stepClass, "flex w-full items-center gap-3 p-3 text-left transition-colors hover:border-primary/45")}>
+                <span className="font-mono text-[9px] text-muted-foreground">03</span>
+                <SlidersHorizontal className="size-4 shrink-0 text-primary" aria-hidden="true" />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-xs font-medium">Adjust</span>
+                  <span className="mt-0.5 block truncate text-[10px] text-muted-foreground">{adjustmentSummary}</span>
+                </span>
+                <ChevronDown className={cn("size-3.5 transition-transform", openStep === "adjust" && "rotate-180")} />
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="border-x border-b border-foreground/12 bg-background px-4 pb-5 pt-5">
+              <SourceAdjustments
+                value={convertProps.inputAdjustments}
+                onChange={convertProps.onInputAdjustmentsChange}
+                compact
+              />
+              <div className="mt-6 border-t pt-5">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <Label htmlFor={preserveTransparencyId}>Preserve transparency</Label>
+                    <p className="mt-1 text-[10px] leading-4 text-muted-foreground">Keep empty source areas out of the procedure.</p>
+                  </div>
+                  <Switch
+                    id={preserveTransparencyId}
+                    checked={convertProps.preserveTransparency}
+                    onCheckedChange={convertProps.onPreserveTransparencyChange}
+                  />
+                </div>
+                {convertProps.preserveTransparency ? (
+                  <label className="mt-5 block">
+                    <span className="mb-2 flex items-center justify-between text-xs">
+                      <span>Alpha threshold</span>
+                      <span className="font-mono text-muted-foreground">{convertProps.alphaThreshold}</span>
+                    </span>
+                    <Slider
+                      aria-label="Alpha threshold"
+                      min={0}
+                      max={255}
+                      step={1}
+                      value={[convertProps.alphaThreshold]}
+                      onValueChange={([value]: number[]) => convertProps.onAlphaThresholdChange(value)}
+                    />
+                  </label>
+                ) : null}
+              </div>
+              <p className="mt-5 border-t pt-4 text-[10px] leading-4 text-muted-foreground">
+                These changes alter the source before partitioning, sampling, and palette matching.
+              </p>
+            </CollapsibleContent>
+          </Collapsible>
+
+          {summaryStep("04", CircleDotDashed, "Partition", `Square · ${gridWidth}×${gridHeight}`, onOpenOutput)}
 
           <Collapsible open={openStep === "sample"} onOpenChange={(open) => setOpenStep(open ? "sample" : "")}>
             <CollapsibleTrigger asChild>
               <button type="button" className={cn(stepClass, "flex w-full items-center gap-3 p-3 text-left transition-colors hover:border-primary/45")}>
-                <span className="font-mono text-[9px] text-muted-foreground">04</span>
+                <span className="font-mono text-[9px] text-muted-foreground">05</span>
                 <Aperture className="size-4 shrink-0 text-primary" aria-hidden="true" />
                 <span className="min-w-0 flex-1">
                   <span className="block text-xs font-medium">Sample</span>
@@ -114,13 +179,13 @@ export function PipelinePanel({
             </CollapsibleContent>
           </Collapsible>
 
-          {summaryStep("05", Palette, "Map color", `${paletteName} · ${paletteColorCount} colors`, onOpenOutput)}
-          {summaryStep("06", ScanLine, "Texture", "No texture modifier")}
+          {summaryStep("06", Palette, "Map color", `${paletteName} · ${paletteColorCount} colors`, onOpenOutput)}
+          {summaryStep("07", ScanLine, "Texture", "No texture modifier")}
 
           <Collapsible open={openStep === "interventions"} onOpenChange={(open) => setOpenStep(open ? "interventions" : "")}>
             <CollapsibleTrigger asChild>
               <button type="button" className={cn(stepClass, "flex w-full items-center gap-3 p-3 text-left transition-colors hover:border-primary/45")} onClick={onStartIntervention}>
-                <span className="font-mono text-[9px] text-muted-foreground">07</span>
+                <span className="font-mono text-[9px] text-muted-foreground">08</span>
                 <Sparkles className="size-4 shrink-0 text-primary" aria-hidden="true" />
                 <span className="min-w-0 flex-1">
                   <span className="block text-xs font-medium">Interventions</span>
@@ -136,7 +201,7 @@ export function PipelinePanel({
             </CollapsibleContent>
           </Collapsible>
 
-          {summaryStep("08", Sparkles, "Output", `${gridWidth}×${gridHeight} cells`)}
+          {summaryStep("09", Sparkles, "Output", `${gridWidth}×${gridHeight} cells`)}
         </div>
 
         <div className="mt-4 border border-dashed border-foreground/20 p-3">
