@@ -58,6 +58,13 @@ import { decodeImageFile } from "@/lib/browser/image";
 import { previewToThumbnail, takePendingPalette, writeProjectSnapshot } from "@/lib/browser/project-snapshot";
 import { readProjectSource, saveProjectSource } from "@/lib/browser/project-source";
 import {
+  readStudioProject,
+  restoreSparseValues,
+  sparseValues,
+  writeStudioProject,
+  type StudioProject,
+} from "@/lib/browser/studio-project";
+import {
   createPalette,
   DEFAULT_PALETTE,
   parsePaletteContents,
@@ -357,6 +364,8 @@ export function PixelStudio() {
   const [pendingPaletteDelete, setPendingPaletteDelete] = useState<Palette | null>(null);
   const [firstResultGuide, setFirstResultGuide] = useState(false);
   const pendingPaletteRef = useRef<ReturnType<typeof takePendingPalette>>(null);
+  const savedProjectRef = useRef<StudioProject | null>(null);
+  const projectReadyRef = useRef(false);
 
   useEffect(() => {
     const pendingPalette = pendingPaletteRef.current;
@@ -404,6 +413,49 @@ export function PixelStudio() {
   useEffect(() => {
     localStorage.setItem(CUSTOM_PALETTES_KEY, JSON.stringify(customPalettes));
   }, [customPalettes]);
+
+  useEffect(() => {
+    if (!projectReadyRef.current || !source || !sourceCropRef.current) return;
+    const timer = window.setTimeout(() => {
+      writeStudioProject({
+        version: 1,
+        gridWidth,
+        gridHeight,
+        aspectLocked,
+        method,
+        preserveTransparency,
+        alphaThreshold,
+        inputAdjustments,
+        sourceCrop: sourceCropRef.current as SourceCrop,
+        palette: activePalette,
+        paletteAdjustments: adjustments,
+        excludedColorIds: [...excludedColorIds],
+        methodOverrides: sparseValues(methodOverrides, METHOD_INHERIT),
+        colorOverrides: sparseValues(overrides, NO_OVERRIDE_COLOR_ID),
+        showGuides,
+        guideColumns,
+        guideRows,
+      });
+    }, 150);
+    return () => window.clearTimeout(timer);
+  }, [
+    source,
+    gridWidth,
+    gridHeight,
+    aspectLocked,
+    method,
+    preserveTransparency,
+    alphaThreshold,
+    inputAdjustments,
+    activePalette,
+    adjustments,
+    excludedColorIds,
+    methodOverrides,
+    overrides,
+    showGuides,
+    guideColumns,
+    guideRows,
+  ]);
 
   useEffect(() => {
     if (!source || !originalPreview) return;
@@ -596,37 +648,86 @@ export function PixelStudio() {
     try {
       const decoded = await decodeImageFile(file);
       if (uploadRequest !== uploadRequestRef.current) return;
-      const sourcePreview = await setWorkerSource(
+      let sourcePreview = await setWorkerSource(
         decoded.pixels,
         decoded.width,
         decoded.height,
       );
       if (uploadRequest !== uploadRequestRef.current) return;
+      const savedProject = savedProjectRef.current;
+      const savedCrop = savedProject?.sourceCrop;
+      if (
+        savedCrop &&
+        savedCrop.x >= 0 &&
+        savedCrop.y >= 0 &&
+        savedCrop.width > 0 &&
+        savedCrop.height > 0 &&
+        savedCrop.x + savedCrop.width <= decoded.width &&
+        savedCrop.y + savedCrop.height <= decoded.height
+      ) {
+        sourcePreview = await cropWorkerSource(savedCrop);
+      }
       const url = URL.createObjectURL(file);
       if (sourceUrlRef.current) URL.revokeObjectURL(sourceUrlRef.current);
       sourceUrlRef.current = url;
       sourceFileRef.current = file;
       void saveProjectSource(file).catch(() => undefined);
-      sourceCropRef.current = {
+      sourceCropRef.current = savedCrop ?? {
         x: 0,
         y: 0,
         width: decoded.width,
         height: decoded.height,
       };
-      const grid = initialGrid(decoded.width, decoded.height);
+      const sourceWidth = sourceCropRef.current.width;
+      const sourceHeight = sourceCropRef.current.height;
+      const initialDimensions = initialGrid(sourceWidth, sourceHeight);
+      const grid = savedProject
+        ? {
+            width: clampGrid(savedProject.gridWidth),
+            height: clampGrid(savedProject.gridHeight),
+          }
+        : initialDimensions;
+      const restoredPalette = savedProject?.palette ?? activePaletteRef.current;
+      const restoredPaletteAdjustments = savedProject?.paletteAdjustments ?? adjustmentsRef.current;
+      const restoredExcludedIds = new Set(savedProject?.excludedColorIds ?? []);
+      const restoredOverrides = restoreSparseValues(
+        createOverrides(grid.width * grid.height),
+        savedProject?.colorOverrides ?? [],
+      );
+      const restoredMethodOverrides = restoreSparseValues(
+        createMethodOverrides(grid.width * grid.height),
+        savedProject?.methodOverrides ?? [],
+      );
       setSource({
         name: file.name,
         url,
-        width: decoded.width,
-        height: decoded.height,
+        width: sourceWidth,
+        height: sourceHeight,
       });
       setGridWidth(grid.width);
       setGridHeight(grid.height);
+      if (savedProject) {
+        setAspectLocked(savedProject.aspectLocked);
+        setMethod(savedProject.method);
+        setPreserveTransparency(savedProject.preserveTransparency);
+        setAlphaThreshold(savedProject.alphaThreshold);
+        setInputAdjustments(savedProject.inputAdjustments);
+        setShowGuides(savedProject.showGuides);
+        setGuideColumns(normalizeGuideDivisions(savedProject.guideColumns));
+        setGuideRows(normalizeGuideDivisions(savedProject.guideRows));
+        activePaletteRef.current = restoredPalette;
+        setActivePalette(restoredPalette);
+        adjustmentsRef.current = restoredPaletteAdjustments;
+        setAdjustments(restoredPaletteAdjustments);
+        excludedColorIdsRef.current = restoredExcludedIds;
+        setExcludedColorIds(restoredExcludedIds);
+        setSelectedColorId(restoredPalette.colors[0]?.id ?? 0);
+      }
       setGenerated(null);
-      overridesRef.current = createOverrides(grid.width * grid.height);
-      setOverrides(overridesRef.current);
-      methodOverridesRef.current = createMethodOverrides(grid.width * grid.height);
-      setMethodOverrides(methodOverridesRef.current);
+      overridesRef.current = restoredOverrides;
+      setOverrides(restoredOverrides);
+      methodOverridesRef.current = restoredMethodOverrides;
+      setMethodOverrides(restoredMethodOverrides);
       selectionMaskRef.current = null;
       setSelectionMask(null);
       setCropDraft(null);
@@ -636,14 +737,16 @@ export function PixelStudio() {
       clearHistory();
       setMatchingPalette(
         paletteToMatchingColors(
-          activePaletteRef.current,
-          adjustmentsRef.current,
-          excludedColorIdsRef.current,
+          restoredPalette,
+          restoredPaletteAdjustments,
+          restoredExcludedIds,
         ),
       );
       setProcessing(true);
+      projectReadyRef.current = true;
+      savedProjectRef.current = null;
       setSourceVersion((value) => value + 1);
-      if (localStorage.getItem(FIRST_RESULT_GUIDE_KEY) !== "dismissed") {
+      if (!savedProject && localStorage.getItem(FIRST_RESULT_GUIDE_KEY) !== "dismissed") {
         setFirstResultGuide(true);
         setMode("convert");
       }
@@ -665,6 +768,7 @@ export function PixelStudio() {
 
   useEffect(() => {
     pendingPaletteRef.current = takePendingPalette();
+    savedProjectRef.current = readStudioProject();
     void readProjectSource()
       .then((file) => {
         if (file) return handleImageFile(file);
