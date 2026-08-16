@@ -148,7 +148,7 @@ export function QuantizationLab() {
                   ["Palette", "color matching"],
                   ["Local", "browser processing"],
                 ].map(([value, label]) => (
-                  <div key={label} className="bg-background/85 py-4 pr-3">
+                  <div key={label} className="bg-background/85 px-4 py-4">
                     <p className="font-mono text-xl tabular-nums">{value}</p>
                     <p className="mt-1 text-[10px] leading-4 text-muted-foreground">{label}</p>
                   </div>

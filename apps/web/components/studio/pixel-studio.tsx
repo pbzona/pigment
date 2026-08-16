@@ -275,6 +275,7 @@ export function PixelStudio() {
   const [sourceVersion, setSourceVersion] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [restoringSource, setRestoringSource] = useState(true);
   const uploadRequestRef = useRef(0);
   const uploadInFlightRef = useRef(false);
 
@@ -664,13 +665,13 @@ export function PixelStudio() {
 
   useEffect(() => {
     pendingPaletteRef.current = takePendingPalette();
-    if (!pendingPaletteRef.current || source) return;
     void readProjectSource()
       .then((file) => {
         if (file) return handleImageFile(file);
       })
-      .catch(() => undefined);
-    // This one-time handoff restores the source selected before leaving Studio.
+      .catch(() => undefined)
+      .finally(() => setRestoringSource(false));
+    // Restore the last source once when Studio opens; the source itself stays local.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -1234,6 +1235,15 @@ export function PixelStudio() {
   };
 
   if (!source) {
+    if (restoringSource) {
+      return (
+        <div className="grid min-h-svh place-items-center bg-background text-foreground">
+          <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+            Restoring Studio…
+          </p>
+        </div>
+      );
+    }
     return (
       <div className="min-h-svh bg-background text-foreground">
         <UploadDropzone
