@@ -35,3 +35,33 @@ Source metadata was queried from Wikimedia Commons' official MediaWiki API. Pres
 - License stated by Wikimedia Commons: CC BY-SA 4.0
 - Local dimensions: 1280 × 720
 - Sample role: clustered organic forms, warm and cool color masses, and moderate surface texture
+
+## Aerial View of a Floating Village
+
+- Creator: Amdadphoto
+- Local file: `apps/web/public/samples/floating-village.jpg`
+- Source file page: https://commons.wikimedia.org/wiki/File:Aerial_View_of_a_Floating_Village.jpg
+- Thumbnail source: https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Aerial_View_of_a_Floating_Village.jpg/1280px-Aerial_View_of_a_Floating_Village.jpg
+- License stated by Wikimedia Commons: CC BY-SA 4.0
+- Local dimensions: 1280 × 853
+- Sample role: one compact detailed subject against a broad low-detail field, useful for scale and partition tests
+
+## Wood Window with Geometric Pattern and Colorful Glass
+
+- Creator: Andrehmarouti
+- Local file: `apps/web/public/samples/geometric-glass.jpg`
+- Source file page: https://commons.wikimedia.org/wiki/File:Wood_window_with_geometric_pattern_and_colorful_glass.jpg
+- Thumbnail source: https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Wood_window_with_geometric_pattern_and_colorful_glass.jpg/1280px-Wood_window_with_geometric_pattern_and_colorful_glass.jpg
+- License stated by Wikimedia Commons: CC BY-SA 4.0
+- Local dimensions: 1280 × 960
+- Sample role: repeated geometric cells, hard boundaries, and a saturated discrete palette
+
+## Autumn Gold and Maroon
+
+- Creator: MichaelKirsh
+- Local file: `apps/web/public/samples/autumn-mountains.jpg`
+- Source file page: https://commons.wikimedia.org/wiki/File:Autumn_Gold_and_Maroon.jpg
+- Thumbnail source: https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Autumn_Gold_and_Maroon.jpg/1280px-Autumn_Gold_and_Maroon.jpg
+- License stated by Wikimedia Commons: CC BY-SA 4.0
+- Local dimensions: 1280 × 850
+- Sample role: layered landscape silhouettes, broad warm color fields, and mid-frequency natural texture

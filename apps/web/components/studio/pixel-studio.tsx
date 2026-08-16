@@ -34,6 +34,13 @@ import {
 import { BrandMark } from "@pigment/ui/brand-mark";
 import { Button } from "@pigment/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@pigment/ui/dialog";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -97,6 +104,7 @@ import {
   type SourceCrop,
 } from "@pigment/quantization";
 
+import { ImageChooser } from "./image-chooser";
 import { OutputSidebar } from "./output-sidebar";
 import { PipelinePanel } from "./pipeline-panel";
 import { PixelCanvas } from "./pixel-canvas";
@@ -357,6 +365,7 @@ export function PixelStudio() {
   const paletteRevisionRef = useRef(0);
   const [controlsOpen, setControlsOpen] = useState(false);
   const [outputOpen, setOutputOpen] = useState(false);
+  const [imageChooserOpen, setImageChooserOpen] = useState(false);
   const [desktopControls, setDesktopControls] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [exportScale, setExportScale] = useState(4);
@@ -1556,11 +1565,9 @@ export function PixelStudio() {
           </Popover>
           <span className="mx-1 h-4 w-px bg-border" />
           <div className="hidden sm:block">
-            <UploadDropzone
-              compact
-              disabled={uploading}
-              onFile={(file) => void handleImageFile(file)}
-            />
+            <Button variant="outline" disabled={uploading} onClick={() => setImageChooserOpen(true)}>
+              Replace image
+            </Button>
           </div>
           {!desktopControls ? <Sheet open={controlsOpen} onOpenChange={setControlsOpen}>
             <SheetTrigger asChild>
@@ -1585,14 +1592,17 @@ export function PixelStudio() {
                 </SheetDescription>
               </SheetHeader>
               <div className="border-b px-4 py-3 sm:hidden">
-                <UploadDropzone
-                  compact
+                <Button
+                  variant="outline"
+                  className="w-full"
                   disabled={uploading}
-                  onFile={(file) => {
+                  onClick={() => {
                     setControlsOpen(false);
-                    void handleImageFile(file);
+                    setImageChooserOpen(true);
                   }}
-                />
+                >
+                  Replace image
+                </Button>
               </div>
               <div className="min-h-0 flex-1">
                 <PipelinePanel
@@ -1709,6 +1719,35 @@ export function PixelStudio() {
         ) : null}
       </div>
 
+      <Dialog open={imageChooserOpen} onOpenChange={setImageChooserOpen}>
+        <DialogContent className="max-h-[min(90svh,58rem)] overflow-y-auto rounded-none p-0 sm:max-w-5xl">
+          <DialogHeader className="border-b px-5 py-4 pr-14">
+            <DialogTitle>Replace image</DialogTitle>
+            <DialogDescription>
+              Choose a file or start from an openly licensed sample. Replacing the image resets the current procedure.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="p-5">
+            <ImageChooser
+              headingId="replace-image-heading"
+              disabled={uploading}
+              error={uploadError}
+              onFile={(file) => {
+                setImageChooserOpen(false);
+                void handleImageFile(file);
+              }}
+              onSample={(sample) => {
+                setImageChooserOpen(false);
+                void sampleImageFile(sample)
+                  .then(handleImageFile)
+                  .catch((error: unknown) => {
+                    setUploadError(error instanceof Error ? error.message : "Pigment could not open that sample.");
+                  });
+              }}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
       <PaletteDialog
         open={paletteOpen}
         onOpenChange={setPaletteDialogOpen}
