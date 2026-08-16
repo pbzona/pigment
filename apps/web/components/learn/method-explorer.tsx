@@ -592,7 +592,7 @@ export function MethodExplorer({ method, onMethodChange }: MethodExplorerProps) 
                   type="button"
                   aria-pressed={method === entry.value}
                   className={cn(
-                    "min-w-0 border px-3 py-2 text-left text-xs leading-4 transition-colors",
+                    "min-w-0 whitespace-nowrap border px-2 py-2 text-left text-xs leading-4 transition-colors",
                     method === entry.value
                       ? "border-primary bg-primary/10 text-foreground"
                       : "border-transparent text-muted-foreground hover:border-foreground/15 hover:text-foreground",
