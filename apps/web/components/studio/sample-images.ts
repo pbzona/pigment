@@ -6,7 +6,7 @@ export type StudioSampleImage = Readonly<{
   height: number;
   artist: string;
   sourceUrl: string;
-  license: "Public domain";
+  license: "Public domain" | "CC0" | "CC BY-SA 4.0";
 }>;
 
 export const STUDIO_SAMPLE_IMAGES: readonly StudioSampleImage[] = [
@@ -21,24 +21,24 @@ export const STUDIO_SAMPLE_IMAGES: readonly StudioSampleImage[] = [
     license: "Public domain",
   },
   {
-    name: "Almond Blossom",
-    fileName: "almond-blossom.jpg",
-    src: "/samples/almond-blossom.jpg",
+    name: "Colorful Umbrellas",
+    fileName: "colorful-umbrellas.jpg",
+    src: "/samples/colorful-umbrellas.jpg",
     width: 1280,
-    height: 1011,
-    artist: "Vincent van Gogh",
-    sourceUrl: "https://commons.wikimedia.org/wiki/File:Amandelbloesem_-_s0176V1962_-_Van_Gogh_Museum.jpg",
-    license: "Public domain",
+    height: 720,
+    artist: "Szalax",
+    sourceUrl: "https://commons.wikimedia.org/wiki/File:Colorful_umbrellas_over_the_Szinva_Bridge_01.jpg",
+    license: "CC0",
   },
   {
-    name: "The Blue Marble",
-    fileName: "blue-marble.jpg",
-    src: "/samples/blue-marble.jpg",
+    name: "Toledo Market Fruit",
+    fileName: "fruit-market.jpg",
+    src: "/samples/fruit-market.jpg",
     width: 1280,
-    height: 1280,
-    artist: "Harrison Schmitt / Apollo 17",
-    sourceUrl: "https://commons.wikimedia.org/wiki/File:The_Blue_Marble,_AS17-148-22727.jpg",
-    license: "Public domain",
+    height: 720,
+    artist: "QueenCityCebu",
+    sourceUrl: "https://commons.wikimedia.org/wiki/File:Colorful_Toledo_Market_Fruit_Display.jpg",
+    license: "CC BY-SA 4.0",
   },
 ];
 

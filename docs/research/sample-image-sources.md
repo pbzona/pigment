@@ -1,6 +1,8 @@
 # Studio sample image sources
 
-Pigment includes three modest 1280px JPEG derivatives from Wikimedia Commons. Each source page identifies the work as public domain. The local copies are provided as examples for immediate in-browser experimentation.
+Pigment includes three modest 1280px JPEG derivatives from Wikimedia Commons. Each source is openly licensed or in the public domain. The local copies are provided as examples for immediate in-browser experimentation.
+
+Source metadata was queried from Wikimedia Commons' official MediaWiki API. Preserve the source-page links and attribution with any redistribution or replacement of these files.
 
 ## The Great Wave
 
@@ -10,24 +12,26 @@ Pigment includes three modest 1280px JPEG derivatives from Wikimedia Commons. Ea
 - Thumbnail source: https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Great_Wave_off_Kanagawa2.jpg/1280px-Great_Wave_off_Kanagawa2.jpg
 - License stated by Wikimedia Commons: Public domain
 - Local dimensions: 1280 × 876
+- Sample role: illustrated contours, broad flat color areas, and fine wave texture
 
-## Almond Blossom
+## Colorful Umbrellas over Szinva Bridge
 
-- Work: *Almond Blossom*, Vincent van Gogh
-- Local file: `apps/web/public/samples/almond-blossom.jpg`
-- Source file page: https://commons.wikimedia.org/wiki/File:Amandelbloesem_-_s0176V1962_-_Van_Gogh_Museum.jpg
-- Thumbnail source: https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Amandelbloesem_-_s0176V1962_-_Van_Gogh_Museum.jpg/1280px-Amandelbloesem_-_s0176V1962_-_Van_Gogh_Museum.jpg
-- License stated by Wikimedia Commons: Public domain
-- Local dimensions: 1280 × 1011
+- Work: *Colorful umbrellas over the Szinva Bridge 01*
+- Creator: Szalax
+- Local file: `apps/web/public/samples/colorful-umbrellas.jpg`
+- Source file page: https://commons.wikimedia.org/wiki/File:Colorful_umbrellas_over_the_Szinva_Bridge_01.jpg
+- Thumbnail source: https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Colorful_umbrellas_over_the_Szinva_Bridge_01.jpg/1280px-Colorful_umbrellas_over_the_Szinva_Bridge_01.jpg
+- License stated by Wikimedia Commons: CC0
+- Local dimensions: 1280 × 720
+- Sample role: repeated medium-scale shapes, hard boundaries, and a broad hue range
 
-## The Blue Marble
+## Colorful Toledo Market Fruit Display
 
-- Work: *The Blue Marble*, Apollo 17 photograph AS17-148-22727
-- Credit: Harrison Schmitt / Apollo 17
-- Local file: `apps/web/public/samples/blue-marble.jpg`
-- Source file page: https://commons.wikimedia.org/wiki/File:The_Blue_Marble,_AS17-148-22727.jpg
-- Thumbnail source: https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/The_Blue_Marble%2C_AS17-148-22727.jpg/1280px-The_Blue_Marble%2C_AS17-148-22727.jpg
-- License stated by Wikimedia Commons: Public domain
-- Local dimensions: 1280 × 1280
-
-Source metadata was queried from Wikimedia Commons' official MediaWiki API on 2026-08-13. Preserve the source-page links with any redistribution or replacement of these files.
+- Work: *Colorful Toledo Market Fruit Display*
+- Creator: QueenCityCebu
+- Local file: `apps/web/public/samples/fruit-market.jpg`
+- Source file page: https://commons.wikimedia.org/wiki/File:Colorful_Toledo_Market_Fruit_Display.jpg
+- Thumbnail source: https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Colorful_Toledo_Market_Fruit_Display.jpg/1280px-Colorful_Toledo_Market_Fruit_Display.jpg
+- License stated by Wikimedia Commons: CC BY-SA 4.0
+- Local dimensions: 1280 × 720
+- Sample role: clustered organic forms, warm and cool color masses, and moderate surface texture

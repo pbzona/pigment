@@ -126,7 +126,7 @@ export function UploadDropzone({
             <div className="mb-3 flex items-end justify-between gap-4">
               <div>
                 <h2 id="sample-images-heading" className="text-sm font-semibold">Or start with a sample</h2>
-                <p className="mt-1 text-xs text-muted-foreground">Public-domain images, ready to experiment with.</p>
+                <p className="mt-1 text-xs text-muted-foreground">Openly licensed images, ready to experiment with.</p>
               </div>
             </div>
             <div className="grid gap-3 sm:grid-cols-3">
