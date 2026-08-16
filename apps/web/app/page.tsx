@@ -27,18 +27,18 @@ export default function Home() {
           <section className="max-w-2xl">
             <Palette className="size-6 text-primary" aria-hidden="true" />
             <h1 className="mt-6 text-balance text-5xl font-semibold leading-[0.94] tracking-[-0.04em] sm:text-7xl">
-              Compose the procedure. Inspect the result.
+              Pigment
             </h1>
             <p className="mt-7 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-              Pigment is a creative computation playground for transforming images through color, geometry, and algorithms you can see and change.
+              Tools for transforming images with color, geometry, and inspectable algorithms.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Link href="/studio" prefetch={false} className="group flex min-h-24 min-w-56 items-center justify-between border-2 border-border bg-primary p-5 text-primary-foreground shadow-[4px_4px_0_var(--shadow)] transition-[transform,box-shadow] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                <span><Layers3 className="mb-2 size-5" /><span className="block font-medium">Enter Studio</span><span className="mt-1 block text-xs opacity-70">Compose a transformation</span></span>
+                <span><Layers3 className="mb-2 size-5" /><span className="block font-medium">Studio</span><span className="mt-1 block text-xs opacity-70">Build an image procedure</span></span>
                 <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
               </Link>
               <Link href="/lab" className="group flex min-h-24 min-w-56 items-center justify-between border-2 border-border bg-card p-5 shadow-[4px_4px_0_var(--shadow)] transition-[transform,box-shadow] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                <span><Beaker className="mb-2 size-5 text-primary" /><span className="block font-medium">Enter Lab</span><span className="mt-1 block text-xs text-muted-foreground">Understand the machinery</span></span>
+                <span><Beaker className="mb-2 size-5 text-primary" /><span className="block font-medium">Lab</span><span className="mt-1 block text-xs text-muted-foreground">Inspect methods and results</span></span>
                 <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>

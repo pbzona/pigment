@@ -126,10 +126,10 @@ export function QuantizationLab() {
             <div className="max-w-3xl">
               <FlaskConical className="size-5 text-primary" aria-hidden="true" />
               <h1 className="mt-6 text-balance text-5xl font-semibold leading-[0.95] tracking-[-0.04em] sm:text-7xl lg:text-[5.25rem]">
-                Put the procedure under glass.
+                Lab
               </h1>
               <p className="mt-7 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-                Lab shares the project on your Studio workbench. Isolate a stage, compare its choices, and use focused experiments to understand what the procedure is doing.
+                Inspect the current project, compare image-processing methods, and follow their calculations step by step.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button asChild size="lg">

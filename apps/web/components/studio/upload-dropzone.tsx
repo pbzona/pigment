@@ -97,7 +97,7 @@ export function UploadDropzone({
         >
           <ImagePlus className="mb-6 size-7 text-primary" strokeWidth={1.5} aria-hidden="true" />
           <h1 className="text-balance text-3xl font-medium tracking-[-0.04em] sm:text-4xl">
-            Transform an image with color.
+            Studio
           </h1>
           <p className="mt-3 max-w-md text-sm leading-6 text-muted-foreground">
             Drop a PNG, JPEG, WebP, or GIF here, or choose one from your device.

@@ -38,11 +38,9 @@ export default async function PalettesPage({
       <main className="site-shell">
         <section className="catalog-intro" aria-labelledby="catalog-heading">
           <div>
-            <p className="catalog-kicker">Shared material</p>
-            <h1 id="catalog-heading">Color for the procedure.</h1>
+            <h1 id="catalog-heading">Palettes</h1>
             <p>
-              Browse reusable color systems, inspect their structure, and bring one
-              into your next Studio experiment.
+              Browse color systems, inspect their characteristics, and load one into Studio.
             </p>
           </div>
           <aside className="lospec-credit" aria-label="Lospec attribution">
