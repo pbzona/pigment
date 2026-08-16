@@ -11,8 +11,9 @@ type SiteHeaderProps = Readonly<{
 }>;
 
 const links = [
-  { key: "lab", href: "/lab", label: "Lab" },
-  { key: "palettes", href: "/palettes", label: "Palettes" },
+  { key: "studio", href: "/studio", label: "Studio", prefetch: false },
+  { key: "lab", href: "/lab", label: "Lab", prefetch: true },
+  { key: "palettes", href: "/palettes", label: "Palettes", prefetch: true },
 ] as const;
 
 export function SiteHeader({ active, context, className }: SiteHeaderProps) {
@@ -44,16 +45,15 @@ export function SiteHeader({ active, context, className }: SiteHeaderProps) {
               size="sm"
               className={cn(link.key === "lab" && "hidden sm:inline-flex")}
             >
-              <Link href={link.href} aria-current={active === link.key ? "page" : undefined}>
+              <Link
+                href={link.href}
+                prefetch={link.prefetch}
+                aria-current={active === link.key ? "page" : undefined}
+              >
                 {link.label}
               </Link>
             </Button>
           ))}
-          <Button asChild size="sm" variant={active === "studio" ? "secondary" : "default"}>
-            <Link href="/studio" prefetch={false} aria-current={active === "studio" ? "page" : undefined}>
-              Studio
-            </Link>
-          </Button>
         </nav>
       </div>
     </header>
