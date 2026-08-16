@@ -55,7 +55,8 @@ import {
 } from "@pigment/color";
 import { exportPixelPng } from "@/lib/browser/export";
 import { decodeImageFile } from "@/lib/browser/image";
-import { previewToThumbnail, writeProjectSnapshot } from "@/lib/browser/project-snapshot";
+import { previewToThumbnail, takePendingPalette, writeProjectSnapshot } from "@/lib/browser/project-snapshot";
+import { readProjectSource, saveProjectSource } from "@/lib/browser/project-source";
 import {
   createPalette,
   DEFAULT_PALETTE,
@@ -354,6 +355,27 @@ export function PixelStudio() {
   const [exporting, setExporting] = useState(false);
   const [pendingPaletteDelete, setPendingPaletteDelete] = useState<Palette | null>(null);
   const [firstResultGuide, setFirstResultGuide] = useState(false);
+  const pendingPaletteRef = useRef<ReturnType<typeof takePendingPalette>>(null);
+
+  useEffect(() => {
+    const pendingPalette = pendingPaletteRef.current;
+    if (!pendingPalette || !source) return;
+    pendingPaletteRef.current = null;
+    const result = createPalette(customPaletteId(), pendingPalette.name, pendingPalette.colors);
+    if (!result.ok) {
+      toast.error(result.error);
+      return;
+    }
+    setCustomPalettes((palettes) => [...palettes, result.value]);
+    activePaletteRef.current = result.value;
+    setActivePalette(result.value);
+    setMatchingPalette(
+      paletteToMatchingColors(result.value, adjustmentsRef.current, excludedColorIdsRef.current),
+    );
+    setSelectedColorId(result.value.colors[0].id);
+    setProcessing(true);
+    toast.success(`${result.value.name} loaded into Studio`);
+  }, [source]);
 
   useEffect(() => {
     const media = window.matchMedia("(min-width: 1024px)");
@@ -583,6 +605,7 @@ export function PixelStudio() {
       if (sourceUrlRef.current) URL.revokeObjectURL(sourceUrlRef.current);
       sourceUrlRef.current = url;
       sourceFileRef.current = file;
+      void saveProjectSource(file).catch(() => undefined);
       sourceCropRef.current = {
         x: 0,
         y: 0,
@@ -638,6 +661,18 @@ export function PixelStudio() {
       }
     }
   };
+
+  useEffect(() => {
+    pendingPaletteRef.current = takePendingPalette();
+    if (!pendingPaletteRef.current || source) return;
+    void readProjectSource()
+      .then((file) => {
+        if (file) return handleImageFile(file);
+      })
+      .catch(() => undefined);
+    // This one-time handoff restores the source selected before leaving Studio.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const applyGrid = (next: { width: number; height: number }) => {
     setProcessing(true);

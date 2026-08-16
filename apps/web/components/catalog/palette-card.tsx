@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import type { PaletteSummary } from "@pigment/palette-catalog";
 import {
@@ -10,6 +11,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@pigment/ui/dialog";
+import { Button } from "@pigment/ui/button";
+import { readProjectSnapshot, writePendingPalette } from "@/lib/browser/project-snapshot";
 
 import { PaletteStrip } from "./palette-strip";
 
@@ -18,6 +21,16 @@ const chroma = (value: number) => (value * 100).toFixed(1);
 
 export function PaletteCard({ palette }: { palette: PaletteSummary }) {
   const [open, setOpen] = useState(false);
+  const [hasProject, setHasProject] = useState(false);
+  const router = useRouter();
+
+  const loadIntoStudio = () => {
+    writePendingPalette({
+      name: palette.displayName,
+      colors: palette.colors.map((color) => color.hex),
+    });
+    router.push("/studio");
+  };
 
   return (
     <>
@@ -43,13 +56,26 @@ export function PaletteCard({ palette }: { palette: PaletteSummary }) {
         </button>
       </article>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog
+        open={open}
+        onOpenChange={(nextOpen) => {
+          if (nextOpen) setHasProject(readProjectSnapshot() !== null);
+          setOpen(nextOpen);
+        }}
+      >
         <DialogContent className="palette-inspector max-h-[min(86svh,54rem)] overflow-y-auto rounded-none p-0 sm:max-w-4xl">
           <DialogHeader className="border-b border-foreground/15 px-5 py-5 pr-14 sm:px-7">
-            <DialogTitle className="text-2xl sm:text-3xl">{palette.displayName}</DialogTitle>
-            <DialogDescription>
-              {palette.colorCount} colors · lightness {percent(palette.minLightness)}–{percent(palette.maxLightness)} · average chroma {chroma(palette.averageChroma)}
-            </DialogDescription>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:pr-8">
+              <div>
+                <DialogTitle className="text-2xl sm:text-3xl">{palette.displayName}</DialogTitle>
+                <DialogDescription className="mt-2">
+                  {palette.colorCount} colors · lightness {percent(palette.minLightness)}–{percent(palette.maxLightness)} · average chroma {chroma(palette.averageChroma)}
+                </DialogDescription>
+              </div>
+              <Button onClick={loadIntoStudio}>
+                {hasProject ? "Apply to current project" : "Start in Studio"}
+              </Button>
+            </div>
           </DialogHeader>
 
           <PaletteStrip colors={palette.colors} />

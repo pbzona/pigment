@@ -48,14 +48,14 @@ export default async function PalettesPage({
           <aside className="lospec-credit" aria-label="Lospec attribution">
             <div className="lospec-credit-mark" aria-hidden="true">L</div>
             <div>
-              <p>Collection source</p>
-              <h2>Curated with palettes from Lospec.</h2>
+              <p>Collection credit</p>
+              <h2>Many palettes here were curated from Lospec.</h2>
               <p>
-                Pigment keeps the source visible. Explore the larger collection where
-                many of these palettes were first shared.
+                Explore their much larger palette collection and consider supporting
+                the work that keeps it available to artists.
               </p>
               <a href="https://lospec.com/palette-list" target="_blank" rel="noreferrer">
-                Visit Lospec <span aria-hidden="true">↗</span>
+                Visit Lospec palette list <span aria-hidden="true">↗</span>
               </a>
             </div>
           </aside>

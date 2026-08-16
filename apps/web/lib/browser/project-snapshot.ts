@@ -2,6 +2,12 @@ import type { ConversionMethod, InputAdjustments, PixelPreview } from "@pigment/
 
 export const PROJECT_SNAPSHOT_KEY = "pigment:project:v1";
 export const PROJECT_SNAPSHOT_EVENT = "pigment:project-updated";
+export const PENDING_PALETTE_KEY = "pigment:pending-palette:v1";
+
+export type PendingPalette = Readonly<{
+  name: string;
+  colors: readonly string[];
+}>;
 
 export type ProjectSnapshot = Readonly<{
   name: string;
@@ -35,6 +41,25 @@ export function readProjectSnapshot(): ProjectSnapshot | null {
 export function writeProjectSnapshot(snapshot: ProjectSnapshot) {
   localStorage.setItem(PROJECT_SNAPSHOT_KEY, JSON.stringify(snapshot));
   window.dispatchEvent(new CustomEvent(PROJECT_SNAPSHOT_EVENT));
+}
+
+export function writePendingPalette(palette: PendingPalette) {
+  localStorage.setItem(PENDING_PALETTE_KEY, JSON.stringify(palette));
+}
+
+export function takePendingPalette(): PendingPalette | null {
+  try {
+    const value = JSON.parse(localStorage.getItem(PENDING_PALETTE_KEY) ?? "null") as unknown;
+    localStorage.removeItem(PENDING_PALETTE_KEY);
+    if (!value || typeof value !== "object") return null;
+    const palette = value as Partial<PendingPalette>;
+    return typeof palette.name === "string" && Array.isArray(palette.colors)
+      ? (palette as PendingPalette)
+      : null;
+  } catch {
+    localStorage.removeItem(PENDING_PALETTE_KEY);
+    return null;
+  }
 }
 
 export function previewToThumbnail(preview: PixelPreview, maxSide = 320): string | null {
