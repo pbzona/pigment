@@ -1,4 +1,4 @@
-import type { ConversionMethod, InputAdjustments, PixelPreview } from "@pigment/quantization";
+import type { ConversionMethod, InputAdjustments, PartitionKind, PixelPreview } from "@pigment/quantization";
 
 export const PROJECT_SNAPSHOT_KEY = "pigment:project:v1";
 export const PROJECT_SNAPSHOT_EVENT = "pigment:project-updated";
@@ -16,6 +16,7 @@ export type ProjectSnapshot = Readonly<{
   gridWidth: number;
   gridHeight: number;
   method: ConversionMethod;
+  partition?: PartitionKind;
   paletteName: string;
   paletteColors: readonly string[];
   inputAdjustments: InputAdjustments;

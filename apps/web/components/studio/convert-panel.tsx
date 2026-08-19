@@ -23,6 +23,7 @@ import {
   CONVERSION_METHODS,
   type ConversionMethod,
   type InputAdjustments,
+  type PartitionKind,
 } from "@pigment/quantization";
 
 import { SourceAdjustments } from "./source-adjustments";
@@ -31,6 +32,7 @@ import type { SourceMeta } from "./types";
 type ConvertPanelProps = Readonly<{
   source: SourceMeta;
   method: ConversionMethod;
+  partition?: PartitionKind;
   inputAdjustments: InputAdjustments;
   preserveTransparency: boolean;
   alphaThreshold: number;
@@ -46,6 +48,7 @@ type ConvertPanelProps = Readonly<{
 export function ConvertPanel({
   source,
   method,
+  partition = "square",
   inputAdjustments,
   preserveTransparency,
   alphaThreshold,
@@ -58,6 +61,11 @@ export function ConvertPanel({
   compact = false,
 }: ConvertPanelProps) {
   const methodId = useId();
+  const compatibleMethods = partition === "square"
+    ? CONVERSION_METHODS
+    : CONVERSION_METHODS.filter((entry) =>
+        !["dither", "atkinson", "bayer", "blue-noise", "riemersma"].includes(entry.value),
+      );
   const preserveTransparencyId = useId();
   const [advancedOpen, setAdvancedOpen] = useState(!firstResultGuide);
 
@@ -143,7 +151,7 @@ export function ConvertPanel({
             <SelectValue>{CONVERSION_METHODS.find((entry) => entry.value === method)?.label}</SelectValue>
           </SelectTrigger>
           <SelectContent className="rounded-none">
-            {CONVERSION_METHODS.map((entry) => (
+            {compatibleMethods.map((entry) => (
               <SelectItem key={entry.value} value={entry.value} className="rounded-none py-2">
                 <span className="flex flex-col items-start">
                   <span>{entry.label}</span>
@@ -155,6 +163,7 @@ export function ConvertPanel({
         </Select>
         <p className="mt-2 text-xs leading-5 text-muted-foreground">
           This algorithm {CONVERSION_METHODS.find((entry) => entry.value === method)?.description.toLowerCase()}.
+          {partition !== "square" ? " Diffusion and pattern methods require a square partition." : ""}
         </p>
       </section>
     </div>

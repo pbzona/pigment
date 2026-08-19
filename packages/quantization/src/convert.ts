@@ -10,6 +10,7 @@ import {
 import { getCellRange } from "./grid";
 import { createInputSampler, normalizeInputAdjustments, type InputSample } from "./input-adjust";
 import { createPaletteMatcher, type PaletteMatcher } from "./matcher";
+import { createPartition } from "./partition";
 import type {
   DiffusionDelivery,
   ImageConversionTrace,
@@ -194,6 +195,109 @@ const convertCenter = (
       }
     }
   }
+};
+
+const convertPolygonPartition = (
+  source: SourceImage,
+  options: ConversionOptions,
+  matcher: PaletteMatcher,
+): ConversionResult => {
+  const kind = options.partition ?? "square";
+  const partition = createPartition(
+    kind,
+    options.gridWidth,
+    options.gridHeight,
+    Math.max(2, options.partitionScale ?? 5),
+    options.partitionSeed ?? 1,
+  );
+  const method = options.method;
+  if (method === "dither" || method === "atkinson" || method === "bayer" || method === "blue-noise" || method === "riemersma") {
+    throw new Error("Diffusion and pattern methods require a square partition.");
+  }
+  const sampler = createInputSampler(
+    source.pixels,
+    source.width,
+    source.height,
+    options.inputAdjustments,
+    options.preserveTransparency,
+  );
+  const samples = Array.from({ length: partition.regionCount }, () => [] as InputSample[]);
+  const sample = createSample();
+  for (let y = 0; y < options.gridHeight; y += 1) {
+    const yRange = getCellRange(y, options.gridHeight, source.height);
+    for (let x = 0; x < options.gridWidth; x += 1) {
+      const xRange = getCellRange(x, options.gridWidth, source.width);
+      const region = partition.regionIds[y * options.gridWidth + x];
+      for (let sy = yRange.start; sy < yRange.end; sy += 1) {
+        for (let sx = xRange.start; sx < xRange.end; sx += 1) {
+          sampler.sample(sx, sy, sample);
+          if (options.preserveTransparency && sample.alpha < options.alphaThreshold) continue;
+          samples[region].push({ ...sample });
+        }
+      }
+    }
+  }
+  const regionColors = new Uint16Array(partition.regionCount);
+  for (let region = 0; region < partition.regionCount; region += 1) {
+    const values = samples[region];
+    if (values.length === 0) {
+      regionColors[region] = TRANSPARENT_COLOR_ID;
+      continue;
+    }
+    let r = 0;
+    let g = 0;
+    let b = 0;
+    if (method === "center") {
+      const center = values[Math.floor(values.length / 2)];
+      r = center.r; g = center.g; b = center.b;
+    } else if (method === "median") {
+      const reds = values.map((value) => value.r).sort((a, next) => a - next);
+      const greens = values.map((value) => value.g).sort((a, next) => a - next);
+      const blues = values.map((value) => value.b).sort((a, next) => a - next);
+      const middle = Math.floor(values.length / 2);
+      r = reds[middle]; g = greens[middle]; b = blues[middle];
+    } else if (method === "dominant") {
+      const counts = new Uint32Array(options.palette.length);
+      for (const value of values) counts[matcher.match(value.r, value.g, value.b)] += 1;
+      let winner = 0;
+      for (let index = 1; index < counts.length; index += 1) if (counts[index] > counts[winner]) winner = index;
+      regionColors[region] = options.palette[winner].id;
+      continue;
+    } else if (method === "geometric-median") {
+      const labs = values.map((value) => rgbToOklab(rgba(value.r, value.g, value.b)));
+      let l = labs.reduce((sum, value) => sum + value.l, 0) / labs.length;
+      let a = labs.reduce((sum, value) => sum + value.a, 0) / labs.length;
+      let nextB = labs.reduce((sum, value) => sum + value.b, 0) / labs.length;
+      for (let iteration = 0; iteration < 12; iteration += 1) {
+        let weight = 0;
+        let sumL = 0;
+        let sumA = 0;
+        let sumB = 0;
+        for (const value of labs) {
+          const distance = Math.max(1e-6, Math.hypot(l - value.l, a - value.a, nextB - value.b));
+          const inverse = 1 / distance;
+          weight += inverse;
+          sumL += value.l * inverse;
+          sumA += value.a * inverse;
+          sumB += value.b * inverse;
+        }
+        l = sumL / weight;
+        a = sumA / weight;
+        nextB = sumB / weight;
+      }
+      const median = oklabToRgb({ l, a, b: nextB, alpha: 1 });
+      r = median.r; g = median.g; b = median.b;
+    } else {
+      for (const value of values) { r += value.r; g += value.g; b += value.b; }
+      r /= values.length; g /= values.length; b /= values.length;
+    }
+    regionColors[region] = options.palette[matcher.match(r, g, b)].id;
+  }
+  const colorIds = new Uint16Array(options.gridWidth * options.gridHeight);
+  for (let index = 0; index < colorIds.length; index += 1) {
+    colorIds[index] = regionColors[partition.regionIds[index]];
+  }
+  return { width: options.gridWidth, height: options.gridHeight, colorIds };
 };
 
 const resolveMethods = (options: ConversionOptions): Uint8Array => {
@@ -1459,6 +1563,9 @@ const runConversion = (
   const source = { pixels, width: sourceWidth, height: sourceHeight };
   validateConversion(source, options);
   const matcher = createPaletteMatcher(options.palette);
+  if ((options.partition ?? "square") !== "square") {
+    return convertPolygonPartition(source, options, matcher);
+  }
   const methods = resolveMethods(options);
   const colorIds = new Uint16Array(options.gridWidth * options.gridHeight);
 

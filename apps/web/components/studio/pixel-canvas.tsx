@@ -18,7 +18,9 @@ import {
   lineCells,
   MIN_GRID_SIDE,
   rectangleSelectionMask,
+  rasterizePartitionColors,
   type CellCrop,
+  type PartitionKind,
   type PixelPaletteColor,
   type PixelPreview,
   type SelectionMask,
@@ -38,6 +40,8 @@ type PixelCanvasProps = Readonly<{
   width: number;
   height: number;
   colorIds: Uint16Array | null;
+  partition: PartitionKind;
+  partitionScale: number;
   palette: readonly PixelPaletteColor[];
   visibleColorIds: ReadonlySet<number> | null;
   originalPreview: PixelPreview | null;
@@ -160,6 +164,8 @@ export function PixelCanvas({
   width,
   height,
   colorIds,
+  partition,
+  partitionScale,
   palette,
   visibleColorIds,
   originalPreview,
@@ -213,18 +219,21 @@ export function PixelCanvas({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    canvas.width = width;
-    canvas.height = height;
+    const rendered = colorIds && partition !== "square"
+      ? rasterizePartitionColors(colorIds, width, height, partition, partitionScale, 1, 4)
+      : { width, height, colorIds };
+    canvas.width = rendered.width;
+    canvas.height = rendered.height;
     const context = canvas.getContext("2d");
     if (!context) return;
-    context.clearRect(0, 0, width, height);
-    if (!colorIds) return;
+    context.clearRect(0, 0, rendered.width, rendered.height);
+    if (!rendered.colorIds) return;
     context.putImageData(
-      new ImageData(colorIdsToRgba(colorIds, palette, visibleColorIds), width, height),
+      new ImageData(colorIdsToRgba(rendered.colorIds, palette, visibleColorIds), rendered.width, rendered.height),
       0,
       0,
     );
-  }, [colorIds, height, palette, visibleColorIds, width]);
+  }, [colorIds, height, palette, partition, partitionScale, visibleColorIds, width]);
 
   useEffect(() => {
     const canvas = selectionCanvasRef.current;
@@ -688,6 +697,8 @@ export function PixelCanvas({
               width={width}
               height={height}
               colorIds={colorIds}
+              partition={partition}
+              partitionScale={partitionScale}
               palette={palette}
               visibleColorIds={visibleColorIds}
               originalPreview={originalPreview}
@@ -727,9 +738,10 @@ export function PixelCanvas({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant={showGrid ? "secondary" : "ghost"}
+              variant={showGrid && partition === "square" ? "secondary" : "ghost"}
               size="icon-sm"
               className="size-11 sm:size-8"
+              disabled={partition !== "square"}
               onClick={() => setShowGrid((value) => !value)}
             >
               <Grid3X3 />
@@ -938,7 +950,7 @@ export function PixelCanvas({
               style={{ imageRendering: "pixelated" }}
               aria-hidden="true"
             />
-            {showGrid && zoom >= 8 ? (
+            {partition === "square" && showGrid && zoom >= 8 ? (
               <span
                 className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,.14)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,.14)_1px,transparent_1px)]"
                 style={{ backgroundPosition: "-0.5px 0, 0 -0.5px", backgroundSize: `${zoom}px ${zoom}px` }}

@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 
 import {
   colorIdsToRgba,
+  rasterizePartitionColors,
+  type PartitionKind,
   type PixelPaletteColor,
   type PixelPreview,
 } from "@pigment/quantization";
@@ -14,6 +16,8 @@ type ComparisonPreviewProps = Readonly<{
   width: number;
   height: number;
   colorIds: Uint16Array | null;
+  partition: PartitionKind;
+  partitionScale: number;
   palette: readonly PixelPaletteColor[];
   visibleColorIds: ReadonlySet<number> | null;
   originalPreview: PixelPreview | null;
@@ -25,6 +29,8 @@ export function ComparisonPreview({
   width,
   height,
   colorIds,
+  partition,
+  partitionScale,
   palette,
   visibleColorIds,
   originalPreview,
@@ -40,18 +46,21 @@ export function ComparisonPreview({
   useEffect(() => {
     const canvas = pixelCanvasRef.current;
     if (!canvas) return;
-    canvas.width = width;
-    canvas.height = height;
+    const rendered = colorIds && partition !== "square"
+      ? rasterizePartitionColors(colorIds, width, height, partition, partitionScale, 1, 4)
+      : { width, height, colorIds };
+    canvas.width = rendered.width;
+    canvas.height = rendered.height;
     const context = canvas.getContext("2d");
     if (!context) return;
-    context.clearRect(0, 0, width, height);
-    if (!colorIds) return;
+    context.clearRect(0, 0, rendered.width, rendered.height);
+    if (!rendered.colorIds) return;
     context.putImageData(
-      new ImageData(colorIdsToRgba(colorIds, palette, visibleColorIds), width, height),
+      new ImageData(colorIdsToRgba(rendered.colorIds, palette, visibleColorIds), rendered.width, rendered.height),
       0,
       0,
     );
-  }, [colorIds, height, palette, visibleColorIds, width]);
+  }, [colorIds, height, palette, partition, partitionScale, visibleColorIds, width]);
 
   const inputPreview =
     inputMode === "adjusted" ? adjustedPreview ?? originalPreview : originalPreview;

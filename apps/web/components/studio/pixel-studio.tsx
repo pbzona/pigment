@@ -101,12 +101,13 @@ import {
   type InputAdjustments,
   type PixelPaletteColor,
   type PixelPreview,
+  type PartitionKind,
   type SourceCrop,
 } from "@pigment/quantization";
 
 import { ImageChooser } from "./image-chooser";
+import { Inspector } from "./inspector";
 import { OutputSidebar } from "./output-sidebar";
-import { PipelinePanel } from "./pipeline-panel";
 import { PixelCanvas } from "./pixel-canvas";
 import type {
   EditorMode,
@@ -303,6 +304,8 @@ export function PixelStudio() {
   const [cropping, setCropping] = useState(false);
   const [dimensionInputVersion, setDimensionInputVersion] = useState(0);
   const [method, setMethod] = useState<ConversionMethod>("dominant");
+  const [partition, setPartition] = useState<PartitionKind>("square");
+  const [partitionScale, setPartitionScale] = useState(6);
   const [preserveTransparency, setPreserveTransparency] = useState(true);
   const [alphaThreshold, setAlphaThreshold] = useState(128);
   const [inputAdjustments, setInputAdjustments] = useState<InputAdjustments>(
@@ -432,6 +435,8 @@ export function PixelStudio() {
         gridHeight,
         aspectLocked,
         method,
+        partition,
+        partitionScale,
         preserveTransparency,
         alphaThreshold,
         inputAdjustments,
@@ -453,6 +458,8 @@ export function PixelStudio() {
     gridHeight,
     aspectLocked,
     method,
+    partition,
+    partitionScale,
     preserveTransparency,
     alphaThreshold,
     inputAdjustments,
@@ -475,6 +482,7 @@ export function PixelStudio() {
       gridWidth,
       gridHeight,
       method,
+      partition,
       paletteName: activePalette.name,
       paletteColors: activePalette.colors.map((color) => color.hex),
       inputAdjustments,
@@ -482,7 +490,7 @@ export function PixelStudio() {
       thumbnail: previewToThumbnail(originalPreview),
       updatedAt: Date.now(),
     });
-  }, [source, originalPreview, gridWidth, gridHeight, method, activePalette, inputAdjustments, interventionCount]);
+  }, [source, originalPreview, gridWidth, gridHeight, method, partition, activePalette, inputAdjustments, interventionCount]);
 
   useEffect(() => {
     activePaletteRef.current = activePalette;
@@ -507,7 +515,10 @@ export function PixelStudio() {
         gridWidth,
         gridHeight,
         method,
-        methodOverrides,
+        methodOverrides: partition === "square" ? methodOverrides : undefined,
+        partition,
+        partitionScale,
+        partitionSeed: 1,
         palette: matchingPalette,
         preserveTransparency,
         alphaThreshold,
@@ -586,6 +597,8 @@ export function PixelStudio() {
     gridHeight,
     method,
     methodOverrides,
+    partition,
+    partitionScale,
     matchingPalette,
     preserveTransparency,
     alphaThreshold,
@@ -718,6 +731,8 @@ export function PixelStudio() {
       if (savedProject) {
         setAspectLocked(savedProject.aspectLocked);
         setMethod(savedProject.method);
+        setPartition(savedProject.partition ?? "square");
+        setPartitionScale(savedProject.partitionScale ?? 6);
         setPreserveTransparency(savedProject.preserveTransparency);
         setAlphaThreshold(savedProject.alphaThreshold);
         setInputAdjustments(savedProject.inputAdjustments);
@@ -1336,7 +1351,9 @@ export function PixelStudio() {
         gridHeight,
         adjustedPalette,
         exportScale,
-        `${baseName}-pixel-${gridWidth}x${gridHeight}@${exportScale}x.png`,
+        `${baseName}-${partition}-${gridWidth}x${gridHeight}@${exportScale}x.png`,
+        partition,
+        partitionScale,
       );
       toast.success("PNG exported");
       setExportOpen(false);
@@ -1393,6 +1410,7 @@ export function PixelStudio() {
   const convertProps = {
     source,
     method,
+    partition,
     inputAdjustments,
     preserveTransparency,
     alphaThreshold,
@@ -1420,6 +1438,24 @@ export function PixelStudio() {
   const outputProps = {
     gridWidth,
     gridHeight,
+    partition,
+    partitionScale,
+    onPartitionChange: (nextPartition: PartitionKind) => {
+      setPartition(nextPartition);
+      if (nextPartition !== "square") setMode("convert");
+      if (
+        nextPartition !== "square" &&
+        ["dither", "atkinson", "bayer", "blue-noise", "riemersma"].includes(method)
+      ) {
+        setMethod("dominant");
+        toast.info("Diffusion and pattern methods require a square partition.");
+      }
+      setProcessing(true);
+    },
+    onPartitionScaleChange: (scale: number) => {
+      setPartitionScale(scale);
+      setProcessing(true);
+    },
     aspectLocked,
     inputVersion: dimensionInputVersion,
     palette: activePalette,
@@ -1605,16 +1641,12 @@ export function PixelStudio() {
                 </Button>
               </div>
               <div className="min-h-0 flex-1">
-                <PipelinePanel
+                <Inspector
+                  mode={mode}
+                  onModeChange={setMode}
                   convertProps={convertProps}
                   selectionProps={selectionProps}
-                  gridWidth={gridWidth}
-                  gridHeight={gridHeight}
-                  paletteName={activePalette.name}
-                  paletteColorCount={activePalette.colors.length}
-                  interventionCount={interventionCount}
-                  onOpenOutput={() => setOutputOpen(true)}
-                  onStartIntervention={() => setMode("select")}
+                  regionsEnabled={partition === "square"}
                 />
               </div>
             </SheetContent>
@@ -1632,7 +1664,7 @@ export function PixelStudio() {
             >
               <SheetHeader className="shrink-0 border-b text-left">
                 <SheetTitle>Output</SheetTitle>
-                <SheetDescription>Set the cell grid and shape the output palette.</SheetDescription>
+                <SheetDescription>Set the partition, output resolution, and palette.</SheetDescription>
               </SheetHeader>
               <OutputSidebar {...outputProps} />
             </SheetContent>
@@ -1655,22 +1687,20 @@ export function PixelStudio() {
         aria-busy={uploading || cropping}
       >
         {desktopControls ? <aside className="flex min-h-0 min-w-0 w-80 shrink-0 flex-col border-r bg-background">
-          <PipelinePanel
+          <Inspector
+            mode={mode}
+            onModeChange={setMode}
             convertProps={convertProps}
             selectionProps={selectionProps}
-            gridWidth={gridWidth}
-            gridHeight={gridHeight}
-            paletteName={activePalette.name}
-            paletteColorCount={activePalette.colors.length}
-            interventionCount={interventionCount}
-            onOpenOutput={() => setOutputOpen(true)}
-            onStartIntervention={() => setMode("select")}
+            regionsEnabled={partition === "square"}
           />
         </aside> : null}
         <PixelCanvas
           width={gridWidth}
           height={gridHeight}
           colorIds={finalColorIds}
+          partition={partition}
+          partitionScale={partitionScale}
           palette={adjustedPalette}
           visibleColorIds={isolatedColorIds.size > 0 ? isolatedColorIds : null}
           originalPreview={originalPreview}
@@ -1704,7 +1734,7 @@ export function PixelStudio() {
           <aside className="flex min-h-0 min-w-0 w-80 shrink-0 flex-col border-l bg-background">
             <div className="shrink-0 border-b px-4 py-3">
               <p className="text-xs font-medium">Output</p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">Grid and palette</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">Partition and palette</p>
             </div>
             <OutputSidebar {...outputProps} />
           </aside>

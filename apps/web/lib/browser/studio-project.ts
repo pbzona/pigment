@@ -3,6 +3,7 @@ import type { Palette } from "@pigment/palette";
 import type {
   ConversionMethod,
   InputAdjustments,
+  PartitionKind,
   SourceCrop,
 } from "@pigment/quantization";
 
@@ -16,6 +17,8 @@ export type StudioProject = Readonly<{
   gridHeight: number;
   aspectLocked: boolean;
   method: ConversionMethod;
+  partition?: PartitionKind;
+  partitionScale?: number;
   preserveTransparency: boolean;
   alphaThreshold: number;
   inputAdjustments: InputAdjustments;

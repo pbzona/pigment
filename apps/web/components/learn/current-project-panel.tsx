@@ -60,7 +60,7 @@ export function CurrentProjectPanel() {
         </div>
         <h2 className="mt-3 truncate text-xl font-medium">{displayName}</h2>
         <dl className="mt-4 grid grid-cols-2 gap-px border bg-foreground/10 text-[10px]">
-          <div className="bg-background p-3"><dt className="text-muted-foreground">Partition</dt><dd className="mt-1 font-mono">{project.gridWidth}×{project.gridHeight} square</dd></div>
+          <div className="bg-background p-3"><dt className="text-muted-foreground">Partition</dt><dd className="mt-1 font-mono">{project.gridWidth}×{project.gridHeight} {project.partition ?? "square"}</dd></div>
           <div className="bg-background p-3"><dt className="text-muted-foreground">Sample</dt><dd className="mt-1 font-mono">{method}</dd></div>
           <div className="bg-background p-3"><dt className="text-muted-foreground">Palette</dt><dd className="mt-1 truncate font-mono">{project.paletteName}</dd></div>
           <div className="bg-background p-3"><dt className="text-muted-foreground">Interventions</dt><dd className="mt-1 font-mono">{project.interventionCount}</dd></div>

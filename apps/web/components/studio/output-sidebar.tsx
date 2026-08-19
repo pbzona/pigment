@@ -16,6 +16,14 @@ import { Button } from "@pigment/ui/button";
 import { Input } from "@pigment/ui/input";
 import { Label } from "@pigment/ui/label";
 import { ScrollArea } from "@pigment/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@pigment/ui/select";
+import { Slider } from "@pigment/ui/slider";
 import type { PaletteAdjustments as PaletteAdjustmentsValue } from "@pigment/color";
 import {
   insertMidpointSwatch,
@@ -26,10 +34,13 @@ import {
   type Palette,
 } from "@pigment/palette";
 import { cn } from "@/lib/utils";
+import type { PartitionKind } from "@pigment/quantization";
 
 type OutputSidebarProps = Readonly<{
   gridWidth: number;
   gridHeight: number;
+  partition: PartitionKind;
+  partitionScale: number;
   aspectLocked: boolean;
   inputVersion: number;
   palette: Palette;
@@ -39,6 +50,8 @@ type OutputSidebarProps = Readonly<{
   selectedSwatchId: number | null;
   processing: boolean;
   onGridChange: (axis: "width" | "height", value: number) => void;
+  onPartitionChange: (partition: PartitionKind) => void;
+  onPartitionScaleChange: (scale: number) => void;
   onGridScale: (factor: 0.5 | 2) => void;
   onAspectLockedChange: (locked: boolean) => void;
   onPaletteChange: (palette: Palette) => void;
@@ -54,6 +67,8 @@ type OutputSidebarProps = Readonly<{
 export function OutputSidebar({
   gridWidth,
   gridHeight,
+  partition,
+  partitionScale,
   aspectLocked,
   inputVersion,
   palette,
@@ -63,6 +78,8 @@ export function OutputSidebar({
   selectedSwatchId,
   processing,
   onGridChange,
+  onPartitionChange,
+  onPartitionScaleChange,
   onGridScale,
   onAspectLockedChange,
   onPaletteChange,
@@ -127,8 +144,32 @@ export function OutputSidebar({
     <ScrollArea className="min-h-0 min-w-0 flex-1">
       <div className="min-w-0 divide-y divide-border">
         <section className="px-4 py-5">
+          <Label className="mb-3">Partition shape</Label>
+          <Select value={partition} onValueChange={(value: string) => onPartitionChange(value as PartitionKind)}>
+            <SelectTrigger className="w-full rounded-none" aria-label="Partition shape"><SelectValue /></SelectTrigger>
+            <SelectContent className="rounded-none">
+              <SelectItem value="square">Square</SelectItem>
+              <SelectItem value="hex">Hexagonal</SelectItem>
+              <SelectItem value="voronoi">Voronoi</SelectItem>
+            </SelectContent>
+          </Select>
+          {partition !== "square" ? (
+            <label className="mt-5 block">
+              <span className="mb-2 flex items-center justify-between text-xs">
+                <span>Cell scale</span>
+                <span className="font-mono text-muted-foreground">{partitionScale}</span>
+              </span>
+              <Slider min={2} max={16} step={1} value={[partitionScale]} onValueChange={([value]: number[]) => onPartitionScaleChange(value)} />
+              <p className="mt-2 text-[10px] leading-4 text-muted-foreground">
+                {partition === "voronoi" ? "Points use deterministic Poisson-disc spacing." : "Controls the hexagon radius."}
+              </p>
+            </label>
+          ) : null}
+        </section>
+
+        <section className="px-4 py-5">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <Label>Cell grid</Label>
+            <Label>Output resolution</Label>
             <div className="flex gap-1">
               <Button
                 variant="ghost"

@@ -7,6 +7,7 @@ export * from "./input-adjust";
 export * from "./matcher";
 export * from "./methods";
 export * from "./palette";
+export * from "./partition";
 export * from "./preview";
 export * from "./render";
 export * from "./selection";

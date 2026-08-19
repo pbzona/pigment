@@ -1,4 +1,5 @@
 import type { RgbaColor } from "@pigment/color";
+import type { PartitionKind } from "./partition";
 
 export type ConversionMethod =
   | "dominant"
@@ -106,6 +107,9 @@ export type ConversionOptions = Readonly<{
   preserveTransparency: boolean;
   alphaThreshold: number;
   inputAdjustments?: InputAdjustments;
+  partition?: PartitionKind;
+  partitionScale?: number;
+  partitionSeed?: number;
 }>;
 
 export type ConversionResult = Readonly<{

@@ -40,13 +40,13 @@ export function ExportDialog({
         <DialogHeader>
           <DialogTitle>Export PNG</DialogTitle>
           <DialogDescription>
-            Scale each logical pixel into a crisp square with no smoothing.
+            Export the current partition as a crisp PNG with no smoothing.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-5 py-2">
           <div>
             <p className="mb-2 text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
-              Pixel scale
+              Output scale
             </p>
             <ToggleGroup
               type="single"

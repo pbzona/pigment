@@ -1,5 +1,5 @@
-import { colorIdsToRgba, MAX_EXPORT_PIXELS, MAX_EXPORT_SIDE } from "@pigment/quantization";
-import type { PixelPaletteColor } from "@pigment/quantization";
+import { colorIdsToRgba, MAX_EXPORT_PIXELS, MAX_EXPORT_SIDE, rasterizePartitionColors } from "@pigment/quantization";
+import type { PartitionKind, PixelPaletteColor } from "@pigment/quantization";
 
 const canvasToBlob = (canvas: HTMLCanvasElement): Promise<Blob> =>
   new Promise((resolve, reject) => {
@@ -16,6 +16,8 @@ export const exportPixelPng = async (
   palette: readonly PixelPaletteColor[],
   scale: number,
   fileName: string,
+  partition: PartitionKind = "square",
+  partitionScale = 6,
 ): Promise<void> => {
   const outputWidth = width * scale;
   const outputHeight = height * scale;
@@ -27,13 +29,16 @@ export const exportPixelPng = async (
     throw new Error("That export is too large for a reliable browser download.");
   }
 
+  const rendered = partition === "square"
+    ? { width, height, colorIds }
+    : rasterizePartitionColors(colorIds, width, height, partition, partitionScale, 1, scale);
   const source = document.createElement("canvas");
-  source.width = width;
-  source.height = height;
+  source.width = rendered.width;
+  source.height = rendered.height;
   const sourceContext = source.getContext("2d");
   if (!sourceContext) throw new Error("The browser could not create an export canvas.");
   sourceContext.putImageData(
-    new ImageData(colorIdsToRgba(colorIds, palette), width, height),
+    new ImageData(colorIdsToRgba(rendered.colorIds, palette), rendered.width, rendered.height),
     0,
     0,
   );
