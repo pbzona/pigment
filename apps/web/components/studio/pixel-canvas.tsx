@@ -1017,12 +1017,12 @@ export function PixelCanvas({
         Space and drag, or drag with the right mouse button, to pan.
       </p>
 
-      <div className="pointer-events-none absolute bottom-4 left-4 hidden border border-border/40 bg-card px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.1em] text-muted-foreground md:block">
+      <div className="pointer-events-none absolute bottom-4 left-4 hidden border border-border/40 bg-card px-2.5 py-1.5 font-mono text-[11px] tracking-[0.04em] text-muted-foreground md:block">
         Space + drag / right-drag to pan
       </div>
 
       {processing ? (
-        <div className="pointer-events-none absolute right-4 bottom-4 flex items-center gap-2 border-2 border-border bg-card px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground shadow-[3px_3px_0_var(--shadow)]">
+        <div className="pointer-events-none absolute right-4 bottom-4 flex items-center gap-2 border-2 border-border bg-card px-3 py-2 font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground shadow-[3px_3px_0_var(--shadow)]">
           <span className="size-2 animate-pulse bg-[#ef6a47]" />
           Quantizing
         </div>

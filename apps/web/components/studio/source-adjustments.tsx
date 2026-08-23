@@ -80,7 +80,7 @@ export function SourceAdjustments({ value, onChange, compact = false }: SourceAd
           </label>
         ))}
       </div>
-      <p className="mt-4 text-[10px] leading-4 text-muted-foreground">
+      <p className="mt-4 text-[11px] leading-4 text-muted-foreground">
         Detail moves from softer sampling at negative values to sharper local contrast at positive values.
       </p>
     </section>

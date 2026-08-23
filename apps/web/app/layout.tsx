@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   metadataBase: siteUrl,
   applicationName: "Pigment",
   title: {
-    default: "Pigment — A visual color workshop for artists",
+    default: "Pigment — Image and color tools",
     template: "%s — Pigment",
   },
   description:
@@ -51,13 +51,13 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "/",
     siteName: "Pigment",
-    title: "Pigment — A visual color workshop for artists",
+    title: "Pigment — Image and color tools",
     description:
       "Transform images, test color ideas, and learn image algorithms in a private browser-based art workshop.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pigment — A visual color workshop for artists",
+    title: "Pigment — Image and color tools",
     description:
       "Transform images, test color ideas, and learn image algorithms in a private browser-based art workshop.",
   },

@@ -79,6 +79,7 @@ import {
   paletteIdentity,
 } from "@pigment/palette";
 import {
+  CONVERSION_METHODS,
   DEFAULT_INPUT_ADJUSTMENTS,
   METHOD_INHERIT,
   composeColorIds,
@@ -304,6 +305,7 @@ export function PixelStudio() {
   const [cropping, setCropping] = useState(false);
   const [dimensionInputVersion, setDimensionInputVersion] = useState(0);
   const [method, setMethod] = useState<ConversionMethod>("dominant");
+  const previousSquareMethodRef = useRef<ConversionMethod>("dominant");
   const [partition, setPartition] = useState<PartitionKind>("square");
   const [partitionScale, setPartitionScale] = useState(6);
   const [preserveTransparency, setPreserveTransparency] = useState(true);
@@ -731,6 +733,9 @@ export function PixelStudio() {
       if (savedProject) {
         setAspectLocked(savedProject.aspectLocked);
         setMethod(savedProject.method);
+        if ((savedProject.partition ?? "square") === "square") {
+          previousSquareMethodRef.current = savedProject.method;
+        }
         setPartition(savedProject.partition ?? "square");
         setPartitionScale(savedProject.partitionScale ?? 6);
         setPreserveTransparency(savedProject.preserveTransparency);
@@ -1418,6 +1423,7 @@ export function PixelStudio() {
     onDismissFirstResultGuide: dismissFirstResultGuide,
     onMethodChange: (nextMethod: ConversionMethod) => {
       setMethod(nextMethod);
+      if (partition === "square") previousSquareMethodRef.current = nextMethod;
       updateMatchingPalette(activePalette);
       if (firstResultGuide) dismissFirstResultGuide();
     },
@@ -1441,14 +1447,21 @@ export function PixelStudio() {
     partition,
     partitionScale,
     onPartitionChange: (nextPartition: PartitionKind) => {
-      setPartition(nextPartition);
-      if (nextPartition !== "square") setMode("convert");
-      if (
-        nextPartition !== "square" &&
-        ["dither", "atkinson", "bayer", "blue-noise", "riemersma"].includes(method)
-      ) {
-        setMethod("dominant");
-        toast.info("Diffusion and pattern methods require a square partition.");
+      if (nextPartition === partition) return;
+      if (nextPartition === "square") {
+        setPartition(nextPartition);
+        if (previousSquareMethodRef.current !== method) {
+          setMethod(previousSquareMethodRef.current);
+          toast.info(`${CONVERSION_METHODS.find((entry) => entry.value === previousSquareMethodRef.current)?.label ?? "Previous method"} restored for Square.`);
+        }
+      } else {
+        previousSquareMethodRef.current = method;
+        setPartition(nextPartition);
+        setMode("convert");
+        if (["dither", "atkinson", "bayer", "blue-noise", "riemersma"].includes(method)) {
+          setMethod("dominant");
+          toast.info("Dominant vote is active. Diffusion and pattern methods require Square.");
+        }
       }
       setProcessing(true);
     },
