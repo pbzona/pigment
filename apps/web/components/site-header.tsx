@@ -43,7 +43,6 @@ export function SiteHeader({ active, context, className }: SiteHeaderProps) {
               asChild
               variant={active === link.key ? "secondary" : "ghost"}
               size="sm"
-              className={cn(link.key === "lab" && "hidden sm:inline-flex")}
             >
               <Link
                 href={link.href}

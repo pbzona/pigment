@@ -81,7 +81,7 @@ export function ComparisonPreview({
 
   return (
     <div>
-      <div className="mb-2 flex items-center justify-between text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+      <div className="mb-2 flex items-center justify-between text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
         <span>Pixel</span>
         <span className="flex items-center gap-1">
           <button
