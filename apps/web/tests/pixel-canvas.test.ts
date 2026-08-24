@@ -1,10 +1,31 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  fitGuideRegion,
   fittedCanvasZoom,
   increaseCanvasZoom,
   shouldRefitCanvas,
 } from "@/components/studio/pixel-canvas";
+
+describe("guideline grid", () => {
+  it("fits square cells inside a landscape image", () => {
+    expect(fitGuideRegion(800, 600, 4, 4)).toEqual({
+      x: 0.125,
+      y: 0,
+      width: 0.75,
+      height: 1,
+    });
+  });
+
+  it("fits rectangular grids using one cell size", () => {
+    expect(fitGuideRegion(800, 600, 4, 3)).toEqual({
+      x: 0,
+      y: 0,
+      width: 1,
+      height: 1,
+    });
+  });
+});
 
 describe("canvas zoom", () => {
   it("snaps to an integer before reaching grid-visible zoom levels", () => {
@@ -45,7 +66,17 @@ describe("canvas zoom", () => {
   });
 
   it("does not refit when zoom only changes the scrollable canvas content", () => {
-    expect(shouldRefitCanvas({ width: 832, height: 948 }, { width: 832, height: 948 })).toBe(false);
-    expect(shouldRefitCanvas({ width: 832, height: 948 }, { width: 640, height: 948 })).toBe(true);
+    expect(
+      shouldRefitCanvas(
+        { width: 832, height: 948 },
+        { width: 832, height: 948 },
+      ),
+    ).toBe(false);
+    expect(
+      shouldRefitCanvas(
+        { width: 832, height: 948 },
+        { width: 640, height: 948 },
+      ),
+    ).toBe(true);
   });
 });

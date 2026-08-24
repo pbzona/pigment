@@ -1,7 +1,16 @@
 "use client";
 
 import { useEffect, useEffectEvent, useRef, useState } from "react";
-import { Columns2, Crop, Grid2X2, Grid3X3, Maximize2, Minus, Plus, X } from "lucide-react";
+import {
+  Columns2,
+  Crop,
+  Grid2X2,
+  Grid3X3,
+  Maximize2,
+  Minus,
+  Plus,
+  X,
+} from "lucide-react";
 
 import { Button } from "@pigment/ui/button";
 import { Input } from "@pigment/ui/input";
@@ -98,7 +107,10 @@ export const fittedCanvasZoom = (
 ) => {
   const availableWidth = Math.max(1, viewportWidth - CANVAS_INLINE_SPACE);
   const availableHeight = Math.max(1, viewportHeight - CANVAS_BLOCK_SPACE);
-  const availableZoom = Math.min(availableWidth / width, availableHeight / height);
+  const availableZoom = Math.min(
+    availableWidth / width,
+    availableHeight / height,
+  );
   const fittedZoom =
     availableZoom >= 1
       ? Math.floor(availableZoom)
@@ -107,6 +119,62 @@ export const fittedCanvasZoom = (
 };
 
 type Cell = Readonly<{ x: number; y: number }>;
+
+type GuideRegion = Readonly<{
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}>;
+type GuideResizeHandle = "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w";
+type GuideGesture = Readonly<{
+  kind: "move" | "resize";
+  pointerId: number;
+  startX: number;
+  startY: number;
+  region: GuideRegion;
+  handle?: GuideResizeHandle;
+  boundsWidth: number;
+  boundsHeight: number;
+}>;
+
+const MIN_GUIDE_CELL_PX = 4;
+
+export const fitGuideRegion = (
+  imageWidth: number,
+  imageHeight: number,
+  columns: number,
+  rows: number,
+): GuideRegion => {
+  const cellSize = Math.min(imageWidth / columns, imageHeight / rows);
+  const regionWidth = cellSize * columns;
+  const regionHeight = cellSize * rows;
+  return {
+    x: (imageWidth - regionWidth) / (2 * imageWidth),
+    y: (imageHeight - regionHeight) / (2 * imageHeight),
+    width: regionWidth / imageWidth,
+    height: regionHeight / imageHeight,
+  };
+};
+
+const clampGuideRegion = (region: GuideRegion): GuideRegion => ({
+  ...region,
+  x: Math.max(0, Math.min(1 - region.width, region.x)),
+  y: Math.max(0, Math.min(1 - region.height, region.y)),
+});
+
+const GUIDE_HANDLE_CLASSES: Record<GuideResizeHandle, string> = {
+  nw: "-left-2 -top-2 cursor-nwse-resize",
+  n: "left-1/2 -top-2 -translate-x-1/2 cursor-ns-resize",
+  ne: "-right-2 -top-2 cursor-nesw-resize",
+  e: "-right-2 top-1/2 -translate-y-1/2 cursor-ew-resize",
+  se: "-bottom-2 -right-2 cursor-nwse-resize",
+  s: "-bottom-2 left-1/2 -translate-x-1/2 cursor-ns-resize",
+  sw: "-bottom-2 -left-2 cursor-nesw-resize",
+  w: "-left-2 top-1/2 -translate-y-1/2 cursor-ew-resize",
+};
+
+const GUIDE_HANDLES = Object.keys(GUIDE_HANDLE_CLASSES) as GuideResizeHandle[];
 
 type PaintGesture = {
   kind: "paint";
@@ -156,7 +224,7 @@ const ignoresPanShortcut = (target: EventTarget | null) =>
   target instanceof HTMLElement &&
   Boolean(
     target.closest(
-        "input, textarea, select, button, a[href], [role=option], [role=menuitem], [role=dialog], [contenteditable=true]",
+      "input, textarea, select, button, a[href], [role=option], [role=menuitem], [role=dialog], [contenteditable=true]",
     ),
   );
 
@@ -201,6 +269,7 @@ export function PixelCanvas({
   const viewportRef = useRef<HTMLDivElement>(null);
   const gestureRef = useRef<CanvasGesture | null>(null);
   const panGestureRef = useRef<PanGesture | null>(null);
+  const guideGestureRef = useRef<GuideGesture | null>(null);
   const spaceHeldRef = useRef(false);
   const zoomRef = useRef(12);
   const [zoom, setZoom] = useState(12);
@@ -209,8 +278,35 @@ export function PixelCanvas({
   const [panning, setPanning] = useState(false);
   const [keyboardCell, setKeyboardCell] = useState({ x: 0, y: 0 });
   const [keyboardActive, setKeyboardActive] = useState(false);
-  const [selectionPreview, setSelectionPreview] = useState<SelectionMask | null>(null);
-  const lightCheckerboard = shouldUseLightCheckerboard(palette, visibleColorIds);
+  const [selectionPreview, setSelectionPreview] =
+    useState<SelectionMask | null>(null);
+  const guideRegionKey = `${width}:${height}:${guideColumns}:${guideRows}`;
+  const [guideRegionState, setGuideRegionState] = useState(() => ({
+    key: guideRegionKey,
+    region: fitGuideRegion(width, height, guideColumns, guideRows),
+  }));
+  const guideRegion =
+    guideRegionState.key === guideRegionKey
+      ? guideRegionState.region
+      : fitGuideRegion(width, height, guideColumns, guideRows);
+  const setGuideRegion = (
+    next: GuideRegion | ((current: GuideRegion) => GuideRegion),
+  ) => {
+    setGuideRegionState((current) => {
+      const currentRegion =
+        current.key === guideRegionKey
+          ? current.region
+          : fitGuideRegion(width, height, guideColumns, guideRows);
+      return {
+        key: guideRegionKey,
+        region: typeof next === "function" ? next(currentRegion) : next,
+      };
+    });
+  };
+  const lightCheckerboard = shouldUseLightCheckerboard(
+    palette,
+    visibleColorIds,
+  );
 
   useEffect(() => {
     zoomRef.current = zoom;
@@ -219,9 +315,18 @@ export function PixelCanvas({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const rendered = colorIds && partition !== "square"
-      ? rasterizePartitionColors(colorIds, width, height, partition, partitionScale, 1, 4)
-      : { width, height, colorIds };
+    const rendered =
+      colorIds && partition !== "square"
+        ? rasterizePartitionColors(
+            colorIds,
+            width,
+            height,
+            partition,
+            partitionScale,
+            1,
+            4,
+          )
+        : { width, height, colorIds };
     canvas.width = rendered.width;
     canvas.height = rendered.height;
     const context = canvas.getContext("2d");
@@ -229,11 +334,23 @@ export function PixelCanvas({
     context.clearRect(0, 0, rendered.width, rendered.height);
     if (!rendered.colorIds) return;
     context.putImageData(
-      new ImageData(colorIdsToRgba(rendered.colorIds, palette, visibleColorIds), rendered.width, rendered.height),
+      new ImageData(
+        colorIdsToRgba(rendered.colorIds, palette, visibleColorIds),
+        rendered.width,
+        rendered.height,
+      ),
       0,
       0,
     );
-  }, [colorIds, height, palette, partition, partitionScale, visibleColorIds, width]);
+  }, [
+    colorIds,
+    height,
+    palette,
+    partition,
+    partitionScale,
+    visibleColorIds,
+    width,
+  ]);
 
   useEffect(() => {
     const canvas = selectionCanvasRef.current;
@@ -294,7 +411,12 @@ export function PixelCanvas({
   const applyFittedZoom = () => {
     const viewport = viewportRef.current;
     if (!viewport) return;
-    const nextZoom = fittedCanvasZoom(viewport.clientWidth, viewport.clientHeight, width, height);
+    const nextZoom = fittedCanvasZoom(
+      viewport.clientWidth,
+      viewport.clientHeight,
+      width,
+      height,
+    );
     zoomRef.current = nextZoom;
     setZoom(nextZoom);
   };
@@ -313,6 +435,124 @@ export function PixelCanvas({
     return () => window.cancelAnimationFrame(frame);
   }, [width, height]);
 
+  const beginGuideGesture = (
+    event: React.PointerEvent<HTMLElement>,
+    kind: GuideGesture["kind"],
+    handle?: GuideResizeHandle,
+  ) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const bounds =
+      event.currentTarget.parentElement?.parentElement?.getBoundingClientRect();
+    if (!bounds) return;
+    guideGestureRef.current = {
+      kind,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      region: guideRegion,
+      handle,
+      boundsWidth: bounds.width,
+      boundsHeight: bounds.height,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const updateGuideGesture = (event: React.PointerEvent<HTMLElement>) => {
+    const gesture = guideGestureRef.current;
+    if (!gesture || gesture.pointerId !== event.pointerId) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const dx = (event.clientX - gesture.startX) / gesture.boundsWidth;
+    const dy = (event.clientY - gesture.startY) / gesture.boundsHeight;
+    if (gesture.kind === "move") {
+      setGuideRegion(
+        clampGuideRegion({
+          ...gesture.region,
+          x: gesture.region.x + dx,
+          y: gesture.region.y + dy,
+        }),
+      );
+      return;
+    }
+
+    const handle = gesture.handle;
+    if (!handle) return;
+    const horizontalDirection = handle.includes("w") ? -1 : 1;
+    const verticalDirection = handle.includes("n") ? -1 : 1;
+    const horizontalCell =
+      ((gesture.region.width + dx * horizontalDirection) *
+        gesture.boundsWidth) /
+      guideColumns;
+    const verticalCell =
+      ((gesture.region.height + dy * verticalDirection) *
+        gesture.boundsHeight) /
+      guideRows;
+    const isHorizontalSide = handle === "e" || handle === "w";
+    const isVerticalSide = handle === "n" || handle === "s";
+    let cellSize = isHorizontalSide
+      ? horizontalCell
+      : isVerticalSide
+        ? verticalCell
+        : Math.min(horizontalCell, verticalCell);
+
+    const anchorX = handle.includes("w")
+      ? (gesture.region.x + gesture.region.width) * gesture.boundsWidth
+      : handle.includes("e")
+        ? gesture.region.x * gesture.boundsWidth
+        : (gesture.region.x + gesture.region.width / 2) * gesture.boundsWidth;
+    const anchorY = handle.includes("n")
+      ? (gesture.region.y + gesture.region.height) * gesture.boundsHeight
+      : handle.includes("s")
+        ? gesture.region.y * gesture.boundsHeight
+        : (gesture.region.y + gesture.region.height / 2) * gesture.boundsHeight;
+    const maxWidth = handle.includes("w")
+      ? anchorX
+      : handle.includes("e")
+        ? gesture.boundsWidth - anchorX
+        : 2 * Math.min(anchorX, gesture.boundsWidth - anchorX);
+    const maxHeight = handle.includes("n")
+      ? anchorY
+      : handle.includes("s")
+        ? gesture.boundsHeight - anchorY
+        : 2 * Math.min(anchorY, gesture.boundsHeight - anchorY);
+    const maxCellSize = Math.min(
+      maxWidth / guideColumns,
+      maxHeight / guideRows,
+    );
+    cellSize = Math.max(
+      Math.min(MIN_GUIDE_CELL_PX, maxCellSize),
+      Math.min(cellSize, maxCellSize),
+    );
+
+    const nextWidth = (cellSize * guideColumns) / gesture.boundsWidth;
+    const nextHeight = (cellSize * guideRows) / gesture.boundsHeight;
+    const nextX = handle.includes("w")
+      ? anchorX / gesture.boundsWidth - nextWidth
+      : handle.includes("e")
+        ? anchorX / gesture.boundsWidth
+        : anchorX / gesture.boundsWidth - nextWidth / 2;
+    const nextY = handle.includes("n")
+      ? anchorY / gesture.boundsHeight - nextHeight
+      : handle.includes("s")
+        ? anchorY / gesture.boundsHeight
+        : anchorY / gesture.boundsHeight - nextHeight / 2;
+    setGuideRegion(
+      clampGuideRegion({
+        x: nextX,
+        y: nextY,
+        width: nextWidth,
+        height: nextHeight,
+      }),
+    );
+  };
+
+  const finishGuideGesture = (event: React.PointerEvent<HTMLElement>) => {
+    if (guideGestureRef.current?.pointerId !== event.pointerId) return;
+    event.stopPropagation();
+    guideGestureRef.current = null;
+  };
+
   const cellFromPointer = (
     event: React.PointerEvent<HTMLDivElement>,
     gridWidth = width,
@@ -324,11 +564,17 @@ export function PixelCanvas({
     return {
       x: Math.min(
         gridWidth - 1,
-        Math.max(0, Math.floor((localX / event.currentTarget.clientWidth) * gridWidth)),
+        Math.max(
+          0,
+          Math.floor((localX / event.currentTarget.clientWidth) * gridWidth),
+        ),
       ),
       y: Math.min(
         gridHeight - 1,
-        Math.max(0, Math.floor((localY / event.currentTarget.clientHeight) * gridHeight)),
+        Math.max(
+          0,
+          Math.floor((localY / event.currentTarget.clientHeight) * gridHeight),
+        ),
       ),
     };
   };
@@ -349,9 +595,14 @@ export function PixelCanvas({
     onPaint([...indices], gesture.tool === "restore");
   };
 
-  const baseSelectionMask = (gridWidth: number, gridHeight: number): SelectionMask => {
+  const baseSelectionMask = (
+    gridWidth: number,
+    gridHeight: number,
+  ): SelectionMask => {
     const size = gridWidth * gridHeight;
-    return selectionMask?.length === size ? selectionMask.slice() : new Uint8Array(size);
+    return selectionMask?.length === size
+      ? selectionMask.slice()
+      : new Uint8Array(size);
   };
 
   const combineModeFromModifiers = (
@@ -373,7 +624,13 @@ export function PixelCanvas({
     gridHeight: number,
   ) => {
     for (const cell of lineCells(from.x, from.y, to.x, to.y)) {
-      for (const index of brushIndices(cell.x, cell.y, size, gridWidth, gridHeight)) {
+      for (const index of brushIndices(
+        cell.x,
+        cell.y,
+        size,
+        gridWidth,
+        gridHeight,
+      )) {
         mask[index] = 1;
       }
     }
@@ -447,7 +704,8 @@ export function PixelCanvas({
   const beginPan = (event: React.PointerEvent<HTMLDivElement>) => {
     const startsWithSpace = event.button === 0 && spaceHeldRef.current;
     const startsWithRightButton = event.button === 2;
-    if ((!startsWithSpace && !startsWithRightButton) || panGestureRef.current) return;
+    if ((!startsWithSpace && !startsWithRightButton) || panGestureRef.current)
+      return;
 
     event.preventDefault();
     event.stopPropagation();
@@ -467,8 +725,10 @@ export function PixelCanvas({
     if (!gesture || gesture.pointerId !== event.pointerId) return;
     event.preventDefault();
     event.stopPropagation();
-    event.currentTarget.scrollLeft = gesture.scrollLeft - (event.clientX - gesture.startX);
-    event.currentTarget.scrollTop = gesture.scrollTop - (event.clientY - gesture.startY);
+    event.currentTarget.scrollLeft =
+      gesture.scrollLeft - (event.clientX - gesture.startX);
+    event.currentTarget.scrollTop =
+      gesture.scrollTop - (event.clientY - gesture.startY);
   };
 
   const finishPan = (pointerId: number) => {
@@ -492,7 +752,14 @@ export function PixelCanvas({
         incomingMask = rectangleSelectionMask(x, y, x, y, width, height);
       } else {
         incomingMask = new Uint8Array(width * height);
-        addBrushSegment(incomingMask, { x, y }, { x, y }, selectionBrushSize, width, height);
+        addBrushSegment(
+          incomingMask,
+          { x, y },
+          { x, y },
+          selectionBrushSize,
+          width,
+          height,
+        );
       }
       const combineMode = combineModeFromModifiers(
         shiftKey,
@@ -500,7 +767,11 @@ export function PixelCanvas({
         selectionCombineMode,
       );
       onSelectionChange(
-        combineSelectionMasks(baseSelectionMask(width, height), incomingMask, combineMode),
+        combineSelectionMasks(
+          baseSelectionMask(width, height),
+          incomingMask,
+          combineMode,
+        ),
       );
       return;
     }
@@ -512,7 +783,8 @@ export function PixelCanvas({
     }
     onBeginStroke(tool === "fill");
     if (tool === "fill") onFill(index);
-    else onPaint(brushIndices(x, y, brushSize, width, height), tool === "restore");
+    else
+      onPaint(brushIndices(x, y, brushSize, width, height), tool === "restore");
     onEndStroke();
   };
 
@@ -582,19 +854,44 @@ export function PixelCanvas({
     const baseMask = baseSelectionMask(width, height);
     if (selectionTool === "contiguous") {
       if (!colorIds) return;
-      const incomingMask = contiguousSelectionMask(index, colorIds, width, height);
-      onSelectionChange(combineSelectionMasks(baseMask, incomingMask, combineMode));
+      const incomingMask = contiguousSelectionMask(
+        index,
+        colorIds,
+        width,
+        height,
+      );
+      onSelectionChange(
+        combineSelectionMasks(baseMask, incomingMask, combineMode),
+      );
       return;
     }
 
     let incomingMask: SelectionMask;
     if (selectionTool === "rectangle") {
-      incomingMask = rectangleSelectionMask(cell.x, cell.y, cell.x, cell.y, width, height);
+      incomingMask = rectangleSelectionMask(
+        cell.x,
+        cell.y,
+        cell.x,
+        cell.y,
+        width,
+        height,
+      );
     } else {
       incomingMask = new Uint8Array(width * height);
-      addBrushSegment(incomingMask, cell, cell, selectionBrushSize, width, height);
+      addBrushSegment(
+        incomingMask,
+        cell,
+        cell,
+        selectionBrushSize,
+        width,
+        height,
+      );
     }
-    const previewMask = combineSelectionMasks(baseMask, incomingMask, combineMode);
+    const previewMask = combineSelectionMasks(
+      baseMask,
+      incomingMask,
+      combineMode,
+    );
     const gesture: SelectionGesture = {
       kind: "selection",
       pointerId: event.pointerId,
@@ -628,18 +925,24 @@ export function PixelCanvas({
       const visibleTop = viewportBounds.top + 56;
       let leftDelta = 0;
       let topDelta = 0;
-      if (left < viewportBounds.left + 16) leftDelta = left - viewportBounds.left - 16;
-      else if (right > viewportBounds.right - 16) leftDelta = right - viewportBounds.right + 16;
+      if (left < viewportBounds.left + 16)
+        leftDelta = left - viewportBounds.left - 16;
+      else if (right > viewportBounds.right - 16)
+        leftDelta = right - viewportBounds.right + 16;
       if (top < visibleTop + 16) topDelta = top - visibleTop - 16;
       else if (bottom > viewportBounds.bottom - 16) {
         topDelta = bottom - viewportBounds.bottom + 16;
       }
-      if (leftDelta || topDelta) viewport.scrollBy({ left: leftDelta, top: topDelta });
+      if (leftDelta || topDelta)
+        viewport.scrollBy({ left: leftDelta, top: topDelta });
     });
   };
 
   return (
-    <section ref={containerRef} className="relative min-h-0 min-w-0 flex-1 overflow-hidden bg-[#0e0f11]">
+    <section
+      ref={containerRef}
+      className="relative min-h-0 min-w-0 flex-1 overflow-hidden bg-[#0e0f11]"
+    >
       <div className="absolute top-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 border-2 border-border bg-card p-1 shadow-[4px_4px_0_var(--shadow)]">
         <Tooltip>
           <TooltipTrigger asChild>
@@ -662,7 +965,9 @@ export function PixelCanvas({
           </TooltipTrigger>
           <TooltipContent>Zoom out</TooltipContent>
         </Tooltip>
-        <span className="w-11 text-center font-mono text-[11px] tabular-nums">{Number(zoom.toFixed(2))}×</span>
+        <span className="w-11 text-center font-mono text-[11px] tabular-nums">
+          {Number(zoom.toFixed(2))}×
+        </span>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -684,7 +989,11 @@ export function PixelCanvas({
         <span className="mx-1 h-4 w-px bg-border" />
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon-sm" className="size-11 sm:size-8">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="size-11 sm:size-8"
+            >
               <Columns2 />
               <span className="sr-only">Compare source and pixel output</span>
             </Button>
@@ -708,7 +1017,12 @@ export function PixelCanvas({
         </Popover>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon-sm" className="size-11 sm:size-8" onClick={fitCanvas}>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="size-11 sm:size-8"
+              onClick={fitCanvas}
+            >
               <Maximize2 />
               <span className="sr-only">Fit canvas</span>
             </Button>
@@ -725,20 +1039,28 @@ export function PixelCanvas({
               aria-pressed={crop !== null}
               onClick={() =>
                 onCropChange(
-                  crop ? null : { left: 0, top: 0, right: width, bottom: height },
+                  crop
+                    ? null
+                    : { left: 0, top: 0, right: width, bottom: height },
                 )
               }
             >
               <Crop />
-              <span className="sr-only">{crop ? "Cancel crop" : "Crop source image"}</span>
+              <span className="sr-only">
+                {crop ? "Cancel crop" : "Crop source image"}
+              </span>
             </Button>
           </TooltipTrigger>
-          <TooltipContent>{crop ? "Cancel crop" : "Crop source image"}</TooltipContent>
+          <TooltipContent>
+            {crop ? "Cancel crop" : "Crop source image"}
+          </TooltipContent>
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant={showGrid && partition === "square" ? "secondary" : "ghost"}
+              variant={
+                showGrid && partition === "square" ? "secondary" : "ghost"
+              }
               size="icon-sm"
               className="size-11 sm:size-8"
               disabled={partition !== "square"}
@@ -766,15 +1088,25 @@ export function PixelCanvas({
             <div className="flex items-center justify-between gap-4">
               <div>
                 <Label htmlFor="canvas-guides">Guidelines</Label>
-                <p className="mt-1 text-[11px] text-muted-foreground">Editor only—not included in export.</p>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Square transfer grid · editor only.
+                </p>
               </div>
-              <Switch id="canvas-guides" checked={showGuides} onCheckedChange={onShowGuidesChange} />
+              <Switch
+                id="canvas-guides"
+                checked={showGuides}
+                onCheckedChange={onShowGuidesChange}
+              />
             </div>
             <div className="mt-4 grid grid-cols-2 gap-2">
               {[3, 4].map((size) => (
                 <Button
                   key={size}
-                  variant={guideColumns === size && guideRows === size ? "secondary" : "outline"}
+                  variant={
+                    guideColumns === size && guideRows === size
+                      ? "secondary"
+                      : "outline"
+                  }
                   size="sm"
                   onClick={() => {
                     onGuideColumnsChange(size);
@@ -788,28 +1120,52 @@ export function PixelCanvas({
             </div>
             <div className="mt-4 grid grid-cols-2 gap-3">
               <label>
-                <span className="mb-1.5 block text-[11px] text-muted-foreground">Columns</span>
+                <span className="mb-1.5 block text-[11px] text-muted-foreground">
+                  Columns
+                </span>
                 <Input
                   type="number"
                   min={2}
                   max={32}
                   value={guideColumns}
                   className="font-mono tabular-nums"
-                  onChange={(event) => onGuideColumnsChange(Number(event.target.value))}
+                  onChange={(event) =>
+                    onGuideColumnsChange(Number(event.target.value))
+                  }
                 />
               </label>
               <label>
-                <span className="mb-1.5 block text-[11px] text-muted-foreground">Rows</span>
+                <span className="mb-1.5 block text-[11px] text-muted-foreground">
+                  Rows
+                </span>
                 <Input
                   type="number"
                   min={2}
                   max={32}
                   value={guideRows}
                   className="font-mono tabular-nums"
-                  onChange={(event) => onGuideRowsChange(Number(event.target.value))}
+                  onChange={(event) =>
+                    onGuideRowsChange(Number(event.target.value))
+                  }
                 />
               </label>
             </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mt-3 w-full"
+              onClick={() => {
+                setGuideRegion(
+                  fitGuideRegion(width, height, guideColumns, guideRows),
+                );
+                onShowGuidesChange(true);
+              }}
+            >
+              Fit grid to image
+            </Button>
+            <p className="mt-3 text-[11px] leading-4 text-muted-foreground">
+              Drag inside the grid to move it. Drag an edge or corner to resize.
+            </p>
           </PopoverContent>
         </Popover>
       </div>
@@ -910,8 +1266,14 @@ export function PixelCanvas({
               if (movement) {
                 event.preventDefault();
                 const next = {
-                  x: Math.min(width - 1, Math.max(0, keyboardCell.x + movement[0])),
-                  y: Math.min(height - 1, Math.max(0, keyboardCell.y + movement[1])),
+                  x: Math.min(
+                    width - 1,
+                    Math.max(0, keyboardCell.x + movement[0]),
+                  ),
+                  y: Math.min(
+                    height - 1,
+                    Math.max(0, keyboardCell.y + movement[1]),
+                  ),
                 };
                 setKeyboardCell(next);
                 revealKeyboardCell(next);
@@ -953,7 +1315,10 @@ export function PixelCanvas({
             {partition === "square" && showGrid && zoom >= 8 ? (
               <span
                 className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,.14)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,.14)_1px,transparent_1px)]"
-                style={{ backgroundPosition: "-0.5px 0, 0 -0.5px", backgroundSize: `${zoom}px ${zoom}px` }}
+                style={{
+                  backgroundPosition: "-0.5px 0, 0 -0.5px",
+                  backgroundSize: `${zoom}px ${zoom}px`,
+                }}
                 aria-hidden="true"
               />
             ) : null}
@@ -970,24 +1335,141 @@ export function PixelCanvas({
               />
             ) : null}
             {showGuides ? (
-              <span className="pointer-events-none absolute inset-0" aria-hidden="true">
-                {getGuidePositions(guideColumns).map((position) => (
-                  <span
-                    key={`column-${position}`}
-                    className="absolute inset-y-0 w-px -translate-x-1/2 bg-[#ff7657]/90 shadow-[1px_0_0_rgba(0,0,0,.65)]"
-                    style={{ left: `${position}%` }}
-                  />
-                ))}
-                {getGuidePositions(guideRows).map((position) => (
-                  <span
-                    key={`row-${position}`}
-                    className="absolute inset-x-0 h-px -translate-y-1/2 bg-[#ff7657]/90 shadow-[0_1px_0_rgba(0,0,0,.65)]"
-                    style={{ top: `${position}%` }}
-                  />
-                ))}
-              </span>
+              <div
+                className="absolute inset-0 z-10 touch-none"
+                aria-label={`${guideColumns} by ${guideRows} movable square guideline grid`}
+              >
+                <span
+                  className="pointer-events-none absolute inset-x-0 top-0 bg-black/35"
+                  style={{ height: `${guideRegion.y * 100}%` }}
+                />
+                <span
+                  className="pointer-events-none absolute inset-x-0 bottom-0 bg-black/35"
+                  style={{
+                    height: `${(1 - guideRegion.y - guideRegion.height) * 100}%`,
+                  }}
+                />
+                <span
+                  className="pointer-events-none absolute left-0 bg-black/35"
+                  style={{
+                    top: `${guideRegion.y * 100}%`,
+                    width: `${guideRegion.x * 100}%`,
+                    height: `${guideRegion.height * 100}%`,
+                  }}
+                />
+                <span
+                  className="pointer-events-none absolute right-0 bg-black/35"
+                  style={{
+                    top: `${guideRegion.y * 100}%`,
+                    width: `${(1 - guideRegion.x - guideRegion.width) * 100}%`,
+                    height: `${guideRegion.height * 100}%`,
+                  }}
+                />
+
+                {getGuidePositions(guideColumns).map((position) => {
+                  const left =
+                    (guideRegion.x + (guideRegion.width * position) / 100) *
+                    100;
+                  return (
+                    <span
+                      key={`column-${position}`}
+                      className="pointer-events-none absolute inset-y-0 w-px -translate-x-1/2 border-l border-dashed border-[#f5f2e8]/35"
+                      style={{ left: `${left}%` }}
+                    >
+                      <span
+                        className="absolute w-px bg-[#ff7657] shadow-[1px_0_0_rgba(0,0,0,.75)]"
+                        style={{
+                          top: `${guideRegion.y * 100}%`,
+                          height: `${guideRegion.height * 100}%`,
+                        }}
+                      />
+                    </span>
+                  );
+                })}
+                {getGuidePositions(guideRows).map((position) => {
+                  const top =
+                    (guideRegion.y + (guideRegion.height * position) / 100) *
+                    100;
+                  return (
+                    <span
+                      key={`row-${position}`}
+                      className="pointer-events-none absolute inset-x-0 h-px -translate-y-1/2 border-t border-dashed border-[#f5f2e8]/35"
+                      style={{ top: `${top}%` }}
+                    >
+                      <span
+                        className="absolute h-px bg-[#ff7657] shadow-[0_1px_0_rgba(0,0,0,.75)]"
+                        style={{
+                          left: `${guideRegion.x * 100}%`,
+                          width: `${guideRegion.width * 100}%`,
+                        }}
+                      />
+                    </span>
+                  );
+                })}
+
+                <div
+                  role="group"
+                  tabIndex={0}
+                  aria-label="Guideline grid region. Use arrow keys to move it."
+                  className="absolute cursor-move border-2 border-[#ff7657] outline-none focus-visible:ring-2 focus-visible:ring-[#4d7cff] focus-visible:ring-offset-2 focus-visible:ring-offset-black/70"
+                  style={{
+                    left: `${guideRegion.x * 100}%`,
+                    top: `${guideRegion.y * 100}%`,
+                    width: `${guideRegion.width * 100}%`,
+                    height: `${guideRegion.height * 100}%`,
+                  }}
+                  onPointerDown={(event) => beginGuideGesture(event, "move")}
+                  onPointerMove={updateGuideGesture}
+                  onPointerUp={finishGuideGesture}
+                  onPointerCancel={finishGuideGesture}
+                  onLostPointerCapture={finishGuideGesture}
+                  onKeyDown={(event) => {
+                    const movement = {
+                      ArrowLeft: [-1, 0],
+                      ArrowRight: [1, 0],
+                      ArrowUp: [0, -1],
+                      ArrowDown: [0, 1],
+                    }[event.key];
+                    if (!movement) return;
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const step = event.shiftKey ? 0.05 : 0.01;
+                    setGuideRegion((current) =>
+                      clampGuideRegion({
+                        ...current,
+                        x: current.x + movement[0] * step,
+                        y: current.y + movement[1] * step,
+                      }),
+                    );
+                  }}
+                >
+                  <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-1/2 border border-black/50 bg-[#ff7657] px-1.5 py-0.5 font-mono text-[9px] font-semibold tabular-nums text-[#17100c] shadow-[2px_2px_0_rgba(0,0,0,.7)]">
+                    {guideColumns}×{guideRows}
+                  </span>
+                  {GUIDE_HANDLES.map((handle) => (
+                    <button
+                      key={handle}
+                      type="button"
+                      aria-label={`Resize guideline grid from ${handle}`}
+                      className={cn(
+                        "absolute size-4 border border-[#17100c] bg-[#f5f2e8] outline-none hover:bg-[#ff7657] focus-visible:ring-2 focus-visible:ring-[#4d7cff]",
+                        GUIDE_HANDLE_CLASSES[handle],
+                      )}
+                      onPointerDown={(event) =>
+                        beginGuideGesture(event, "resize", handle)
+                      }
+                      onPointerMove={updateGuideGesture}
+                      onPointerUp={finishGuideGesture}
+                      onPointerCancel={finishGuideGesture}
+                      onLostPointerCapture={finishGuideGesture}
+                    />
+                  ))}
+                </div>
+              </div>
             ) : null}
-            {!crop && keyboardActive && (mode === "paint" || mode === "select") ? (
+            {!crop &&
+            keyboardActive &&
+            (mode === "paint" || mode === "select") ? (
               <span
                 role="row"
                 className="pointer-events-none absolute"
@@ -1013,8 +1495,8 @@ export function PixelCanvas({
       </div>
 
       <p id="pixel-canvas-instructions" className="sr-only">
-        Use arrow keys to move between cells. Press Enter to use the active tool. Hold
-        Space and drag, or drag with the right mouse button, to pan.
+        Use arrow keys to move between cells. Press Enter to use the active
+        tool. Hold Space and drag, or drag with the right mouse button, to pan.
       </p>
 
       <div className="pointer-events-none absolute bottom-4 left-4 hidden border border-border/40 bg-card px-2.5 py-1.5 font-mono text-[11px] tracking-[0.04em] text-muted-foreground md:block">
