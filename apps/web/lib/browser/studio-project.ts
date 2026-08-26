@@ -31,6 +31,14 @@ export type StudioProject = Readonly<{
   showGuides: boolean;
   guideColumns: number;
   guideRows: number;
+  guideOpacity?: number;
+  guideSubdivisions?: number;
+  guideRegion?: Readonly<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }>;
 }>;
 
 export function sparseValues(

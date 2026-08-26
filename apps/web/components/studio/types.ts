@@ -1,9 +1,25 @@
 import type { SelectionCombineMode } from "@pigment/quantization";
 
-export type EditorMode = "convert" | "select" | "paint";
+export type EditorMode = "convert" | "select" | "paint" | "reference";
 export type EditorTool = "pencil" | "fill" | "eyedropper" | "restore";
 export type SelectionTool = "brush" | "rectangle" | "contiguous";
 export type { SelectionCombineMode };
+
+export type ReferenceGridRegion = Readonly<{
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}>;
+
+export type ReferenceGrid = Readonly<{
+  visible: boolean;
+  columns: number;
+  rows: number;
+  subdivisions: number;
+  opacity: number;
+  region: ReferenceGridRegion;
+}>;
 
 export type SourceMeta = Readonly<{
   name: string;

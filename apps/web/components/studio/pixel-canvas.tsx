@@ -4,7 +4,6 @@ import { useEffect, useEffectEvent, useRef, useState } from "react";
 import {
   Columns2,
   Crop,
-  Grid2X2,
   Grid3X3,
   Maximize2,
   Minus,
@@ -13,10 +12,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@pigment/ui/button";
-import { Input } from "@pigment/ui/input";
-import { Label } from "@pigment/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@pigment/ui/popover";
-import { Switch } from "@pigment/ui/switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pigment/ui/tooltip";
 import {
   brushIndices,
@@ -39,6 +35,7 @@ import { cn } from "@/lib/utils";
 import type {
   EditorMode,
   EditorTool,
+  ReferenceGrid,
   SelectionCombineMode,
   SelectionTool,
 } from "./types";
@@ -65,12 +62,8 @@ type PixelCanvasProps = Readonly<{
   processing: boolean;
   crop: CellCrop | null;
   cropping: boolean;
-  showGuides: boolean;
-  guideColumns: number;
-  guideRows: number;
-  onShowGuidesChange: (show: boolean) => void;
-  onGuideColumnsChange: (columns: number) => void;
-  onGuideRowsChange: (rows: number) => void;
+  referenceGrid: ReferenceGrid;
+  onReferenceGridChange: (grid: ReferenceGrid) => void;
   onBeginStroke: (bulk?: boolean) => void;
   onPaint: (indices: readonly number[], restore: boolean) => void;
   onEndStroke: () => void;
@@ -248,12 +241,8 @@ export function PixelCanvas({
   processing,
   crop,
   cropping,
-  showGuides,
-  guideColumns,
-  guideRows,
-  onShowGuidesChange,
-  onGuideColumnsChange,
-  onGuideRowsChange,
+  referenceGrid,
+  onReferenceGridChange,
   onBeginStroke,
   onPaint,
   onEndStroke,
@@ -265,6 +254,7 @@ export function PixelCanvas({
 }: PixelCanvasProps) {
   const containerRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const sourceCanvasRef = useRef<HTMLCanvasElement>(null);
   const selectionCanvasRef = useRef<HTMLCanvasElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const gestureRef = useRef<CanvasGesture | null>(null);
@@ -280,33 +270,26 @@ export function PixelCanvas({
   const [keyboardActive, setKeyboardActive] = useState(false);
   const [selectionPreview, setSelectionPreview] =
     useState<SelectionMask | null>(null);
-  const guideRegionKey = `${width}:${height}:${guideColumns}:${guideRows}`;
-  const [guideRegionState, setGuideRegionState] = useState(() => ({
-    key: guideRegionKey,
-    region: fitGuideRegion(width, height, guideColumns, guideRows),
-  }));
-  const guideRegion =
-    guideRegionState.key === guideRegionKey
-      ? guideRegionState.region
-      : fitGuideRegion(width, height, guideColumns, guideRows);
+  const guideColumns = referenceGrid.columns;
+  const guideRows = referenceGrid.rows;
+  const guideRegion = referenceGrid.region;
   const setGuideRegion = (
     next: GuideRegion | ((current: GuideRegion) => GuideRegion),
   ) => {
-    setGuideRegionState((current) => {
-      const currentRegion =
-        current.key === guideRegionKey
-          ? current.region
-          : fitGuideRegion(width, height, guideColumns, guideRows);
-      return {
-        key: guideRegionKey,
-        region: typeof next === "function" ? next(currentRegion) : next,
-      };
+    onReferenceGridChange({
+      ...referenceGrid,
+      region: typeof next === "function" ? next(guideRegion) : next,
     });
   };
   const lightCheckerboard = shouldUseLightCheckerboard(
     palette,
     visibleColorIds,
   );
+  const referencePreview = adjustedPreview ?? originalPreview;
+  const surfaceWidth =
+    mode === "reference" && referencePreview ? referencePreview.width : width;
+  const surfaceHeight =
+    mode === "reference" && referencePreview ? referencePreview.height : height;
 
   useEffect(() => {
     zoomRef.current = zoom;
@@ -351,6 +334,21 @@ export function PixelCanvas({
     visibleColorIds,
     width,
   ]);
+
+  useEffect(() => {
+    const canvas = sourceCanvasRef.current;
+    const preview = adjustedPreview ?? originalPreview;
+    if (!canvas || !preview) return;
+    canvas.width = preview.width;
+    canvas.height = preview.height;
+    const context = canvas.getContext("2d");
+    if (!context) return;
+    context.putImageData(
+      new ImageData(preview.pixels, preview.width, preview.height),
+      0,
+      0,
+    );
+  }, [adjustedPreview, originalPreview]);
 
   useEffect(() => {
     const canvas = selectionCanvasRef.current;
@@ -414,8 +412,8 @@ export function PixelCanvas({
     const nextZoom = fittedCanvasZoom(
       viewport.clientWidth,
       viewport.clientHeight,
-      width,
-      height,
+      surfaceWidth,
+      surfaceHeight,
     );
     zoomRef.current = nextZoom;
     setZoom(nextZoom);
@@ -433,7 +431,7 @@ export function PixelCanvas({
 
     const frame = window.requestAnimationFrame(fitCanvasToViewport);
     return () => window.cancelAnimationFrame(frame);
-  }, [width, height]);
+  }, [surfaceWidth, surfaceHeight]);
 
   const beginGuideGesture = (
     event: React.PointerEvent<HTMLElement>,
@@ -1029,145 +1027,53 @@ export function PixelCanvas({
           </TooltipTrigger>
           <TooltipContent>Fit canvas</TooltipContent>
         </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant={crop ? "secondary" : "ghost"}
-              size="icon-sm"
-              className="size-11 sm:size-8"
-              disabled={cropping}
-              aria-pressed={crop !== null}
-              onClick={() =>
-                onCropChange(
-                  crop
-                    ? null
-                    : { left: 0, top: 0, right: width, bottom: height },
-                )
-              }
-            >
-              <Crop />
-              <span className="sr-only">
-                {crop ? "Cancel crop" : "Crop source image"}
-              </span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            {crop ? "Cancel crop" : "Crop source image"}
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant={
-                showGrid && partition === "square" ? "secondary" : "ghost"
-              }
-              size="icon-sm"
-              className="size-11 sm:size-8"
-              disabled={partition !== "square"}
-              onClick={() => setShowGrid((value) => !value)}
-            >
-              <Grid3X3 />
-              <span className="sr-only">Toggle grid</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Toggle grid</TooltipContent>
-        </Tooltip>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant={showGuides ? "secondary" : "ghost"}
-              size="icon-sm"
-              className="size-11 sm:size-8"
-              aria-pressed={showGuides}
-            >
-              <Grid2X2 />
-              <span className="sr-only">Configure guidelines</span>
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent align="end" className="w-56 rounded-none p-4">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <Label htmlFor="canvas-guides">Guidelines</Label>
-                <p className="mt-1 text-[11px] text-muted-foreground">
-                  Square transfer grid · editor only.
-                </p>
-              </div>
-              <Switch
-                id="canvas-guides"
-                checked={showGuides}
-                onCheckedChange={onShowGuidesChange}
-              />
-            </div>
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              {[3, 4].map((size) => (
+        {mode !== "reference" ? (
+          <>
+            <Tooltip>
+              <TooltipTrigger asChild>
                 <Button
-                  key={size}
-                  variant={
-                    guideColumns === size && guideRows === size
-                      ? "secondary"
-                      : "outline"
+                  variant={crop ? "secondary" : "ghost"}
+                  size="icon-sm"
+                  className="size-11 sm:size-8"
+                  disabled={cropping}
+                  aria-pressed={crop !== null}
+                  onClick={() =>
+                    onCropChange(
+                      crop
+                        ? null
+                        : { left: 0, top: 0, right: width, bottom: height },
+                    )
                   }
-                  size="sm"
-                  onClick={() => {
-                    onGuideColumnsChange(size);
-                    onGuideRowsChange(size);
-                    onShowGuidesChange(true);
-                  }}
                 >
-                  {size}×{size}
+                  <Crop />
+                  <span className="sr-only">
+                    {crop ? "Cancel crop" : "Crop source image"}
+                  </span>
                 </Button>
-              ))}
-            </div>
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <label>
-                <span className="mb-1.5 block text-[11px] text-muted-foreground">
-                  Columns
-                </span>
-                <Input
-                  type="number"
-                  min={2}
-                  max={32}
-                  value={guideColumns}
-                  className="font-mono tabular-nums"
-                  onChange={(event) =>
-                    onGuideColumnsChange(Number(event.target.value))
+              </TooltipTrigger>
+              <TooltipContent>
+                {crop ? "Cancel crop" : "Crop source image"}
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={
+                    showGrid && partition === "square" ? "secondary" : "ghost"
                   }
-                />
-              </label>
-              <label>
-                <span className="mb-1.5 block text-[11px] text-muted-foreground">
-                  Rows
-                </span>
-                <Input
-                  type="number"
-                  min={2}
-                  max={32}
-                  value={guideRows}
-                  className="font-mono tabular-nums"
-                  onChange={(event) =>
-                    onGuideRowsChange(Number(event.target.value))
-                  }
-                />
-              </label>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="mt-3 w-full"
-              onClick={() => {
-                setGuideRegion(
-                  fitGuideRegion(width, height, guideColumns, guideRows),
-                );
-                onShowGuidesChange(true);
-              }}
-            >
-              Fit grid to image
-            </Button>
-            <p className="mt-3 text-[11px] leading-4 text-muted-foreground">
-              Drag inside the grid to move it. Drag an edge or corner to resize.
-            </p>
-          </PopoverContent>
-        </Popover>
+                  size="icon-sm"
+                  className="size-11 sm:size-8"
+                  disabled={partition !== "square"}
+                  onClick={() => setShowGrid((value) => !value)}
+                >
+                  <Grid3X3 />
+                  <span className="sr-only">Toggle grid</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Toggle grid</TooltipContent>
+            </Tooltip>
+          </>
+        ) : null}
       </div>
 
       {crop ? (
@@ -1226,7 +1132,10 @@ export function PixelCanvas({
       >
         <div
           className="flex min-h-full min-w-full items-center justify-center p-10"
-          style={{ width: width * zoom + 82, height: height * zoom + 82 }}
+          style={{
+            width: surfaceWidth * zoom + 82,
+            height: surfaceHeight * zoom + 82,
+          }}
         >
           <div
             className={cn(
@@ -1241,7 +1150,7 @@ export function PixelCanvas({
                 (crop || mode === "paint" || mode === "select") &&
                 "cursor-crosshair touch-none",
             )}
-            style={{ width: width * zoom, height: height * zoom }}
+            style={{ width: surfaceWidth * zoom, height: surfaceHeight * zoom }}
             role="grid"
             aria-label={`Editable image grid, ${width} columns by ${height} rows`}
             aria-describedby="pixel-canvas-instructions"
@@ -1295,8 +1204,17 @@ export function PixelCanvas({
           >
             <canvas
               ref={canvasRef}
-              className="block size-full"
+              className={cn("block size-full", mode === "reference" && "invisible")}
               style={{ imageRendering: "pixelated" }}
+              aria-hidden="true"
+            />
+            <canvas
+              ref={sourceCanvasRef}
+              className={cn(
+                "absolute inset-0 size-full",
+                mode === "reference" ? "block" : "hidden",
+              )}
+              style={{ imageRendering: "auto" }}
               aria-hidden="true"
             />
             <canvas
@@ -1307,7 +1225,7 @@ export function PixelCanvas({
                 "pointer-events-none absolute inset-0 block size-full",
                 mode === "select" && "opacity-[0.46]",
                 mode === "paint" && "opacity-[0.2]",
-                mode === "convert" && "opacity-0",
+                (mode === "convert" || mode === "reference") && "opacity-0",
               )}
               style={{ imageRendering: "pixelated" }}
               aria-hidden="true"
@@ -1334,10 +1252,10 @@ export function PixelCanvas({
                 aria-hidden="true"
               />
             ) : null}
-            {showGuides ? (
+            {mode === "reference" && referenceGrid.visible ? (
               <div
                 className="absolute inset-0 z-10 touch-none"
-                aria-label={`${guideColumns} by ${guideRows} movable square guideline grid`}
+                aria-label={`${guideColumns} by ${guideRows} movable square reference grid`}
               >
                 <span
                   className="pointer-events-none absolute inset-x-0 top-0 bg-black/35"
@@ -1366,6 +1284,55 @@ export function PixelCanvas({
                   }}
                 />
 
+                {Array.from(
+                  { length: guideColumns * referenceGrid.subdivisions - 1 },
+                  (_, index) => index + 1,
+                )
+                  .filter((index) => index % referenceGrid.subdivisions !== 0)
+                  .map((index) => {
+                    const left =
+                      (guideRegion.x +
+                        (guideRegion.width * index) /
+                          (guideColumns * referenceGrid.subdivisions)) *
+                      100;
+                    return (
+                      <span
+                        key={`sub-column-${index}`}
+                        className="pointer-events-none absolute w-px -translate-x-1/2 bg-[#ff7657]"
+                        style={{
+                          left: `${left}%`,
+                          top: `${guideRegion.y * 100}%`,
+                          height: `${guideRegion.height * 100}%`,
+                          opacity: (referenceGrid.opacity / 100) * 0.42,
+                        }}
+                      />
+                    );
+                  })}
+                {Array.from(
+                  { length: guideRows * referenceGrid.subdivisions - 1 },
+                  (_, index) => index + 1,
+                )
+                  .filter((index) => index % referenceGrid.subdivisions !== 0)
+                  .map((index) => {
+                    const top =
+                      (guideRegion.y +
+                        (guideRegion.height * index) /
+                          (guideRows * referenceGrid.subdivisions)) *
+                      100;
+                    return (
+                      <span
+                        key={`sub-row-${index}`}
+                        className="pointer-events-none absolute h-px -translate-y-1/2 bg-[#ff7657]"
+                        style={{
+                          top: `${top}%`,
+                          left: `${guideRegion.x * 100}%`,
+                          width: `${guideRegion.width * 100}%`,
+                          opacity: (referenceGrid.opacity / 100) * 0.42,
+                        }}
+                      />
+                    );
+                  })}
+
                 {getGuidePositions(guideColumns).map((position) => {
                   const left =
                     (guideRegion.x + (guideRegion.width * position) / 100) *
@@ -1374,7 +1341,10 @@ export function PixelCanvas({
                     <span
                       key={`column-${position}`}
                       className="pointer-events-none absolute inset-y-0 w-px -translate-x-1/2 border-l border-dashed border-[#f5f2e8]/35"
-                      style={{ left: `${left}%` }}
+                      style={{
+                        left: `${left}%`,
+                        opacity: referenceGrid.opacity / 100,
+                      }}
                     >
                       <span
                         className="absolute w-px bg-[#ff7657] shadow-[1px_0_0_rgba(0,0,0,.75)]"
@@ -1394,7 +1364,10 @@ export function PixelCanvas({
                     <span
                       key={`row-${position}`}
                       className="pointer-events-none absolute inset-x-0 h-px -translate-y-1/2 border-t border-dashed border-[#f5f2e8]/35"
-                      style={{ top: `${top}%` }}
+                      style={{
+                        top: `${top}%`,
+                        opacity: referenceGrid.opacity / 100,
+                      }}
                     >
                       <span
                         className="absolute h-px bg-[#ff7657] shadow-[0_1px_0_rgba(0,0,0,.75)]"
@@ -1410,13 +1383,14 @@ export function PixelCanvas({
                 <div
                   role="group"
                   tabIndex={0}
-                  aria-label="Guideline grid region. Use arrow keys to move it."
+                  aria-label="Reference grid region. Use arrow keys to move it."
                   className="absolute cursor-move border-2 border-[#ff7657] outline-none focus-visible:ring-2 focus-visible:ring-[#4d7cff] focus-visible:ring-offset-2 focus-visible:ring-offset-black/70"
                   style={{
                     left: `${guideRegion.x * 100}%`,
                     top: `${guideRegion.y * 100}%`,
                     width: `${guideRegion.width * 100}%`,
                     height: `${guideRegion.height * 100}%`,
+                    borderColor: `rgb(255 118 87 / ${referenceGrid.opacity / 100})`,
                   }}
                   onPointerDown={(event) => beginGuideGesture(event, "move")}
                   onPointerMove={updateGuideGesture}
@@ -1443,14 +1417,11 @@ export function PixelCanvas({
                     );
                   }}
                 >
-                  <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-1/2 border border-black/50 bg-[#ff7657] px-1.5 py-0.5 font-mono text-[9px] font-semibold tabular-nums text-[#17100c] shadow-[2px_2px_0_rgba(0,0,0,.7)]">
-                    {guideColumns}×{guideRows}
-                  </span>
                   {GUIDE_HANDLES.map((handle) => (
                     <button
                       key={handle}
                       type="button"
-                      aria-label={`Resize guideline grid from ${handle}`}
+                      aria-label={`Resize reference grid from ${handle}`}
                       className={cn(
                         "absolute size-4 border border-[#17100c] bg-[#f5f2e8] outline-none hover:bg-[#ff7657] focus-visible:ring-2 focus-visible:ring-[#4d7cff]",
                         GUIDE_HANDLE_CLASSES[handle],

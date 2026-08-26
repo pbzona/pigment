@@ -19,7 +19,10 @@ import {
 import Link from "next/link";
 import { toast } from "sonner";
 
-import { ExportDialog } from "@/components/export/export-dialog";
+import {
+  ExportDialog,
+  type ExportTarget,
+} from "@/components/export/export-dialog";
 import { PaletteDialog } from "@/components/palette/palette-dialog";
 import {
   AlertDialog,
@@ -62,6 +65,7 @@ import {
 } from "@pigment/color";
 import { exportPixelPng } from "@/lib/browser/export";
 import { decodeImageFile } from "@/lib/browser/image";
+import { exportReferencePng } from "@/lib/browser/reference-export";
 import { previewToThumbnail, takePendingPalette, writeProjectSnapshot } from "@/lib/browser/project-snapshot";
 import { readProjectSource, saveProjectSource } from "@/lib/browser/project-source";
 import {
@@ -109,11 +113,12 @@ import {
 import { ImageChooser } from "./image-chooser";
 import { Inspector } from "./inspector";
 import { OutputSidebar } from "./output-sidebar";
-import { PixelCanvas } from "./pixel-canvas";
+import { fitGuideRegion, PixelCanvas } from "./pixel-canvas";
 import type {
   EditorMode,
   EditorTool,
   HistoryPatch,
+  ReferenceGrid,
   SelectionCombineMode,
   SelectionTool,
   SourceMeta,
@@ -302,6 +307,7 @@ export function PixelStudio() {
   const [pendingGrid, setPendingGrid] = useState<{ width: number; height: number } | null>(null);
   const [cropDraft, setCropDraft] = useState<CellCrop | null>(null);
   const [pendingCrop, setPendingCrop] = useState<CellCrop | null>(null);
+  const [pendingReferenceCrop, setPendingReferenceCrop] = useState(false);
   const [cropping, setCropping] = useState(false);
   const [dimensionInputVersion, setDimensionInputVersion] = useState(0);
   const [method, setMethod] = useState<ConversionMethod>("dominant");
@@ -313,9 +319,14 @@ export function PixelStudio() {
   const [inputAdjustments, setInputAdjustments] = useState<InputAdjustments>(
     DEFAULT_INPUT_ADJUSTMENTS,
   );
-  const [showGuides, setShowGuides] = useState(false);
-  const [guideColumns, setGuideColumns] = useState(3);
-  const [guideRows, setGuideRows] = useState(3);
+  const [referenceGrid, setReferenceGrid] = useState<ReferenceGrid>({
+    visible: false,
+    columns: 3,
+    rows: 3,
+    subdivisions: 1,
+    opacity: 100,
+    region: { x: 0, y: 0, width: 1, height: 1 },
+  });
   const [activePalette, setActivePalette] = useState<Palette>(DEFAULT_PALETTE);
   const [customPalettes, setCustomPalettes] = useState<Palette[]>(loadCustomPalettes);
   const [adjustments, setAdjustments] = useState<PaletteAdjustments>(
@@ -374,6 +385,9 @@ export function PixelStudio() {
   const [desktopControls, setDesktopControls] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [exportScale, setExportScale] = useState(4);
+  const [exportTarget, setExportTarget] = useState<ExportTarget>("artwork");
+  const [showReferenceGridInExport, setShowReferenceGridInExport] =
+    useState(true);
   const [exporting, setExporting] = useState(false);
   const [pendingPaletteDelete, setPendingPaletteDelete] = useState<Palette | null>(null);
   const [firstResultGuide, setFirstResultGuide] = useState(false);
@@ -448,9 +462,12 @@ export function PixelStudio() {
         excludedColorIds: [...excludedColorIds],
         methodOverrides: sparseValues(methodOverrides, METHOD_INHERIT),
         colorOverrides: sparseValues(overrides, NO_OVERRIDE_COLOR_ID),
-        showGuides,
-        guideColumns,
-        guideRows,
+        showGuides: referenceGrid.visible,
+        guideColumns: referenceGrid.columns,
+        guideRows: referenceGrid.rows,
+        guideOpacity: referenceGrid.opacity,
+        guideSubdivisions: referenceGrid.subdivisions,
+        guideRegion: referenceGrid.region,
       });
     }, 150);
     return () => window.clearTimeout(timer);
@@ -470,9 +487,7 @@ export function PixelStudio() {
     excludedColorIds,
     methodOverrides,
     overrides,
-    showGuides,
-    guideColumns,
-    guideRows,
+    referenceGrid,
   ]);
 
   useEffect(() => {
@@ -741,9 +756,35 @@ export function PixelStudio() {
         setPreserveTransparency(savedProject.preserveTransparency);
         setAlphaThreshold(savedProject.alphaThreshold);
         setInputAdjustments(savedProject.inputAdjustments);
-        setShowGuides(savedProject.showGuides);
-        setGuideColumns(normalizeGuideDivisions(savedProject.guideColumns));
-        setGuideRows(normalizeGuideDivisions(savedProject.guideRows));
+        setReferenceGrid({
+          visible: savedProject.showGuides,
+          columns: normalizeGuideDivisions(savedProject.guideColumns),
+          rows: normalizeGuideDivisions(savedProject.guideRows),
+          subdivisions:
+            typeof savedProject.guideSubdivisions === "number"
+              ? Math.min(10, Math.max(1, Math.round(savedProject.guideSubdivisions)))
+              : 1,
+          opacity:
+            typeof savedProject.guideOpacity === "number" &&
+            Number.isFinite(savedProject.guideOpacity)
+              ? Math.min(100, Math.max(10, savedProject.guideOpacity))
+              : 100,
+          region:
+            savedProject.guideRegion &&
+            savedProject.guideRegion.x >= 0 &&
+            savedProject.guideRegion.y >= 0 &&
+            savedProject.guideRegion.width > 0 &&
+            savedProject.guideRegion.height > 0 &&
+            savedProject.guideRegion.x + savedProject.guideRegion.width <= 1 &&
+            savedProject.guideRegion.y + savedProject.guideRegion.height <= 1
+              ? savedProject.guideRegion
+              : fitGuideRegion(
+                  sourceWidth,
+                  sourceHeight,
+                  normalizeGuideDivisions(savedProject.guideColumns),
+                  normalizeGuideDivisions(savedProject.guideRows),
+                ),
+        });
         activePaletteRef.current = restoredPalette;
         setActivePalette(restoredPalette);
         adjustmentsRef.current = restoredPaletteAdjustments;
@@ -881,6 +922,15 @@ export function PixelStudio() {
       applyGrid(nextGrid);
       setOriginalPreview(croppedPreview);
       setAdjustedPreview(croppedPreview);
+      setReferenceGrid((current) => ({
+        ...current,
+        region: fitGuideRegion(
+          localCrop.width,
+          localCrop.height,
+          current.columns,
+          current.rows,
+        ),
+      }));
       setSourceVersion((value) => value + 1);
     } catch (error) {
       setProcessing(false);
@@ -894,6 +944,89 @@ export function PixelStudio() {
     if (!cropDraft) return;
     if (hasEditorChanges()) setPendingCrop(cropDraft);
     else void applyCrop(cropDraft);
+  };
+
+  const applyReferenceCrop = async () => {
+    if (!source) return;
+    const region = referenceGrid.region;
+    const x = Math.max(0, Math.min(source.width - 1, Math.round(region.x * source.width)));
+    const y = Math.max(0, Math.min(source.height - 1, Math.round(region.y * source.height)));
+    const right = Math.max(
+      x + 1,
+      Math.min(source.width, Math.round((region.x + region.width) * source.width)),
+    );
+    const bottom = Math.max(
+      y + 1,
+      Math.min(source.height, Math.round((region.y + region.height) * source.height)),
+    );
+    const localCrop: SourceCrop = {
+      x,
+      y,
+      width: right - x,
+      height: bottom - y,
+    };
+    if (
+      localCrop.x === 0 &&
+      localCrop.y === 0 &&
+      localCrop.width === source.width &&
+      localCrop.height === source.height
+    ) {
+      toast.info("The reference grid already covers the full image.");
+      return;
+    }
+
+    const nextGrid = {
+      width: clampGrid(gridWidth * (localCrop.width / source.width)),
+      height: clampGrid(gridHeight * (localCrop.height / source.height)),
+    };
+    latestConversionRef.current += 1;
+    latestPreviewRef.current += 1;
+    setCropping(true);
+    setProcessing(true);
+    try {
+      const croppedPreview = await cropWorkerSource(localCrop);
+      const currentCrop = sourceCropRef.current ?? {
+        x: 0,
+        y: 0,
+        width: source.width,
+        height: source.height,
+      };
+      sourceCropRef.current = {
+        x: currentCrop.x + localCrop.x,
+        y: currentCrop.y + localCrop.y,
+        width: localCrop.width,
+        height: localCrop.height,
+      };
+      setSource((current) =>
+        current
+          ? { ...current, width: localCrop.width, height: localCrop.height }
+          : current,
+      );
+      applyGrid(nextGrid);
+      setOriginalPreview(croppedPreview);
+      setAdjustedPreview(croppedPreview);
+      setReferenceGrid((current) => ({
+        ...current,
+        region: fitGuideRegion(
+          localCrop.width,
+          localCrop.height,
+          current.columns,
+          current.rows,
+        ),
+      }));
+      setSourceVersion((value) => value + 1);
+      toast.success(`Cropped to ${nextGrid.width}×${nextGrid.height} cells`);
+    } catch (error) {
+      setProcessing(false);
+      toast.error(error instanceof Error ? error.message : "Source crop failed.");
+    } finally {
+      setCropping(false);
+    }
+  };
+
+  const requestReferenceCrop = () => {
+    if (hasEditorChanges()) setPendingReferenceCrop(true);
+    else void applyReferenceCrop();
   };
 
   const handleGridChange = (axis: "width" | "height", rawValue: number) => {
@@ -1346,21 +1479,44 @@ export function PixelStudio() {
   }, []);
 
   const handleExport = async () => {
-    if (!finalColorIds || !source) return;
+    if (!source) return;
     setExporting(true);
     try {
       const baseName = source.name.replace(/\.[^.]+$/u, "") || "pigment-image";
-      await exportPixelPng(
-        finalColorIds,
-        gridWidth,
-        gridHeight,
-        adjustedPalette,
-        exportScale,
-        `${baseName}-${partition}-${gridWidth}x${gridHeight}@${exportScale}x.png`,
-        partition,
-        partitionScale,
-      );
-      toast.success("PNG exported");
+      if (exportTarget === "reference") {
+        const file = sourceFileRef.current;
+        const sourceCrop = sourceCropRef.current;
+        if (!file || !sourceCrop) throw new Error("The source image is unavailable.");
+        await exportReferencePng({
+          file,
+          crop: sourceCrop,
+          adjustments: inputAdjustments,
+          preserveTransparency,
+          alphaThreshold,
+          showGrid: showReferenceGridInExport,
+          grid: {
+            columns: referenceGrid.columns,
+            rows: referenceGrid.rows,
+            subdivisions: referenceGrid.subdivisions,
+            opacity: referenceGrid.opacity,
+            region: referenceGrid.region,
+          },
+          fileName: `${baseName}-reference${showReferenceGridInExport ? "-grid" : ""}.png`,
+        });
+      } else {
+        if (!finalColorIds) throw new Error("The artwork is still processing.");
+        await exportPixelPng(
+          finalColorIds,
+          gridWidth,
+          gridHeight,
+          adjustedPalette,
+          exportScale,
+          `${baseName}-${partition}-${gridWidth}x${gridHeight}@${exportScale}x.png`,
+          partition,
+          partitionScale,
+        );
+      }
+      toast.success(exportTarget === "reference" ? "Reference exported" : "PNG exported");
       setExportOpen(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "PNG export failed.");
@@ -1522,6 +1678,74 @@ export function PixelStudio() {
     },
   };
 
+  const paintProps = {
+    palette: activePalette,
+    adjustments,
+    selectedColorId,
+    tool,
+    brushSize,
+    selectionCount: selectionMask ? selectedCount : null,
+    onSelectedColorChange: setSelectedColorId,
+    onToolChange: setTool,
+    onBrushSizeChange: () => undefined,
+    onOpenPalette: () => setPaletteDialogOpen(true),
+  };
+
+  const handleModeChange = (nextMode: EditorMode) => {
+    setMode(nextMode);
+    if (nextMode === "reference" && source && !referenceGrid.visible) {
+      setReferenceGrid((current) => ({
+        ...current,
+        visible: true,
+        region: fitGuideRegion(
+          source.width,
+          source.height,
+          current.columns,
+          current.rows,
+        ),
+      }));
+    }
+  };
+
+  const referenceProps = {
+    grid: referenceGrid,
+    cropping,
+    onChange: (nextGrid: ReferenceGrid) => {
+      if (
+        source &&
+        (nextGrid.columns !== referenceGrid.columns ||
+          nextGrid.rows !== referenceGrid.rows)
+      ) {
+        setReferenceGrid({
+          ...nextGrid,
+          visible: true,
+          region: fitGuideRegion(
+            source.width,
+            source.height,
+            nextGrid.columns,
+            nextGrid.rows,
+          ),
+        });
+        return;
+      }
+      setReferenceGrid(nextGrid);
+    },
+    onFit: () => {
+      if (!source) return;
+      setReferenceGrid((current) => ({
+        ...current,
+        visible: true,
+        region: fitGuideRegion(
+          source.width,
+          source.height,
+          current.columns,
+          current.rows,
+        ),
+      }));
+    },
+    onCrop: requestReferenceCrop,
+  };
+
   const canUndo = historyStatus.undo > 0;
   const canRedo = historyStatus.redo > 0;
 
@@ -1637,7 +1861,7 @@ export function PixelStudio() {
               <SheetHeader className="border-b text-left">
                 <SheetTitle>Controls</SheetTitle>
                 <SheetDescription>
-                  Shape the procedure and add regional interventions.
+                  Shape the image, paint cells, or prepare a drawing reference.
                 </SheetDescription>
               </SheetHeader>
               <div className="border-b px-4 py-3 sm:hidden">
@@ -1656,9 +1880,11 @@ export function PixelStudio() {
               <div className="min-h-0 flex-1">
                 <Inspector
                   mode={mode}
-                  onModeChange={setMode}
+                  onModeChange={handleModeChange}
                   convertProps={convertProps}
                   selectionProps={selectionProps}
+                  paintProps={paintProps}
+                  referenceProps={referenceProps}
                   regionsEnabled={partition === "square"}
                 />
               </div>
@@ -1685,7 +1911,7 @@ export function PixelStudio() {
           <Button
             aria-label="Export PNG"
             className="size-11 px-0 sm:h-10 sm:w-auto sm:px-4"
-            disabled={!finalColorIds || processing || uploading}
+            disabled={processing || uploading}
             onClick={() => setExportOpen(true)}
           >
             <Download data-icon="inline-start" />
@@ -1702,9 +1928,11 @@ export function PixelStudio() {
         {desktopControls ? <aside className="flex min-h-0 min-w-0 w-80 shrink-0 flex-col border-r bg-background">
           <Inspector
             mode={mode}
-            onModeChange={setMode}
+            onModeChange={handleModeChange}
             convertProps={convertProps}
             selectionProps={selectionProps}
+            paintProps={paintProps}
+            referenceProps={referenceProps}
             regionsEnabled={partition === "square"}
           />
         </aside> : null}
@@ -1728,12 +1956,8 @@ export function PixelStudio() {
           processing={processing}
           crop={cropDraft}
           cropping={cropping}
-          showGuides={showGuides}
-          guideColumns={guideColumns}
-          guideRows={guideRows}
-          onShowGuidesChange={setShowGuides}
-          onGuideColumnsChange={(value) => setGuideColumns(normalizeGuideDivisions(value))}
-          onGuideRowsChange={(value) => setGuideRows(normalizeGuideDivisions(value))}
+          referenceGrid={referenceGrid}
+          onReferenceGridChange={setReferenceGrid}
           onBeginStroke={beginStroke}
           onPaint={paintIndices}
           onEndStroke={endStroke}
@@ -1810,10 +2034,16 @@ export function PixelStudio() {
       <ExportDialog
         open={exportOpen}
         onOpenChange={setExportOpen}
-        width={gridWidth}
-        height={gridHeight}
+        target={exportTarget}
+        onTargetChange={setExportTarget}
+        artworkWidth={gridWidth}
+        artworkHeight={gridHeight}
+        referenceWidth={source.width}
+        referenceHeight={source.height}
         scale={exportScale}
         onScaleChange={setExportScale}
+        showReferenceGrid={showReferenceGridInExport}
+        onShowReferenceGridChange={setShowReferenceGridInExport}
         onExport={handleExport}
         exporting={exporting}
       />
@@ -1840,6 +2070,33 @@ export function PixelStudio() {
               }}
             >
               Delete palette
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog
+        open={pendingReferenceCrop}
+        onOpenChange={(open: boolean) => {
+          if (!open) setPendingReferenceCrop(false);
+        }}
+      >
+        <AlertDialogContent className="rounded-none">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Crop to the reference grid?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently crops the source and reduces the artwork dimensions.
+              Manual paint edits, selections, and regional methods will be cleared.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep full image</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setPendingReferenceCrop(false);
+                void applyReferenceCrop();
+              }}
+            >
+              Crop and clear edits
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
