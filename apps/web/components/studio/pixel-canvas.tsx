@@ -36,6 +36,7 @@ import type {
   EditorMode,
   EditorTool,
   ReferenceGrid,
+  ReferenceView,
   SelectionCombineMode,
   SelectionTool,
 } from "./types";
@@ -63,6 +64,7 @@ type PixelCanvasProps = Readonly<{
   crop: CellCrop | null;
   cropping: boolean;
   referenceGrid: ReferenceGrid;
+  referenceView: ReferenceView;
   onReferenceGridChange: (grid: ReferenceGrid) => void;
   onBeginStroke: (bulk?: boolean) => void;
   onPaint: (indices: readonly number[], restore: boolean) => void;
@@ -242,6 +244,7 @@ export function PixelCanvas({
   crop,
   cropping,
   referenceGrid,
+  referenceView,
   onReferenceGridChange,
   onBeginStroke,
   onPaint,
@@ -285,11 +288,10 @@ export function PixelCanvas({
     palette,
     visibleColorIds,
   );
-  const referencePreview = adjustedPreview ?? originalPreview;
   const surfaceWidth =
-    mode === "reference" && referencePreview ? referencePreview.width : width;
+    mode === "reference" && originalPreview ? originalPreview.width : width;
   const surfaceHeight =
-    mode === "reference" && referencePreview ? referencePreview.height : height;
+    mode === "reference" && originalPreview ? originalPreview.height : height;
 
   useEffect(() => {
     zoomRef.current = zoom;
@@ -337,7 +339,7 @@ export function PixelCanvas({
 
   useEffect(() => {
     const canvas = sourceCanvasRef.current;
-    const preview = adjustedPreview ?? originalPreview;
+    const preview = originalPreview;
     if (!canvas || !preview) return;
     canvas.width = preview.width;
     canvas.height = preview.height;
@@ -348,7 +350,7 @@ export function PixelCanvas({
       0,
       0,
     );
-  }, [adjustedPreview, originalPreview]);
+  }, [originalPreview]);
 
   useEffect(() => {
     const canvas = selectionCanvasRef.current;
@@ -1204,7 +1206,10 @@ export function PixelCanvas({
           >
             <canvas
               ref={canvasRef}
-              className={cn("block size-full", mode === "reference" && "invisible")}
+              className={cn(
+                "block size-full",
+                mode === "reference" && referenceView === "original" && "invisible",
+              )}
               style={{ imageRendering: "pixelated" }}
               aria-hidden="true"
             />
@@ -1212,7 +1217,9 @@ export function PixelCanvas({
               ref={sourceCanvasRef}
               className={cn(
                 "absolute inset-0 size-full",
-                mode === "reference" ? "block" : "hidden",
+                mode === "reference" && referenceView === "original"
+                  ? "block"
+                  : "hidden",
               )}
               style={{ imageRendering: "auto" }}
               aria-hidden="true"

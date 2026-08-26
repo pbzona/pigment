@@ -119,6 +119,7 @@ import type {
   EditorTool,
   HistoryPatch,
   ReferenceGrid,
+  ReferenceView,
   SelectionCombineMode,
   SelectionTool,
   SourceMeta,
@@ -319,6 +320,8 @@ export function PixelStudio() {
   const [inputAdjustments, setInputAdjustments] = useState<InputAdjustments>(
     DEFAULT_INPUT_ADJUSTMENTS,
   );
+  const [referenceView, setReferenceView] =
+    useState<ReferenceView>("original");
   const [referenceGrid, setReferenceGrid] = useState<ReferenceGrid>({
     visible: false,
     columns: 3,
@@ -1709,7 +1712,9 @@ export function PixelStudio() {
 
   const referenceProps = {
     grid: referenceGrid,
+    view: referenceView,
     cropping,
+    onViewChange: setReferenceView,
     onChange: (nextGrid: ReferenceGrid) => {
       if (
         source &&
@@ -1957,6 +1962,7 @@ export function PixelStudio() {
           crop={cropDraft}
           cropping={cropping}
           referenceGrid={referenceGrid}
+          referenceView={referenceView}
           onReferenceGridChange={setReferenceGrid}
           onBeginStroke={beginStroke}
           onPaint={paintIndices}

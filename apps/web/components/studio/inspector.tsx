@@ -38,20 +38,31 @@ export function Inspector({
       onValueChange={(value: string) => onModeChange(value as EditorMode)}
     >
       <div className="border-b px-4 py-3">
-        <TabsList className="grid h-auto w-full grid-cols-2 rounded-none">
-          <TabsTrigger value="convert" className="min-w-0 rounded-none px-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Image</TabsTrigger>
+        <TabsList className="grid h-auto w-full grid-cols-4 rounded-none">
+          <TabsTrigger
+            value="convert"
+            className="min-w-0 rounded-none px-1 text-[10px] tracking-[0.03em] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
+            Image
+          </TabsTrigger>
           <TabsTrigger
             value="select"
             disabled={!regionsEnabled}
             title={regionsEnabled ? undefined : "Regional overrides require a square partition"}
-            className="min-w-0 rounded-none px-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            className="min-w-0 rounded-none px-1 text-[10px] tracking-[0.03em] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
           >
             Regions{regionsEnabled ? "" : " · Square only"}
           </TabsTrigger>
-          <TabsTrigger value="paint" className="min-w-0 rounded-none px-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <TabsTrigger
+            value="paint"
+            className="min-w-0 rounded-none px-1 text-[10px] tracking-[0.03em] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
             Paint
           </TabsTrigger>
-          <TabsTrigger value="reference" className="min-w-0 rounded-none px-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <TabsTrigger
+            value="reference"
+            className="min-w-0 rounded-none px-1 text-[10px] tracking-[0.03em] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
             Reference
           </TabsTrigger>
         </TabsList>

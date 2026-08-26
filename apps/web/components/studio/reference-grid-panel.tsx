@@ -7,12 +7,15 @@ import { Input } from "@pigment/ui/input";
 import { Label } from "@pigment/ui/label";
 import { Slider } from "@pigment/ui/slider";
 import { Switch } from "@pigment/ui/switch";
+import { ToggleGroup, ToggleGroupItem } from "@pigment/ui/toggle-group";
 
-import type { ReferenceGrid } from "./types";
+import type { ReferenceGrid, ReferenceView } from "./types";
 
 type ReferenceGridPanelProps = Readonly<{
   grid: ReferenceGrid;
+  view: ReferenceView;
   cropping: boolean;
+  onViewChange: (view: ReferenceView) => void;
   onChange: (grid: ReferenceGrid) => void;
   onFit: () => void;
   onCrop: () => void;
@@ -23,7 +26,9 @@ const clamp = (value: number, minimum: number, maximum: number) =>
 
 export function ReferenceGridPanel({
   grid,
+  view,
   cropping,
+  onViewChange,
   onChange,
   onFit,
   onCrop,
@@ -31,6 +36,23 @@ export function ReferenceGridPanel({
   return (
     <div className="space-y-7 px-4 pb-6">
       <section>
+        <Label className="mb-2">Image</Label>
+        <ToggleGroup
+          type="single"
+          value={view}
+          variant="outline"
+          spacing={0}
+          className="w-full"
+          onValueChange={(value: string) => {
+            if (value) onViewChange(value as ReferenceView);
+          }}
+        >
+          <ToggleGroupItem value="original" className="flex-1">Original</ToggleGroupItem>
+          <ToggleGroupItem value="pixel" className="flex-1">Pixelated</ToggleGroupItem>
+        </ToggleGroup>
+      </section>
+
+      <section className="border-t pt-5">
         <div className="flex items-center justify-between gap-4">
           <div>
             <Label htmlFor="reference-grid-visible">Reference grid</Label>
