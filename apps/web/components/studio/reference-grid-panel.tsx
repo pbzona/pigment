@@ -47,8 +47,15 @@ export function ReferenceGridPanel({
             if (value) onViewChange(value as ReferenceView);
           }}
         >
-          <ToggleGroupItem value="original" className="flex-1">Original</ToggleGroupItem>
-          <ToggleGroupItem value="pixel" className="flex-1">Pixelated</ToggleGroupItem>
+          <ToggleGroupItem value="original" className="min-w-0 flex-1 px-2">
+            Original
+          </ToggleGroupItem>
+          <ToggleGroupItem value="adjusted" className="min-w-0 flex-1 px-2">
+            Adjusted
+          </ToggleGroupItem>
+          <ToggleGroupItem value="pixel" className="min-w-0 flex-1 px-2">
+            Pixelated
+          </ToggleGroupItem>
         </ToggleGroup>
       </section>
 

@@ -339,7 +339,10 @@ export function PixelCanvas({
 
   useEffect(() => {
     const canvas = sourceCanvasRef.current;
-    const preview = originalPreview;
+    const preview =
+      referenceView === "adjusted"
+        ? adjustedPreview ?? originalPreview
+        : originalPreview;
     if (!canvas || !preview) return;
     canvas.width = preview.width;
     canvas.height = preview.height;
@@ -350,7 +353,7 @@ export function PixelCanvas({
       0,
       0,
     );
-  }, [originalPreview]);
+  }, [adjustedPreview, originalPreview, referenceView]);
 
   useEffect(() => {
     const canvas = selectionCanvasRef.current;
@@ -1208,7 +1211,7 @@ export function PixelCanvas({
               ref={canvasRef}
               className={cn(
                 "block size-full",
-                mode === "reference" && referenceView === "original" && "invisible",
+                mode === "reference" && referenceView !== "pixel" && "invisible",
               )}
               style={{ imageRendering: "pixelated" }}
               aria-hidden="true"
@@ -1217,7 +1220,7 @@ export function PixelCanvas({
               ref={sourceCanvasRef}
               className={cn(
                 "absolute inset-0 size-full",
-                mode === "reference" && referenceView === "original"
+                mode === "reference" && referenceView !== "pixel"
                   ? "block"
                   : "hidden",
               )}

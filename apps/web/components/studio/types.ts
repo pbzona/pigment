@@ -1,7 +1,7 @@
 import type { SelectionCombineMode } from "@pigment/quantization";
 
 export type EditorMode = "convert" | "select" | "paint" | "reference";
-export type ReferenceView = "original" | "pixel";
+export type ReferenceView = "original" | "adjusted" | "pixel";
 export type EditorTool = "pencil" | "fill" | "eyedropper" | "restore";
 export type SelectionTool = "brush" | "rectangle" | "contiguous";
 export type { SelectionCombineMode };
