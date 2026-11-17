@@ -2,9 +2,9 @@
   --paper: var(--background);
   --surface: var(--card);
   --ink: var(--foreground);
-  --muted: var(--muted-foreground);
+  --catalog-muted: var(--muted-foreground);
   --soft-line: var(--input);
-  --accent: var(--primary);
+  --catalog-accent: var(--primary);
   --blue: var(--accent-blue);
   --green: var(--accent-green);
   --font-sans: var(--font-geist-sans);
@@ -76,7 +76,7 @@
 }
 
 .brand-mark span:nth-child(2) {
-  background: var(--accent);
+  background: var(--catalog-accent);
 }
 
 .brand-mark span:nth-child(3) {
@@ -107,7 +107,7 @@
 .eyebrow,
 .section-index {
   margin: 0;
-  color: var(--muted);
+  color: var(--catalog-muted);
 }
 
 .brand-name {
@@ -164,14 +164,14 @@
   padding: 0 18px;
   color: var(--primary-foreground);
   background: var(--ink);
-  box-shadow: 3px 3px 0 var(--accent);
+  box-shadow: 3px 3px 0 var(--catalog-accent);
 }
 
 .primary-button:hover,
 .secondary-button:hover,
 .pagination a:hover {
   transform: translate(-2px, -2px);
-  box-shadow: 4px 4px 0 var(--accent);
+  box-shadow: 4px 4px 0 var(--catalog-accent);
 }
 
 .catalog-intro {
@@ -187,7 +187,7 @@
 .catalog-kicker,
 .filter-section-index {
   margin: 0;
-  color: var(--accent);
+  color: var(--catalog-accent);
   font-family: var(--font-mono), monospace;
   font-size: 0.65rem;
   font-weight: 650;
@@ -208,7 +208,7 @@
 .catalog-intro > div > p {
   max-width: 650px;
   margin: 24px 0 0;
-  color: var(--muted);
+  color: var(--catalog-muted);
   font-size: 1rem;
   line-height: 1.6;
 }
@@ -229,7 +229,7 @@
   place-items: center;
   border: 2px solid var(--ink);
   color: var(--primary-foreground);
-  background: var(--accent);
+  background: var(--catalog-accent);
   font-family: var(--font-mono), monospace;
   font-size: 1.1rem;
   font-weight: 700;
@@ -237,7 +237,7 @@
 
 .lospec-credit p {
   margin: 0;
-  color: var(--muted);
+  color: var(--catalog-muted);
   font-size: 0.8rem;
   line-height: 1.5;
 }
@@ -262,7 +262,7 @@
   min-height: 32px;
   align-items: center;
   margin-top: 10px;
-  color: var(--accent);
+  color: var(--catalog-accent);
   font-family: var(--font-mono), monospace;
   font-size: 0.72rem;
   font-weight: 700;
@@ -289,7 +289,7 @@
 
 .color-filter-description {
   margin: 9px 0 0;
-  color: var(--muted);
+  color: var(--catalog-muted);
   font-size: 0.72rem;
   line-height: 1.45;
 }
@@ -307,7 +307,7 @@
 
 .field > span,
 .color-filter legend {
-  color: var(--muted);
+  color: var(--catalog-muted);
 }
 
 .field > span {
@@ -406,7 +406,7 @@
 .tolerance-label span {
   display: flex;
   justify-content: space-between;
-  color: var(--muted);
+  color: var(--catalog-muted);
   font-family: var(--font-mono), monospace;
   font-size: 0.68rem;
   text-transform: uppercase;
@@ -419,7 +419,7 @@
 
 .tolerance-label input {
   width: 100%;
-  accent-color: var(--accent);
+  accent-color: var(--catalog-accent);
 }
 
 .filter-refine-heading {
@@ -428,7 +428,7 @@
   gap: 16px;
   align-items: center;
   margin-bottom: 16px;
-  color: var(--muted);
+  color: var(--catalog-muted);
   font-family: var(--font-mono), monospace;
   font-size: 0.72rem;
   font-weight: 650;
@@ -455,7 +455,7 @@
 .color-count-fieldset legend {
   grid-column: 1 / -1;
   min-height: 2.4em;
-  color: var(--muted);
+  color: var(--catalog-muted);
   font-family: var(--font-mono), monospace;
   font-size: 0.72rem;
   font-weight: 650;
@@ -466,7 +466,7 @@
 
 .color-count-fieldset > span {
   align-self: center;
-  color: var(--muted);
+  color: var(--catalog-muted);
 }
 
 .filter-actions {
@@ -487,7 +487,7 @@
 }
 
 .filter-actions .primary-button {
-  box-shadow: 2px 2px 0 var(--accent);
+  box-shadow: 2px 2px 0 var(--catalog-accent);
 }
 
 .secondary-button {
@@ -505,7 +505,7 @@
 
 .results-toolbar > p:last-child {
   margin: 0;
-  color: var(--muted);
+  color: var(--catalog-muted);
   font-size: 0.85rem;
 }
 
@@ -547,8 +547,8 @@
 .palette-card:focus-within {
   z-index: 2;
   transform: translate(-2px, -2px);
-  border-color: color-mix(in oklab, var(--accent) 70%, var(--ink));
-  box-shadow: 6px 6px 0 var(--accent);
+  border-color: color-mix(in oklab, var(--catalog-accent) 70%, var(--ink));
+  box-shadow: 6px 6px 0 var(--catalog-accent);
 }
 
 .palette-card-footer {
@@ -564,7 +564,7 @@
   align-items: center;
   justify-content: center;
   border: 1px solid var(--ink);
-  color: var(--muted);
+  color: var(--catalog-muted);
   background: var(--surface);
   transition:
     color 140ms ease,
@@ -654,7 +654,7 @@
   gap: 0;
   padding: 0;
   border-top: 1px solid color-mix(in oklab, var(--ink) 18%, transparent);
-  color: var(--muted);
+  color: var(--catalog-muted);
 }
 
 .palette-card-footer span {
@@ -700,7 +700,7 @@
 .palette-inspector-color dt,
 .palette-inspector-heading p,
 .palette-inspector-color-name span {
-  color: var(--muted);
+  color: var(--catalog-muted);
   font-family: var(--font-mono), monospace;
   font-size: 0.62rem;
   letter-spacing: 0.08em;
@@ -804,7 +804,7 @@
 }
 
 .pagination span[aria-disabled="true"] {
-  color: var(--muted);
+  color: var(--catalog-muted);
   opacity: 0.5;
 }
 
@@ -838,12 +838,12 @@
 .not-found-shell > p:not(.empty-code) {
   max-width: 580px;
   margin: 0 0 24px;
-  color: var(--muted);
+  color: var(--catalog-muted);
 }
 
 .empty-code {
   margin: 0;
-  color: var(--accent);
+  color: var(--catalog-accent);
 }
 
 .site-footer {
@@ -851,7 +851,7 @@
   justify-content: space-between;
   padding: 20px 0 36px;
   border-top: 2px solid var(--ink);
-  color: var(--muted);
+  color: var(--catalog-muted);
 }
 
 .detail-shell {
@@ -871,7 +871,7 @@
 }
 
 .detail-nav a:hover {
-  color: var(--accent);
+  color: var(--catalog-accent);
 }
 
 .detail-header {
@@ -892,7 +892,7 @@
 
 .detail-heading > p:last-child {
   margin: 16px 0 0;
-  color: var(--muted);
+  color: var(--catalog-muted);
   font-family: var(--font-mono), monospace;
 }
 
@@ -954,7 +954,7 @@
 }
 
 .color-record-title > span {
-  color: var(--muted);
+  color: var(--catalog-muted);
   font-size: 0.7rem;
 }
 
@@ -965,7 +965,7 @@
 .copy-button {
   min-height: 28px;
   padding: 0 8px;
-  color: var(--muted);
+  color: var(--catalog-muted);
   background: transparent;
   font-size: 0.68rem;
 }
@@ -988,7 +988,7 @@
 }
 
 .color-record dt {
-  color: var(--muted);
+  color: var(--catalog-muted);
 }
 
 .color-record dd {
@@ -1016,7 +1016,7 @@
 }
 
 .metadata-grid dt {
-  color: var(--muted);
+  color: var(--catalog-muted);
 }
 
 .metadata-grid dd {

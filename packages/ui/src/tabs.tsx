@@ -44,7 +44,7 @@ function TabsTrigger({
     <Primitive.Trigger
       data-slot="tabs-trigger"
       className={cn(
-        "h-9 border-r-2 border-border px-4 font-mono text-xs font-bold uppercase tracking-wide outline-none last:border-r-0 hover:bg-secondary focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring data-active:bg-primary data-active:text-primary-foreground",
+        "h-9 border-r-2 border-border px-4 font-mono text-xs font-bold uppercase tracking-wide outline-none last:border-r-0 hover:bg-secondary focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
         className,
       )}
       {...props}
