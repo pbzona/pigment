@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, FlaskConical, Layers3 } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 import { Button } from "@pigment/ui/button";
 import { CONVERSION_METHODS } from "@pigment/quantization";
@@ -28,45 +28,65 @@ export function CurrentProjectPanel() {
 
   if (!project) {
     return (
-      <aside className="border-2 border-border bg-card p-5 shadow-[6px_6px_0_var(--shadow)]">
-        <FlaskConical className="size-5 text-primary" aria-hidden="true" />
-        <h2 className="mt-5 text-xl font-medium">No shared project yet</h2>
+      <aside className="border border-foreground/20 bg-card p-5">
+        <h2 className="text-lg font-medium">Start with a sample.</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Start in Studio, then return here to inspect the same procedure alongside the experiments.
+          Make something in Studio, then bring its image and settings here to
+          compare methods. Or explore the teaching examples below.
         </p>
-        <Button asChild className="mt-5">
-          <Link href="/studio">Start in Studio <ArrowRight data-icon="inline-end" /></Link>
+        <Button asChild variant="outline" className="mt-4">
+          <Link href="/studio">
+            Open Studio <ArrowRight data-icon="inline-end" />
+          </Link>
         </Button>
       </aside>
     );
   }
 
-  const method = CONVERSION_METHODS.find((entry) => entry.value === project.method)?.label ?? project.method;
+  const method =
+    CONVERSION_METHODS.find((entry) => entry.value === project.method)?.label ??
+    project.method;
   const displayName = /^[a-f\d]{24,}\.[a-z\d]+$/iu.test(project.name)
     ? "Current image"
     : project.name;
 
   return (
-    <aside className="overflow-hidden border-2 border-border bg-card shadow-[6px_6px_0_var(--shadow)]">
-      {project.thumbnail ? (
-        // A local data URL is deliberately used: project images never leave the browser.
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={project.thumbnail} alt="Current project source preview" className="aspect-[4/3] w-full object-cover" />
-      ) : null}
-      <div className="p-5">
-        <div className="flex items-center justify-between gap-4">
-          <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-primary">Current in Studio</span>
-          <Layers3 className="size-4 text-muted-foreground" aria-hidden="true" />
+    <aside
+      className="border border-foreground/20 bg-card p-4 sm:p-5"
+      aria-label="Current Studio project"
+    >
+      <div className="flex items-start gap-4">
+        {project.thumbnail ? (
+          // Local source thumbnail: this is not the finished Studio artwork.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={project.thumbnail}
+            alt="Studio source image"
+            className="size-20 shrink-0 border border-foreground/15 object-cover"
+          />
+        ) : null}
+        <div className="min-w-0 flex-1">
+          <h2 className="truncate text-lg font-medium">{displayName}</h2>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+            Current in Studio · {project.gridWidth}×{project.gridHeight}{" "}
+            {project.partition === "hex"
+              ? "hexagonal"
+              : (project.partition ?? "square")}{" "}
+            cells
+          </p>
+          <p className="text-xs leading-5 text-muted-foreground">
+            {method} · {project.paletteName}
+          </p>
         </div>
-        <h2 className="mt-3 truncate text-xl font-medium">{displayName}</h2>
-        <dl className="mt-4 grid grid-cols-2 gap-px border bg-foreground/10 text-[10px]">
-          <div className="bg-background p-3"><dt className="text-muted-foreground">Partition</dt><dd className="mt-1 font-mono">{project.gridWidth}×{project.gridHeight} {project.partition ?? "square"}</dd></div>
-          <div className="bg-background p-3"><dt className="text-muted-foreground">Sample</dt><dd className="mt-1 font-mono">{method}</dd></div>
-          <div className="bg-background p-3"><dt className="text-muted-foreground">Palette</dt><dd className="mt-1 truncate font-mono">{project.paletteName}</dd></div>
-          <div className="bg-background p-3"><dt className="text-muted-foreground">Interventions</dt><dd className="mt-1 font-mono">{project.interventionCount}</dd></div>
-        </dl>
-        <Button asChild variant="outline" className="mt-5 w-full">
-          <Link href="/studio">Open in Studio <ArrowRight data-icon="inline-end" /></Link>
+      </div>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-foreground/10 pt-3">
+        <p className="text-xs leading-5 text-muted-foreground">
+          Lab experiments leave this project unchanged.
+        </p>
+        <Button asChild variant="outline" size="sm">
+          <Link href="/studio">
+            Back to Studio <ArrowRight data-icon="inline-end" />
+          </Link>
         </Button>
       </div>
     </aside>
