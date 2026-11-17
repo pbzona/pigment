@@ -6,7 +6,10 @@ import { Button } from "@pigment/ui/button";
 import { Label } from "@pigment/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@pigment/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pigment/ui/tooltip";
-import { adjustHexColor, type PaletteAdjustments as PaletteAdjustmentsValue } from "@pigment/color";
+import {
+  adjustHexColor,
+  type PaletteAdjustments as PaletteAdjustmentsValue,
+} from "@pigment/color";
 import type { Palette } from "@pigment/palette";
 import { cn } from "@/lib/utils";
 
@@ -58,7 +61,8 @@ export function PaintPanel({
           value={tool}
           variant="outline"
           spacing={0}
-          className="w-full"
+          className="grid w-full grid-cols-2 gap-2 [&>[data-slot=toggle-group-item]]:ml-0"
+          aria-label="Paint tool"
           onValueChange={(value: string) => {
             if (value) onToolChange(value as EditorTool);
           }}
@@ -68,13 +72,24 @@ export function PaintPanel({
             return (
               <Tooltip key={entry.value}>
                 <TooltipTrigger asChild>
-                  <ToggleGroupItem value={entry.value} className="flex-1 rounded-none px-0">
+                  <ToggleGroupItem
+                    value={entry.value}
+                    className="justify-start px-2 text-xs"
+                    aria-label={entry.label}
+                  >
                     <Icon />
-                    <span className="sr-only">{entry.label}</span>
+                    <span>
+                      {entry.value === "eyedropper"
+                        ? "Pick color"
+                        : entry.value === "restore"
+                          ? "Restore"
+                          : entry.label}
+                    </span>
                   </ToggleGroupItem>
                 </TooltipTrigger>
                 <TooltipContent>
-                  {entry.label} <span className="ml-1 opacity-60">{entry.key}</span>
+                  {entry.label}{" "}
+                  <span className="ml-1 opacity-60">{entry.key}</span>
                 </TooltipContent>
               </Tooltip>
             );
@@ -85,7 +100,9 @@ export function PaintPanel({
       <section>
         <div className="mb-3 flex items-center justify-between gap-3">
           <Label>Color</Label>
-          <Button variant="ghost" size="xs" onClick={onOpenPalette}>Manage palette</Button>
+          <Button variant="ghost" size="xs" onClick={onOpenPalette}>
+            Manage palette
+          </Button>
         </div>
         <div className="grid grid-cols-6 gap-2">
           {palette.colors.map((swatch) => (
@@ -96,12 +113,15 @@ export function PaintPanel({
                 "aspect-square border border-white/15 outline-offset-2 transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-ring",
                 selectedColorId === swatch.id && "outline-2 outline-foreground",
               )}
-              style={{ backgroundColor: adjustHexColor(swatch.hex, adjustments) }}
+              style={{
+                backgroundColor: adjustHexColor(swatch.hex, adjustments),
+              }}
               aria-label={`Paint with ${swatch.hex}`}
               aria-pressed={selectedColorId === swatch.id}
               onClick={() => {
                 onSelectedColorChange(swatch.id);
-                if (tool === "eyedropper" || tool === "restore") onToolChange("pencil");
+                if (tool === "eyedropper" || tool === "restore")
+                  onToolChange("pencil");
               }}
             />
           ))}
@@ -122,7 +142,11 @@ export function PaintPanel({
           }}
         >
           {[1, 2, 3].map((size) => (
-            <ToggleGroupItem key={size} value={String(size)} className="flex-1 rounded-none font-mono">
+            <ToggleGroupItem
+              key={size}
+              value={String(size)}
+              className="flex-1 rounded-none font-mono"
+            >
               {size}×{size}
             </ToggleGroupItem>
           ))}
@@ -133,7 +157,8 @@ export function PaintPanel({
         {selectionCount === null
           ? "Drag to paint."
           : `Paint is limited to ${selectionCount} selected cells.`}{" "}
-        Use <kbd className="font-mono text-foreground">⌘/Ctrl Z</kbd> to undo a complete stroke.
+        Use <kbd className="font-mono text-foreground">⌘/Ctrl Z</kbd> to undo a
+        complete stroke.
       </div>
     </div>
   );

@@ -348,7 +348,7 @@ export function PixelCanvas({
     const canvas = sourceCanvasRef.current;
     const preview =
       referenceView === "adjusted"
-        ? adjustedPreview ?? originalPreview
+        ? (adjustedPreview ?? originalPreview)
         : originalPreview;
     if (!canvas || !preview) return;
     canvas.width = preview.width;
@@ -441,8 +441,26 @@ export function PixelCanvas({
     const container = containerRef.current;
     if (!container) return;
 
-    const frame = window.requestAnimationFrame(fitCanvasToViewport);
-    return () => window.cancelAnimationFrame(frame);
+    let frame = window.requestAnimationFrame(fitCanvasToViewport);
+    let previous = {
+      width: container.clientWidth,
+      height: container.clientHeight,
+    };
+    const observer = new ResizeObserver(() => {
+      const next = {
+        width: container.clientWidth,
+        height: container.clientHeight,
+      };
+      if (!shouldRefitCanvas(previous, next)) return;
+      previous = next;
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(fitCanvasToViewport);
+    });
+    observer.observe(container);
+    return () => {
+      observer.disconnect();
+      window.cancelAnimationFrame(frame);
+    };
   }, [surfaceWidth, surfaceHeight]);
 
   const beginGuideGesture = (
@@ -954,7 +972,7 @@ export function PixelCanvas({
       ref={containerRef}
       className="relative min-h-0 min-w-0 flex-1 overflow-hidden bg-[#0e0f11]"
     >
-      <div className="absolute top-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 border-2 border-border bg-card p-1 shadow-[4px_4px_0_var(--shadow)]">
+      <div className="absolute top-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-0 border-2 border-border bg-card p-1 shadow-[4px_4px_0_var(--shadow)] min-[360px]:gap-1">
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -976,7 +994,7 @@ export function PixelCanvas({
           </TooltipTrigger>
           <TooltipContent>Zoom out</TooltipContent>
         </Tooltip>
-        <span className="w-11 text-center font-mono text-[11px] tabular-nums">
+        <span className="w-9 shrink-0 text-center font-mono text-[11px] tabular-nums sm:w-11">
           {Number(zoom.toFixed(2))}×
         </span>
         <Tooltip>
@@ -997,7 +1015,7 @@ export function PixelCanvas({
           </TooltipTrigger>
           <TooltipContent>Zoom in</TooltipContent>
         </Tooltip>
-        <span className="mx-1 h-4 w-px bg-border" />
+        <span className="mx-1 hidden h-4 w-px bg-border min-[360px]:block" />
         <Popover>
           <PopoverTrigger asChild>
             <Button
@@ -1066,7 +1084,11 @@ export function PixelCanvas({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                {framed ? "Use Canvas framing to change bounds, or restore original bounds to crop." : crop ? "Cancel crop" : "Crop source image"}
+                {framed
+                  ? "Use Canvas framing to change bounds, or restore original bounds to crop."
+                  : crop
+                    ? "Cancel crop"
+                    : "Crop source image"}
               </TooltipContent>
             </Tooltip>
             <Tooltip>
@@ -1220,7 +1242,9 @@ export function PixelCanvas({
               ref={canvasRef}
               className={cn(
                 "block size-full",
-                mode === "reference" && referenceView !== "pixel" && "invisible",
+                mode === "reference" &&
+                  referenceView !== "pixel" &&
+                  "invisible",
               )}
               style={{ imageRendering: "pixelated" }}
               aria-hidden="true"
@@ -1273,7 +1297,10 @@ export function PixelCanvas({
             ) : null}
             {mode === "reference" && referenceGrid.visible ? (
               <div
-                className={cn("absolute inset-0 z-10 touch-none", framed && "pointer-events-none")}
+                className={cn(
+                  "absolute inset-0 z-10 touch-none",
+                  framed && "pointer-events-none",
+                )}
                 aria-label={`${guideColumns} by ${guideRows} ${framed ? "full-canvas" : "movable"} square reference grid`}
               >
                 <span
@@ -1402,7 +1429,11 @@ export function PixelCanvas({
                 <div
                   role="group"
                   tabIndex={framed ? -1 : 0}
-                  aria-label={framed ? "Reference grid covers the canvas." : "Reference grid region. Use arrow keys to move it."}
+                  aria-label={
+                    framed
+                      ? "Reference grid covers the canvas."
+                      : "Reference grid region. Use arrow keys to move it."
+                  }
                   className="absolute cursor-move border-2 border-[#ff7657] outline-none focus-visible:ring-2 focus-visible:ring-[#4d7cff] focus-visible:ring-offset-2 focus-visible:ring-offset-black/70"
                   style={{
                     left: `${guideRegion.x * 100}%`,
@@ -1437,24 +1468,25 @@ export function PixelCanvas({
                     );
                   }}
                 >
-                  {!framed && GUIDE_HANDLES.map((handle) => (
-                    <button
-                      key={handle}
-                      type="button"
-                      aria-label={`Resize reference grid from ${handle}`}
-                      className={cn(
-                        "absolute size-4 border border-[#17100c] bg-[#f5f2e8] outline-none hover:bg-[#ff7657] focus-visible:ring-2 focus-visible:ring-[#4d7cff]",
-                        GUIDE_HANDLE_CLASSES[handle],
-                      )}
-                      onPointerDown={(event) =>
-                        beginGuideGesture(event, "resize", handle)
-                      }
-                      onPointerMove={updateGuideGesture}
-                      onPointerUp={finishGuideGesture}
-                      onPointerCancel={finishGuideGesture}
-                      onLostPointerCapture={finishGuideGesture}
-                    />
-                  ))}
+                  {!framed &&
+                    GUIDE_HANDLES.map((handle) => (
+                      <button
+                        key={handle}
+                        type="button"
+                        aria-label={`Resize reference grid from ${handle}`}
+                        className={cn(
+                          "absolute size-4 border border-[#17100c] bg-[#f5f2e8] outline-none hover:bg-[#ff7657] focus-visible:ring-2 focus-visible:ring-[#4d7cff]",
+                          GUIDE_HANDLE_CLASSES[handle],
+                        )}
+                        onPointerDown={(event) =>
+                          beginGuideGesture(event, "resize", handle)
+                        }
+                        onPointerMove={updateGuideGesture}
+                        onPointerUp={finishGuideGesture}
+                        onPointerCancel={finishGuideGesture}
+                        onLostPointerCapture={finishGuideGesture}
+                      />
+                    ))}
                 </div>
               </div>
             ) : null}

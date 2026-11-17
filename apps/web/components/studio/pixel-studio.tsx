@@ -1,20 +1,12 @@
 "use client";
 
-import {
-  useEffect,
-  useEffectEvent,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import {
   Beaker,
   Download,
   HelpCircle,
   Frame,
-  PanelRight,
   Redo2,
-  SlidersHorizontal,
   Undo2,
 } from "lucide-react";
 import Link from "next/link";
@@ -44,18 +36,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@pigment/ui/dialog";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@pigment/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@pigment/ui/popover";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@pigment/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pigment/ui/tooltip";
 import { usePixelWorker } from "@/hooks/use-pixel-worker";
@@ -67,8 +54,15 @@ import {
 import { exportPixelPng } from "@/lib/browser/export";
 import { decodeImageFile } from "@/lib/browser/image";
 import { exportReferencePng } from "@/lib/browser/reference-export";
-import { previewToThumbnail, takePendingPalette, writeProjectSnapshot } from "@/lib/browser/project-snapshot";
-import { readProjectSource, saveProjectSource } from "@/lib/browser/project-source";
+import {
+  previewToThumbnail,
+  takePendingPalette,
+  writeProjectSnapshot,
+} from "@/lib/browser/project-snapshot";
+import {
+  readProjectSource,
+  saveProjectSource,
+} from "@/lib/browser/project-source";
 import {
   readStudioProject,
   restoreSparseValues,
@@ -116,11 +110,14 @@ import {
   type SourceCrop,
 } from "@pigment/quantization";
 
-import { canvasBackground, canvasGridDimensions, sameCanvasGeometry } from "@/lib/browser/canvas-frame";
+import {
+  canvasBackground,
+  canvasGridDimensions,
+  sameCanvasGeometry,
+} from "@/lib/browser/canvas-frame";
 import { CanvasFrameDialog } from "./canvas-frame-dialog";
 import { ImageChooser } from "./image-chooser";
-import { Inspector } from "./inspector";
-import { OutputSidebar } from "./output-sidebar";
+import { EDITOR_MODES, Inspector } from "./inspector";
 import { fitGuideRegion, PixelCanvas } from "./pixel-canvas";
 import type {
   EditorMode,
@@ -133,6 +130,7 @@ import type {
   SourceMeta,
 } from "./types";
 import { sampleImageFile } from "./sample-images";
+import { studioShortcut } from "./studio-shortcuts";
 import { UploadDropzone } from "./upload-dropzone";
 
 const CUSTOM_PALETTES_KEY = "pixide:palettes:v1";
@@ -152,7 +150,9 @@ const initialGrid = (width: number, height: number) => {
 const loadCustomPalettes = (): Palette[] => {
   if (typeof window === "undefined") return [];
   try {
-    const parsed = JSON.parse(localStorage.getItem(CUSTOM_PALETTES_KEY) ?? "[]") as unknown;
+    const parsed = JSON.parse(
+      localStorage.getItem(CUSTOM_PALETTES_KEY) ?? "[]",
+    ) as unknown;
     if (!Array.isArray(parsed)) return [];
     return parsed.flatMap((entry) => {
       if (typeof entry !== "object" || entry === null) return [];
@@ -238,7 +238,10 @@ const createPaletteIdMapping = (
   return mapping;
 };
 
-const remapColorIds = (values: Int32Array, mapping: ReadonlyMap<number, number>) => {
+const remapColorIds = (
+  values: Int32Array,
+  mapping: ReadonlyMap<number, number>,
+) => {
   const remapped = values.slice();
   for (let index = 0; index < remapped.length; index += 1) {
     const current = remapped[index];
@@ -282,7 +285,10 @@ const pruneColorIds = (colorIds: ReadonlySet<number>, palette: Palette) => {
   return new Set([...colorIds].filter((id) => paletteIds.has(id)));
 };
 
-const pruneExcludedColorIds = (colorIds: ReadonlySet<number>, palette: Palette) => {
+const pruneExcludedColorIds = (
+  colorIds: ReadonlySet<number>,
+  palette: Palette,
+) => {
   const pruned = pruneColorIds(colorIds, palette);
   if (pruned.size === palette.colors.length && palette.colors.length > 0) {
     pruned.delete(palette.colors[0].id);
@@ -312,11 +318,16 @@ export function PixelStudio() {
 
   const [canvasFrame, setCanvasFrame] = useState<CanvasFrame | null>(null);
   const [canvasFrameOpen, setCanvasFrameOpen] = useState(false);
-  const [pendingCanvasFrame, setPendingCanvasFrame] = useState<{ frame: CanvasFrame | null } | null>(null);
+  const [pendingCanvasFrame, setPendingCanvasFrame] = useState<{
+    frame: CanvasFrame | null;
+  } | null>(null);
   const [gridWidth, setGridWidth] = useState(64);
   const [gridHeight, setGridHeight] = useState(64);
   const [aspectLocked, setAspectLocked] = useState(true);
-  const [pendingGrid, setPendingGrid] = useState<{ width: number; height: number } | null>(null);
+  const [pendingGrid, setPendingGrid] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
   const [cropDraft, setCropDraft] = useState<CellCrop | null>(null);
   const [pendingCrop, setPendingCrop] = useState<CellCrop | null>(null);
   const [pendingReferenceCrop, setPendingReferenceCrop] = useState(false);
@@ -331,8 +342,7 @@ export function PixelStudio() {
   const [inputAdjustments, setInputAdjustments] = useState<InputAdjustments>(
     DEFAULT_INPUT_ADJUSTMENTS,
   );
-  const [referenceView, setReferenceView] =
-    useState<ReferenceView>("original");
+  const [referenceView, setReferenceView] = useState<ReferenceView>("original");
   const [referenceGrid, setReferenceGrid] = useState<ReferenceGrid>({
     visible: false,
     columns: 3,
@@ -342,7 +352,8 @@ export function PixelStudio() {
     region: { x: 0, y: 0, width: 1, height: 1 },
   });
   const [activePalette, setActivePalette] = useState<Palette>(DEFAULT_PALETTE);
-  const [customPalettes, setCustomPalettes] = useState<Palette[]>(loadCustomPalettes);
+  const [customPalettes, setCustomPalettes] =
+    useState<Palette[]>(loadCustomPalettes);
   const [adjustments, setAdjustments] = useState<PaletteAdjustments>(
     DEFAULT_PALETTE_ADJUSTMENTS,
   );
@@ -355,8 +366,14 @@ export function PixelStudio() {
   const [isolatedColorIds, setIsolatedColorIds] = useState<ReadonlySet<number>>(
     () => new Set(),
   );
-  const [matchingPalette, setMatchingPalette] = useState<readonly PixelPaletteColor[]>(() =>
-    paletteToMatchingColors(DEFAULT_PALETTE, DEFAULT_PALETTE_ADJUSTMENTS, new Set()),
+  const [matchingPalette, setMatchingPalette] = useState<
+    readonly PixelPaletteColor[]
+  >(() =>
+    paletteToMatchingColors(
+      DEFAULT_PALETTE,
+      DEFAULT_PALETTE_ADJUSTMENTS,
+      new Set(),
+    ),
   );
 
   const [generated, setGenerated] = useState<Uint16Array | null>(null);
@@ -368,23 +385,31 @@ export function PixelStudio() {
   const methodOverridesRef = useRef(methodOverrides);
   const [selectionMask, setSelectionMask] = useState<Uint8Array | null>(null);
   const selectionMaskRef = useRef<Uint8Array | null>(null);
-  const [originalPreview, setOriginalPreview] = useState<PixelPreview | null>(null);
-  const [adjustedPreview, setAdjustedPreview] = useState<PixelPreview | null>(null);
+  const [originalPreview, setOriginalPreview] = useState<PixelPreview | null>(
+    null,
+  );
+  const [adjustedPreview, setAdjustedPreview] = useState<PixelPreview | null>(
+    null,
+  );
   const [processing, setProcessing] = useState(false);
   const latestConversionRef = useRef(0);
   const latestPreviewRef = useRef(0);
 
   const [mode, setMode] = useState<EditorMode>("convert");
   const [tool, setTool] = useState<EditorTool>("pencil");
-  const brushSize = 1;
+  const [brushSize, setBrushSize] = useState(1);
   const [selectionTool, setSelectionTool] = useState<SelectionTool>("brush");
   const [selectionBrushSize, setSelectionBrushSize] = useState(1);
   const [selectionCombineMode, setSelectionCombineMode] =
     useState<SelectionCombineMode>("replace");
   const [selectionMethod, setSelectionMethod] =
     useState<ConversionMethod>("dither");
-  const [selectedColorId, setSelectedColorId] = useState(activePalette.colors[0].id);
-  const [selectedOutputSwatchId, setSelectedOutputSwatchId] = useState<number | null>(null);
+  const [selectedColorId, setSelectedColorId] = useState(
+    activePalette.colors[0].id,
+  );
+  const [selectedOutputSwatchId, setSelectedOutputSwatchId] = useState<
+    number | null
+  >(null);
   const activeStrokeRef = useRef<ActiveStroke | null>(null);
   const historyRef = useRef<HistoryPatch[]>([]);
   const futureRef = useRef<HistoryPatch[]>([]);
@@ -394,8 +419,8 @@ export function PixelStudio() {
   const paletteOpenRef = useRef(false);
   const paletteRevisionRef = useRef(0);
   const [controlsOpen, setControlsOpen] = useState(false);
-  const [outputOpen, setOutputOpen] = useState(false);
   const [imageChooserOpen, setImageChooserOpen] = useState(false);
+  const [projectMenuOpen, setProjectMenuOpen] = useState(false);
   const [desktopControls, setDesktopControls] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [exportScale, setExportScale] = useState(4);
@@ -403,7 +428,8 @@ export function PixelStudio() {
   const [showReferenceGridInExport, setShowReferenceGridInExport] =
     useState(true);
   const [exporting, setExporting] = useState(false);
-  const [pendingPaletteDelete, setPendingPaletteDelete] = useState<Palette | null>(null);
+  const [pendingPaletteDelete, setPendingPaletteDelete] =
+    useState<Palette | null>(null);
   const [firstResultGuide, setFirstResultGuide] = useState(false);
   const pendingPaletteRef = useRef<ReturnType<typeof takePendingPalette>>(null);
   const savedProjectRef = useRef<StudioProject | null>(null);
@@ -413,7 +439,11 @@ export function PixelStudio() {
     const pendingPalette = pendingPaletteRef.current;
     if (!pendingPalette || !source) return;
     pendingPaletteRef.current = null;
-    const result = createPalette(customPaletteId(), pendingPalette.name, pendingPalette.colors);
+    const result = createPalette(
+      customPaletteId(),
+      pendingPalette.name,
+      pendingPalette.colors,
+    );
     if (!result.ok) {
       toast.error(result.error);
       return;
@@ -423,14 +453,24 @@ export function PixelStudio() {
       paletteToPixelColors(activePaletteRef.current, adjustmentsRef.current),
       paletteToPixelColors(result.value, adjustmentsRef.current),
     );
-    setCanvasFrame((current) => current ? {
-      ...current,
-      backgroundColorId: mapping.get(current.backgroundColorId) ?? result.value.colors[0].id,
-    } : null);
+    setCanvasFrame((current) =>
+      current
+        ? {
+            ...current,
+            backgroundColorId:
+              mapping.get(current.backgroundColorId) ??
+              result.value.colors[0].id,
+          }
+        : null,
+    );
     activePaletteRef.current = result.value;
     setActivePalette(result.value);
     setMatchingPalette(
-      paletteToMatchingColors(result.value, adjustmentsRef.current, excludedColorIdsRef.current),
+      paletteToMatchingColors(
+        result.value,
+        adjustmentsRef.current,
+        excludedColorIdsRef.current,
+      ),
     );
     setSelectedColorId(result.value.colors[0].id);
     setProcessing(true);
@@ -451,38 +491,65 @@ export function PixelStudio() {
   );
   const frameBackground = canvasBackground(canvasFrame, adjustedPalette);
   const framedOriginalPreview = useMemo(
-    () => originalPreview && canvasFrame && frameBackground
-      ? createFramedPreview(
-          originalPreview.pixels, originalPreview.width, originalPreview.height,
-          canvasFrame, frameBackground.color, undefined, true, 0,
-        )
-      : originalPreview,
+    () =>
+      originalPreview && canvasFrame && frameBackground
+        ? createFramedPreview(
+            originalPreview.pixels,
+            originalPreview.width,
+            originalPreview.height,
+            canvasFrame,
+            frameBackground.color,
+            undefined,
+            true,
+            0,
+          )
+        : originalPreview,
     [originalPreview, canvasFrame, frameBackground],
   );
   const framedAdjustedPreview = useMemo(
-    () => adjustedPreview && canvasFrame && frameBackground
-      ? createFramedPreview(
-          adjustedPreview.pixels, adjustedPreview.width, adjustedPreview.height,
-          canvasFrame, frameBackground.color, undefined, true, 0,
-        )
-      : adjustedPreview,
+    () =>
+      adjustedPreview && canvasFrame && frameBackground
+        ? createFramedPreview(
+            adjustedPreview.pixels,
+            adjustedPreview.width,
+            adjustedPreview.height,
+            canvasFrame,
+            frameBackground.color,
+            undefined,
+            true,
+            0,
+          )
+        : adjustedPreview,
     [adjustedPreview, canvasFrame, frameBackground],
   );
   const partitionFraming = useMemo(
-    () => source && canvasFrame && frameBackground ? {
-      backgroundMask: canvasFrameBackgroundMask(source.width, source.height, canvasFrame, gridWidth, gridHeight),
-      backgroundColorId: frameBackground.id,
-    } : undefined,
+    () =>
+      source && canvasFrame && frameBackground
+        ? {
+            backgroundMask: canvasFrameBackgroundMask(
+              source.width,
+              source.height,
+              canvasFrame,
+              gridWidth,
+              gridHeight,
+            ),
+            backgroundColorId: frameBackground.id,
+          }
+        : undefined,
     [source, canvasFrame, frameBackground, gridWidth, gridHeight],
   );
   const finalColorIds = useMemo(
     () => (generated ? composeColorIds(generated, overrides) : null),
     [generated, overrides],
   );
-  const selectedCount = useMemo(() => countSelection(selectionMask), [selectionMask]);
+  const selectedCount = useMemo(
+    () => countSelection(selectionMask),
+    [selectionMask],
+  );
   const interventionCount = useMemo(() => {
     let count = 0;
-    for (const value of methodOverrides) count += Number(value !== METHOD_INHERIT);
+    for (const value of methodOverrides)
+      count += Number(value !== METHOD_INHERIT);
     return count;
   }, [methodOverrides]);
 
@@ -557,7 +624,18 @@ export function PixelStudio() {
       thumbnail: previewToThumbnail(framedOriginalPreview ?? originalPreview),
       updatedAt: Date.now(),
     });
-  }, [source, originalPreview, framedOriginalPreview, gridWidth, gridHeight, method, partition, activePalette, inputAdjustments, interventionCount]);
+  }, [
+    source,
+    originalPreview,
+    framedOriginalPreview,
+    gridWidth,
+    gridHeight,
+    method,
+    partition,
+    activePalette,
+    inputAdjustments,
+    interventionCount,
+  ]);
 
   useEffect(() => {
     activePaletteRef.current = activePalette;
@@ -576,78 +654,81 @@ export function PixelStudio() {
 
   const performConversion = useEffectEvent(
     async (conversionId: number, sourceGeneration: number) => {
-    setProcessing(true);
-    try {
-      const options = {
-        gridWidth,
-        gridHeight,
-        method,
-        methodOverrides: partition === "square" ? methodOverrides : undefined,
-        partition,
-        partitionScale,
-        partitionSeed: 1,
-        palette: matchingPalette,
-        frame: canvasFrame ?? undefined,
-        frameBackground,
-        preserveTransparency,
-        alphaThreshold,
-        inputAdjustments,
-      } as const;
-      let result: Awaited<ReturnType<typeof convert>>;
+      setProcessing(true);
       try {
-        result = await convert(options);
+        const options = {
+          gridWidth,
+          gridHeight,
+          method,
+          methodOverrides: partition === "square" ? methodOverrides : undefined,
+          partition,
+          partitionScale,
+          partitionSeed: 1,
+          palette: matchingPalette,
+          frame: canvasFrame ?? undefined,
+          frameBackground,
+          preserveTransparency,
+          alphaThreshold,
+          inputAdjustments,
+        } as const;
+        let result: Awaited<ReturnType<typeof convert>>;
+        try {
+          result = await convert(options);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "";
+          const sourceFile = sourceFileRef.current;
+          const recoverable =
+            message.includes("worker") ||
+            message.includes("Upload a source image first");
+          if (!recoverable || !sourceFile) throw error;
+          if (
+            sourceGeneration !== sourceGenerationRef.current ||
+            uploadInFlightRef.current
+          ) {
+            return;
+          }
+          const decoded = await decodeImageFile(sourceFile);
+          if (
+            conversionId !== latestConversionRef.current ||
+            sourceGeneration !== sourceGenerationRef.current ||
+            uploadInFlightRef.current
+          ) {
+            return;
+          }
+          let recoveredPreview = await setWorkerSource(
+            decoded.pixels,
+            decoded.width,
+            decoded.height,
+          );
+          const sourceCrop = sourceCropRef.current;
+          if (
+            sourceCrop &&
+            (sourceCrop.x !== 0 ||
+              sourceCrop.y !== 0 ||
+              sourceCrop.width !== decoded.width ||
+              sourceCrop.height !== decoded.height)
+          ) {
+            recoveredPreview = await cropWorkerSource(sourceCrop);
+          }
+          if (sourceGeneration !== sourceGenerationRef.current) return;
+          setOriginalPreview(recoveredPreview);
+          result = await convert(options);
+        }
+        if (conversionId !== latestConversionRef.current) return;
+        setGenerated(result.colorIds);
+        if (overridesRef.current.length !== result.colorIds.length) {
+          overridesRef.current = createOverrides(result.colorIds.length);
+          setOverrides(overridesRef.current);
+        }
       } catch (error) {
-        const message = error instanceof Error ? error.message : "";
-        const sourceFile = sourceFileRef.current;
-        const recoverable =
-          message.includes("worker") || message.includes("Upload a source image first");
-        if (!recoverable || !sourceFile) throw error;
-        if (
-          sourceGeneration !== sourceGenerationRef.current ||
-          uploadInFlightRef.current
-        ) {
-          return;
+        if (conversionId === latestConversionRef.current) {
+          toast.error(
+            error instanceof Error ? error.message : "Image conversion failed.",
+          );
         }
-        const decoded = await decodeImageFile(sourceFile);
-        if (
-          conversionId !== latestConversionRef.current ||
-          sourceGeneration !== sourceGenerationRef.current ||
-          uploadInFlightRef.current
-        ) {
-          return;
-        }
-        let recoveredPreview = await setWorkerSource(
-          decoded.pixels,
-          decoded.width,
-          decoded.height,
-        );
-        const sourceCrop = sourceCropRef.current;
-        if (
-          sourceCrop &&
-          (sourceCrop.x !== 0 ||
-            sourceCrop.y !== 0 ||
-            sourceCrop.width !== decoded.width ||
-            sourceCrop.height !== decoded.height)
-        ) {
-          recoveredPreview = await cropWorkerSource(sourceCrop);
-        }
-        if (sourceGeneration !== sourceGenerationRef.current) return;
-        setOriginalPreview(recoveredPreview);
-        result = await convert(options);
+      } finally {
+        if (conversionId === latestConversionRef.current) setProcessing(false);
       }
-      if (conversionId !== latestConversionRef.current) return;
-      setGenerated(result.colorIds);
-      if (overridesRef.current.length !== result.colorIds.length) {
-        overridesRef.current = createOverrides(result.colorIds.length);
-        setOverrides(overridesRef.current);
-      }
-    } catch (error) {
-      if (conversionId === latestConversionRef.current) {
-        toast.error(error instanceof Error ? error.message : "Image conversion failed.");
-      }
-    } finally {
-      if (conversionId === latestConversionRef.current) setProcessing(false);
-    }
     },
   );
 
@@ -693,7 +774,9 @@ export function PixelStudio() {
         setAdjustedPreview(result);
       } catch (error) {
         if (previewId === latestPreviewRef.current) {
-          toast.error(error instanceof Error ? error.message : "Source preview failed.");
+          toast.error(
+            error instanceof Error ? error.message : "Source preview failed.",
+          );
         }
       }
     },
@@ -718,8 +801,12 @@ export function PixelStudio() {
   };
 
   const remapHistory = (mapping: ReadonlyMap<number, number>) => {
-    historyRef.current = historyRef.current.map((patch) => remapHistoryPatch(patch, mapping));
-    futureRef.current = futureRef.current.map((patch) => remapHistoryPatch(patch, mapping));
+    historyRef.current = historyRef.current.map((patch) =>
+      remapHistoryPatch(patch, mapping),
+    );
+    futureRef.current = futureRef.current.map((patch) =>
+      remapHistoryPatch(patch, mapping),
+    );
     setHistoryStatus({
       undo: historyRef.current.length,
       redo: futureRef.current.length,
@@ -782,7 +869,8 @@ export function PixelStudio() {
           }
         : initialDimensions;
       const restoredPalette = savedProject?.palette ?? activePaletteRef.current;
-      const restoredPaletteAdjustments = savedProject?.paletteAdjustments ?? adjustmentsRef.current;
+      const restoredPaletteAdjustments =
+        savedProject?.paletteAdjustments ?? adjustmentsRef.current;
       const restoredExcludedIds = new Set(savedProject?.excludedColorIds ?? []);
       const restoredOverrides = restoreSparseValues(
         createOverrides(grid.width * grid.height),
@@ -820,7 +908,10 @@ export function PixelStudio() {
           rows: normalizeGuideDivisions(savedProject.guideRows),
           subdivisions:
             typeof savedProject.guideSubdivisions === "number"
-              ? Math.min(10, Math.max(1, Math.round(savedProject.guideSubdivisions)))
+              ? Math.min(
+                  10,
+                  Math.max(1, Math.round(savedProject.guideSubdivisions)),
+                )
               : 1,
           opacity:
             typeof savedProject.guideOpacity === "number" &&
@@ -862,7 +953,12 @@ export function PixelStudio() {
       } else if (!savedProject) {
         setReferenceGrid((current) => ({
           ...current,
-          region: fitGuideRegion(sourceWidth, sourceHeight, current.columns, current.rows),
+          region: fitGuideRegion(
+            sourceWidth,
+            sourceHeight,
+            current.columns,
+            current.rows,
+          ),
         }));
       }
       setGenerated(null);
@@ -888,13 +984,17 @@ export function PixelStudio() {
       projectReadyRef.current = true;
       savedProjectRef.current = null;
       setSourceVersion((value) => value + 1);
-      if (!savedProject && localStorage.getItem(FIRST_RESULT_GUIDE_KEY) !== "dismissed") {
+      if (
+        !savedProject &&
+        localStorage.getItem(FIRST_RESULT_GUIDE_KEY) !== "dismissed"
+      ) {
         setFirstResultGuide(true);
         setMode("convert");
       }
     } catch (error) {
       if (uploadRequest !== uploadRequestRef.current) return;
-      const message = error instanceof Error ? error.message : "Image upload failed.";
+      const message =
+        error instanceof Error ? error.message : "Image upload failed.";
       setUploadError(message);
       if (source) {
         setProcessing(false);
@@ -917,7 +1017,9 @@ export function PixelStudio() {
         // Never apply an orphaned project's frame or edits to a newly picked file.
         savedProjectRef.current = null;
       })
-      .catch(() => { savedProjectRef.current = null; })
+      .catch(() => {
+        savedProjectRef.current = null;
+      })
       .finally(() => setRestoringSource(false));
     // Restore the last source once when Studio opens; the source itself stays local.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -930,14 +1032,20 @@ export function PixelStudio() {
     setGenerated(null);
     overridesRef.current = createOverrides(next.width * next.height);
     setOverrides(overridesRef.current);
-    methodOverridesRef.current = createMethodOverrides(next.width * next.height);
+    methodOverridesRef.current = createMethodOverrides(
+      next.width * next.height,
+    );
     setMethodOverrides(methodOverridesRef.current);
     selectionMaskRef.current = null;
     setSelectionMask(null);
     setCropDraft(null);
     clearHistory();
     setMatchingPalette(
-      paletteToMatchingColors(activePalette, adjustments, excludedColorIdsRef.current),
+      paletteToMatchingColors(
+        activePalette,
+        adjustments,
+        excludedColorIdsRef.current,
+      ),
     );
   };
 
@@ -961,7 +1069,8 @@ export function PixelStudio() {
       width: crop.right - crop.left,
       height: crop.bottom - crop.top,
     };
-    if (nextGrid.width < MIN_GRID_SIDE || nextGrid.height < MIN_GRID_SIDE) return;
+    if (nextGrid.width < MIN_GRID_SIDE || nextGrid.height < MIN_GRID_SIDE)
+      return;
 
     const localCrop = sourceCropFromCells(
       crop,
@@ -1008,7 +1117,9 @@ export function PixelStudio() {
       setSourceVersion((value) => value + 1);
     } catch (error) {
       setProcessing(false);
-      toast.error(error instanceof Error ? error.message : "Source crop failed.");
+      toast.error(
+        error instanceof Error ? error.message : "Source crop failed.",
+      );
     } finally {
       setCropping(false);
     }
@@ -1023,15 +1134,27 @@ export function PixelStudio() {
   const applyReferenceCrop = async () => {
     if (!source || canvasFrame) return;
     const region = referenceGrid.region;
-    const x = Math.max(0, Math.min(source.width - 1, Math.round(region.x * source.width)));
-    const y = Math.max(0, Math.min(source.height - 1, Math.round(region.y * source.height)));
+    const x = Math.max(
+      0,
+      Math.min(source.width - 1, Math.round(region.x * source.width)),
+    );
+    const y = Math.max(
+      0,
+      Math.min(source.height - 1, Math.round(region.y * source.height)),
+    );
     const right = Math.max(
       x + 1,
-      Math.min(source.width, Math.round((region.x + region.width) * source.width)),
+      Math.min(
+        source.width,
+        Math.round((region.x + region.width) * source.width),
+      ),
     );
     const bottom = Math.max(
       y + 1,
-      Math.min(source.height, Math.round((region.y + region.height) * source.height)),
+      Math.min(
+        source.height,
+        Math.round((region.y + region.height) * source.height),
+      ),
     );
     const localCrop: SourceCrop = {
       x,
@@ -1092,7 +1215,9 @@ export function PixelStudio() {
       toast.success(`Cropped to ${nextGrid.width}×${nextGrid.height} cells`);
     } catch (error) {
       setProcessing(false);
-      toast.error(error instanceof Error ? error.message : "Source crop failed.");
+      toast.error(
+        error instanceof Error ? error.message : "Source crop failed.",
+      );
     } finally {
       setCropping(false);
     }
@@ -1135,13 +1260,20 @@ export function PixelStudio() {
     setCanvasFrameOpen(false);
     if (geometryChanged) {
       const axis = nextFrame
-        ? nextFrame.columns >= nextFrame.rows ? "width" : "height"
-        : source.width >= source.height ? "width" : "height";
+        ? nextFrame.columns >= nextFrame.rows
+          ? "width"
+          : "height"
+        : source.width >= source.height
+          ? "width"
+          : "height";
       const side = Math.max(gridWidth, gridHeight);
       const dimensions = nextFrame
         ? canvasGridDimensions(nextFrame, axis, side)
         : dimensionsForAspect(axis, side, source.width, source.height);
-      applyGrid({ width: clampGrid(dimensions.width), height: clampGrid(dimensions.height) });
+      applyGrid({
+        width: clampGrid(dimensions.width),
+        height: clampGrid(dimensions.height),
+      });
       setAspectLocked(true);
       setReferenceGrid((current) => ({
         ...current,
@@ -1149,19 +1281,27 @@ export function PixelStudio() {
         rows: nextFrame?.rows ?? current.rows,
         region: nextFrame
           ? { x: 0, y: 0, width: 1, height: 1 }
-          : fitGuideRegion(source.width, source.height, current.columns, current.rows),
+          : fitGuideRegion(
+              source.width,
+              source.height,
+              current.columns,
+              current.rows,
+            ),
       }));
     } else {
       // Transfer divisions can change without changing the composition or paint.
-      if (nextFrame) setReferenceGrid((current) => ({
-        ...current,
-        columns: nextFrame.columns,
-        rows: nextFrame.rows,
-        region: { x: 0, y: 0, width: 1, height: 1 },
-      }));
+      if (nextFrame)
+        setReferenceGrid((current) => ({
+          ...current,
+          columns: nextFrame.columns,
+          rows: nextFrame.rows,
+          region: { x: 0, y: 0, width: 1, height: 1 },
+        }));
       setProcessing(true);
     }
-    toast.success(nextFrame ? "Canvas framing applied" : "Original image bounds restored");
+    toast.success(
+      nextFrame ? "Canvas framing applied" : "Original image bounds restored",
+    );
   };
 
   const requestCanvasFrame = (value: CanvasFrame | null) => {
@@ -1217,23 +1357,26 @@ export function PixelStudio() {
   const selectPalette = (palette: Palette) => {
     const currentPalette = activePaletteRef.current;
     const currentAdjustments = adjustmentsRef.current;
-    if (
-      paletteIdentity(palette) === paletteIdentity(currentPalette)
-    ) {
+    if (paletteIdentity(palette) === paletteIdentity(currentPalette)) {
       return;
     }
     paletteRevisionRef.current += 1;
-    const currentAdjusted = paletteToPixelColors(currentPalette, currentAdjustments);
+    const currentAdjusted = paletteToPixelColors(
+      currentPalette,
+      currentAdjustments,
+    );
     const nextAdjusted = paletteToPixelColors(palette, currentAdjustments);
     const mapping = createPaletteIdMapping(currentAdjusted, nextAdjusted);
-    setCanvasFrame((current) => current ? {
-      ...current,
-      backgroundColorId: mapping.get(current.backgroundColorId) ?? palette.colors[0].id,
-    } : null);
-    overridesRef.current = remapPaintedColors(
-      overridesRef.current,
-      mapping,
+    setCanvasFrame((current) =>
+      current
+        ? {
+            ...current,
+            backgroundColorId:
+              mapping.get(current.backgroundColorId) ?? palette.colors[0].id,
+          }
+        : null,
     );
+    overridesRef.current = remapPaintedColors(overridesRef.current, mapping);
     setOverrides(overridesRef.current);
     remapHistory(mapping);
     activePaletteRef.current = palette;
@@ -1252,17 +1395,21 @@ export function PixelStudio() {
   const changePalette = (palette: Palette) => {
     paletteRevisionRef.current += 1;
     const colorsChanged = palette.colors !== activePalette.colors;
-    const nextPalette = activePalette.source !== "local"
-      ? {
-          ...palette,
-          id: customPaletteId(),
-          name: palette.name === activePalette.name ? `${palette.name} copy` : palette.name,
-          source: "local" as const,
-          tags: undefined,
-          author: undefined,
-          attribution: undefined,
-        }
-      : palette;
+    const nextPalette =
+      activePalette.source !== "local"
+        ? {
+            ...palette,
+            id: customPaletteId(),
+            name:
+              palette.name === activePalette.name
+                ? `${palette.name} copy`
+                : palette.name,
+            source: "local" as const,
+            tags: undefined,
+            author: undefined,
+            attribution: undefined,
+          }
+        : palette;
 
     if (colorsChanged) {
       const nextAdjusted = paletteToPixelColors(nextPalette, adjustments);
@@ -1272,13 +1419,20 @@ export function PixelStudio() {
       );
       const nextIsolatedColorIds = pruneColorIds(isolatedColorIds, nextPalette);
       const mapping = createPaletteIdMapping(adjustedPalette, nextAdjusted);
-      setCanvasFrame((current) => current && !nextPalette.colors.some((swatch) => swatch.id === current.backgroundColorId)
-        ? { ...current, backgroundColorId: mapping.get(current.backgroundColorId) ?? nextPalette.colors[0].id }
-        : current);
-      overridesRef.current = remapPaintedColors(
-        overridesRef.current,
-        mapping,
+      setCanvasFrame((current) =>
+        current &&
+        !nextPalette.colors.some(
+          (swatch) => swatch.id === current.backgroundColorId,
+        )
+          ? {
+              ...current,
+              backgroundColorId:
+                mapping.get(current.backgroundColorId) ??
+                nextPalette.colors[0].id,
+            }
+          : current,
       );
+      overridesRef.current = remapPaintedColors(overridesRef.current, mapping);
       setOverrides(overridesRef.current);
       remapHistory(mapping);
       excludedColorIdsRef.current = nextExcludedColorIds;
@@ -1294,7 +1448,9 @@ export function PixelStudio() {
       }
       if (
         selectedOutputSwatchId !== null &&
-        !nextPalette.colors.some((swatch) => swatch.id === selectedOutputSwatchId)
+        !nextPalette.colors.some(
+          (swatch) => swatch.id === selectedOutputSwatchId,
+        )
       ) {
         setSelectedOutputSwatchId(null);
       }
@@ -1303,14 +1459,21 @@ export function PixelStudio() {
     activePaletteRef.current = nextPalette;
     setActivePalette(nextPalette);
     setCustomPalettes((palettes) => {
-      const existing = palettes.findIndex((entry) => entry.id === nextPalette.id);
+      const existing = palettes.findIndex(
+        (entry) => entry.id === nextPalette.id,
+      );
       if (existing < 0) return [...palettes, nextPalette];
-      return palettes.map((entry) => (entry.id === nextPalette.id ? nextPalette : entry));
+      return palettes.map((entry) =>
+        entry.id === nextPalette.id ? nextPalette : entry,
+      );
     });
   };
 
   const createNewPalette = () => {
-    const result = createPalette(customPaletteId(), "New palette", ["#1e1d1a", "#f4efe4"]);
+    const result = createPalette(customPaletteId(), "New palette", [
+      "#1e1d1a",
+      "#f4efe4",
+    ]);
     if (!result.ok) return;
     setCustomPalettes((palettes) => [...palettes, result.value]);
     selectPalette(result.value);
@@ -1381,7 +1544,8 @@ export function PixelStudio() {
       if (!parsed.ok) throw new Error(parsed.error);
       colors = parsed.value;
     }
-    if (colors.length === 0) throw new Error("No opaque colors were found in this file.");
+    if (colors.length === 0)
+      throw new Error("No opaque colors were found in this file.");
 
     const name = file.name.replace(/\.[^.]+$/u, "") || "Imported palette";
     const result = createPalette(customPaletteId(), name, colors);
@@ -1416,7 +1580,8 @@ export function PixelStudio() {
     const nextId = restore ? NO_OVERRIDE_COLOR_ID : selectedColorId;
     let changed = false;
     for (const index of indices) {
-      if (selectionMaskRef.current && !selectionMaskRef.current[index]) continue;
+      if (selectionMaskRef.current && !selectionMaskRef.current[index])
+        continue;
       const before = overridesRef.current[index];
       if (before === nextId) continue;
       if (stroke.kind === "sparse") {
@@ -1476,7 +1641,8 @@ export function PixelStudio() {
     if (stroke.kind === "sparse") {
       for (const [index, previous] of stroke.before) addChange(index, previous);
     } else {
-      for (const index of stroke.indices) addChange(index, stroke.before[index]);
+      for (const index of stroke.indices)
+        addChange(index, stroke.before[index]);
     }
     const patch: HistoryPatch = {
       kind: "paint",
@@ -1516,7 +1682,10 @@ export function PixelStudio() {
     }
   };
 
-  const applyHistoryPatch = (patch: HistoryPatch, direction: "undo" | "redo") => {
+  const applyHistoryPatch = (
+    patch: HistoryPatch,
+    direction: "undo" | "redo",
+  ) => {
     const values = direction === "undo" ? patch.before : patch.after;
     if (patch.kind === "paint") {
       for (let index = 0; index < patch.indices.length; index += 1) {
@@ -1538,7 +1707,10 @@ export function PixelStudio() {
     historyRef.current = historyRef.current.slice(0, -1);
     futureRef.current = [...futureRef.current, patch];
     applyHistoryPatch(patch, "undo");
-    setHistoryStatus({ undo: historyRef.current.length, redo: futureRef.current.length });
+    setHistoryStatus({
+      undo: historyRef.current.length,
+      redo: futureRef.current.length,
+    });
   };
 
   const redo = () => {
@@ -1547,7 +1719,10 @@ export function PixelStudio() {
     futureRef.current = futureRef.current.slice(0, -1);
     historyRef.current = [...historyRef.current, patch];
     applyHistoryPatch(patch, "redo");
-    setHistoryStatus({ undo: historyRef.current.length, redo: futureRef.current.length });
+    setHistoryStatus({
+      undo: historyRef.current.length,
+      redo: futureRef.current.length,
+    });
   };
 
   const updateSelectionMask = (mask: Uint8Array | null) => {
@@ -1567,7 +1742,8 @@ export function PixelStudio() {
     if (!selection) return;
     const entries: { index: number; before: number }[] = [];
     for (let index = 0; index < selection.length; index += 1) {
-      if (!selection[index] || methodOverridesRef.current[index] === code) continue;
+      if (!selection[index] || methodOverridesRef.current[index] === code)
+        continue;
       entries.push({ index, before: methodOverridesRef.current[index] });
       methodOverridesRef.current[index] = code;
     }
@@ -1587,22 +1763,24 @@ export function PixelStudio() {
     const target = event.target as HTMLElement | null;
     if (
       target?.closest(
-        "input, textarea, select, button, a[href], [role=option], [role=menuitem], [role=dialog], [contenteditable=true]",
+        "input, textarea, select, a[href], [role=combobox], [role=option], [role=menuitem], [role=dialog], [contenteditable=true]",
       )
     ) {
       return;
     }
-    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "z") {
-      event.preventDefault();
+    const shortcut = studioShortcut(event);
+    if (!shortcut) return;
+    event.preventDefault();
+    if (shortcut.kind === "undo" || shortcut.kind === "redo") {
       if (activeStrokeRef.current) return;
-      if (event.shiftKey) redo();
+      if (shortcut.kind === "redo") redo();
       else undo();
-      return;
-    }
-    if (event.metaKey || event.ctrlKey || event.altKey) return;
-    if (event.key.toLowerCase() === "s") {
+    } else if (shortcut.kind === "select") {
       setMode("select");
       setSelectionTool("brush");
+    } else if (shortcut.kind === "paint") {
+      setMode("paint");
+      setTool(shortcut.tool);
     }
   });
 
@@ -1619,7 +1797,8 @@ export function PixelStudio() {
       if (exportTarget === "reference") {
         const file = sourceFileRef.current;
         const sourceCrop = sourceCropRef.current;
-        if (!file || !sourceCrop) throw new Error("The source image is unavailable.");
+        if (!file || !sourceCrop)
+          throw new Error("The source image is unavailable.");
         await exportReferencePng({
           file,
           crop: sourceCrop,
@@ -1652,10 +1831,14 @@ export function PixelStudio() {
           partitionFraming,
         );
       }
-      toast.success(exportTarget === "reference" ? "Reference exported" : "PNG exported");
+      toast.success(
+        exportTarget === "reference" ? "Reference exported" : "PNG exported",
+      );
       setExportOpen(false);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "PNG export failed.");
+      toast.error(
+        error instanceof Error ? error.message : "PNG export failed.",
+      );
     } finally {
       setExporting(false);
     }
@@ -1679,7 +1862,11 @@ export function PixelStudio() {
             void sampleImageFile(sample)
               .then(handleImageFile)
               .catch((error: unknown) => {
-                setUploadError(error instanceof Error ? error.message : "Pigment could not open that sample.");
+                setUploadError(
+                  error instanceof Error
+                    ? error.message
+                    : "Pigment could not open that sample.",
+                );
               });
           }}
           error={uploadError}
@@ -1744,15 +1931,23 @@ export function PixelStudio() {
         setPartition(nextPartition);
         if (previousSquareMethodRef.current !== method) {
           setMethod(previousSquareMethodRef.current);
-          toast.info(`${CONVERSION_METHODS.find((entry) => entry.value === previousSquareMethodRef.current)?.label ?? "Previous method"} restored for Square.`);
+          toast.info(
+            `${CONVERSION_METHODS.find((entry) => entry.value === previousSquareMethodRef.current)?.label ?? "Previous method"} restored for Square.`,
+          );
         }
       } else {
         previousSquareMethodRef.current = method;
         setPartition(nextPartition);
         setMode("convert");
-        if (["dither", "atkinson", "bayer", "blue-noise", "riemersma"].includes(method)) {
+        if (
+          ["dither", "atkinson", "bayer", "blue-noise", "riemersma"].includes(
+            method,
+          )
+        ) {
           setMethod("dominant");
-          toast.info("Dominant vote is active. Diffusion and pattern methods require Square.");
+          toast.info(
+            "Dominant vote is active. Diffusion and pattern methods require Square.",
+          );
         }
       }
       setProcessing(true);
@@ -1772,9 +1967,14 @@ export function PixelStudio() {
     processing,
     onGridChange: handleGridChange,
     onGridScale: (factor: 0.5 | 2) =>
-      requestGridChange(canvasFrame
-        ? canvasGridDimensions(canvasFrame, "width", gridWidth * factor)
-        : { width: clampGrid(gridWidth * factor), height: clampGrid(gridHeight * factor) }),
+      requestGridChange(
+        canvasFrame
+          ? canvasGridDimensions(canvasFrame, "width", gridWidth * factor)
+          : {
+              width: clampGrid(gridWidth * factor),
+              height: clampGrid(gridHeight * factor),
+            },
+      ),
     onAspectLockedChange: setAspectLocked,
     onPaletteChange: changePalette,
     onOpenPalette: () => setPaletteDialogOpen(true),
@@ -1801,7 +2001,8 @@ export function PixelStudio() {
     onCombineModeChange: setSelectionCombineMode,
     onBrushSizeChange: setSelectionBrushSize,
     onMethodChange: setSelectionMethod,
-    onSelectAll: () => updateSelectionMask(selectAllMask(gridWidth, gridHeight)),
+    onSelectAll: () =>
+      updateSelectionMask(selectAllMask(gridWidth, gridHeight)),
     onInvert: invertSelection,
     onDeselect: () => updateSelectionMask(null),
     onApplyMethod: () => {
@@ -1823,7 +2024,7 @@ export function PixelStudio() {
     selectionCount: selectionMask ? selectedCount : null,
     onSelectedColorChange: setSelectedColorId,
     onToolChange: setTool,
-    onBrushSizeChange: () => undefined,
+    onBrushSizeChange: setBrushSize,
     onOpenPalette: () => setPaletteDialogOpen(true),
   };
 
@@ -1832,7 +2033,12 @@ export function PixelStudio() {
     if (nextMode === "reference" && canvasFrame) {
       setReferenceGrid((current) => ({ ...current, visible: true }));
     }
-    if (nextMode === "reference" && source && !referenceGrid.visible && !canvasFrame) {
+    if (
+      nextMode === "reference" &&
+      source &&
+      !referenceGrid.visible &&
+      !canvasFrame
+    ) {
       setReferenceGrid((current) => ({
         ...current,
         visible: true,
@@ -1851,11 +2057,15 @@ export function PixelStudio() {
     view: referenceView,
     cropping,
     framed: canvasFrame !== null,
-    onFrame: () => { setControlsOpen(false); setCanvasFrameOpen(true); },
+    onFrame: () => {
+      setControlsOpen(false);
+      setCanvasFrameOpen(true);
+    },
     onViewChange: setReferenceView,
     onChange: (nextGrid: ReferenceGrid) => {
       if (
-        source && !canvasFrame &&
+        source &&
+        !canvasFrame &&
         (nextGrid.columns !== referenceGrid.columns ||
           nextGrid.rows !== referenceGrid.rows)
       ) {
@@ -1880,7 +2090,12 @@ export function PixelStudio() {
         visible: true,
         region: canvasFrame
           ? { x: 0, y: 0, width: 1, height: 1 }
-          : fitGuideRegion(source.width, source.height, current.columns, current.rows),
+          : fitGuideRegion(
+              source.width,
+              source.height,
+              current.columns,
+              current.rows,
+            ),
       }));
     },
     onCrop: requestReferenceCrop,
@@ -1892,13 +2107,60 @@ export function PixelStudio() {
   return (
     <div className="flex h-svh min-h-0 flex-col overflow-hidden bg-background text-foreground">
       <header
-        className="flex h-13 shrink-0 items-center justify-between border-b bg-background px-3 sm:px-4"
+        className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border/30 bg-background px-3 sm:px-4"
         inert={cropping}
       >
-        <div className="flex min-w-0 items-center gap-3">
-          <BrandMark className="size-6" />
-          <span className="hidden text-xs font-semibold tracking-[-0.02em] sm:inline">PIGMENT STUDIO</span>
-          <span className="hidden h-4 w-px bg-border sm:block" />
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <Popover open={projectMenuOpen} onOpenChange={setProjectMenuOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-11"
+                aria-label="Open Pigment menu"
+              >
+                <BrandMark className="size-6" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-64 p-2">
+              <p className="px-3 py-2 text-sm font-semibold">Pigment Studio</p>
+              <nav className="grid gap-1" aria-label="Studio navigation">
+                <Button asChild variant="ghost" className="justify-start">
+                  <Link href="/">Home</Link>
+                </Button>
+                <Button asChild variant="ghost" className="justify-start">
+                  <Link href="/lab#compare">Compare in Lab</Link>
+                </Button>
+                <Button asChild variant="ghost" className="justify-start">
+                  <Link href="/palettes">Browse palettes</Link>
+                </Button>
+              </nav>
+              <div className="mt-2 grid gap-1 border-t border-border/30 pt-2">
+                <Button
+                  variant="ghost"
+                  className="justify-start"
+                  disabled={uploading}
+                  onClick={() => {
+                    setProjectMenuOpen(false);
+                    setImageChooserOpen(true);
+                  }}
+                >
+                  Replace image
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="justify-start"
+                  disabled={uploading || processing}
+                  onClick={() => {
+                    setProjectMenuOpen(false);
+                    setCanvasFrameOpen(true);
+                  }}
+                >
+                  Canvas framing
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
           <div className="min-w-0">
             <p className="truncate text-xs font-medium">{source.name}</p>
             <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
@@ -1913,7 +2175,7 @@ export function PixelStudio() {
               <Button
                 variant={canvasFrame ? "secondary" : "ghost"}
                 size="sm"
-                className="size-11 px-0 sm:h-9 sm:w-auto sm:px-3"
+                className="hidden sm:inline-flex sm:h-9 sm:w-auto sm:px-3"
                 aria-label="Canvas framing"
                 disabled={uploading || processing}
                 onClick={() => setCanvasFrameOpen(true)}
@@ -1922,12 +2184,19 @@ export function PixelStudio() {
                 <span className="hidden sm:inline">Canvas</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Canvas framing · add space without cropping</TooltipContent>
+            <TooltipContent>
+              Canvas framing · add space without cropping
+            </TooltipContent>
           </Tooltip>
-          <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-            <Link href="/lab">
+          <Button
+            asChild
+            variant="ghost"
+            size="sm"
+            className="hidden sm:inline-flex"
+          >
+            <Link href="/lab#compare">
               <Beaker data-icon="inline-start" />
-              Inspect in Lab
+              Compare in Lab
             </Link>
           </Button>
           <Tooltip>
@@ -1943,7 +2212,9 @@ export function PixelStudio() {
                 <span className="sr-only">Undo</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Undo · ⌘/Ctrl Z</TooltipContent>
+            <TooltipContent>
+              Undo paint or regional method · ⌘/Ctrl Z
+            </TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -1958,112 +2229,80 @@ export function PixelStudio() {
                 <span className="sr-only">Redo</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Redo · ⌘/Ctrl Shift Z</TooltipContent>
+            <TooltipContent>
+              Redo paint or regional method · ⌘/Ctrl Shift Z
+            </TooltipContent>
           </Tooltip>
           <Popover>
             <Tooltip>
               <TooltipTrigger asChild>
                 <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon-sm" className="size-11 sm:size-8" aria-label="Open shortcuts and help">
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    className="size-11 sm:size-8"
+                    aria-label="Open shortcuts and help"
+                  >
                     <HelpCircle />
                   </Button>
                 </PopoverTrigger>
               </TooltipTrigger>
               <TooltipContent>Shortcuts and help</TooltipContent>
             </Tooltip>
-            <PopoverContent align="end" className="w-[min(22rem,calc(100vw-2rem))] p-0">
+            <PopoverContent
+              align="end"
+              className="w-[min(22rem,calc(100vw-2rem))] p-0"
+            >
               <div className="border-b-2 p-4">
                 <p className="font-heading text-base font-bold">Shortcuts</p>
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  Switch tools without leaving the canvas. Shortcuts pause while you type in a field.
+                  Switch tools without leaving the canvas. Undo restores paint
+                  strokes and regional methods; it does not restore image
+                  settings or palettes.
                 </p>
               </div>
               <dl className="grid grid-cols-[1fr_auto] gap-x-6 gap-y-3 p-4 text-xs">
-                <dt>Undo / redo</dt><dd className="font-mono text-muted-foreground">⌘/Ctrl Z · Shift Z</dd>
-                <dt>New intervention</dt><dd className="font-mono text-muted-foreground">S</dd>
-                <dt>Move cell cursor</dt><dd className="font-mono text-muted-foreground">Arrow keys</dd>
-                <dt>Use active tool</dt><dd className="font-mono text-muted-foreground">Enter</dd>
-                <dt>Pan canvas</dt><dd className="font-mono text-muted-foreground">Space + drag</dd>
+                <dt>Undo / redo</dt>
+                <dd className="font-mono text-muted-foreground">
+                  ⌘/Ctrl Z · Shift Z
+                </dd>
+                <dt>Select a region</dt>
+                <dd className="font-mono text-muted-foreground">S</dd>
+                <dt>Pencil / fill</dt>
+                <dd className="font-mono text-muted-foreground">P / F</dd>
+                <dt>Pick / restore color</dt>
+                <dd className="font-mono text-muted-foreground">I / E</dd>
+                <dt>Move cell cursor</dt>
+                <dd className="font-mono text-muted-foreground">Arrow keys</dd>
+                <dt>Use active tool</dt>
+                <dd className="font-mono text-muted-foreground">Enter</dd>
+                <dt>Pan canvas</dt>
+                <dd className="font-mono text-muted-foreground">
+                  Space + drag
+                </dd>
               </dl>
               <div className="border-t-2 p-3">
-                <Button asChild variant="link" size="sm" className="h-auto px-1">
-                  <Link href="/lab">Inspect this project in Lab</Link>
+                <Button
+                  asChild
+                  variant="link"
+                  size="sm"
+                  className="h-auto px-1"
+                >
+                  <Link href="/lab#compare">Compare this image in Lab</Link>
                 </Button>
               </div>
             </PopoverContent>
           </Popover>
           <span className="mx-1 h-4 w-px bg-border" />
           <div className="hidden sm:block">
-            <Button variant="outline" disabled={uploading} onClick={() => setImageChooserOpen(true)}>
+            <Button
+              variant="outline"
+              disabled={uploading}
+              onClick={() => setImageChooserOpen(true)}
+            >
               Replace image
             </Button>
           </div>
-          {!desktopControls ? <Sheet open={controlsOpen} onOpenChange={setControlsOpen}>
-            <SheetTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon-sm"
-                className="size-11 sm:size-8"
-                disabled={uploading}
-              >
-                <SlidersHorizontal />
-                <span className="sr-only">Open controls</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent
-              side="bottom"
-              className="overflow-hidden rounded-none p-0 data-[side=bottom]:h-[82svh] data-[side=bottom]:max-h-[82svh]"
-            >
-              <SheetHeader className="border-b text-left">
-                <SheetTitle>Controls</SheetTitle>
-                <SheetDescription>
-                  Shape the image, paint cells, or prepare a drawing reference.
-                </SheetDescription>
-              </SheetHeader>
-              <div className="border-b px-4 py-3 sm:hidden">
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  disabled={uploading}
-                  onClick={() => {
-                    setControlsOpen(false);
-                    setImageChooserOpen(true);
-                  }}
-                >
-                  Replace image
-                </Button>
-              </div>
-              <div className="min-h-0 flex-1">
-                <Inspector
-                  mode={mode}
-                  onModeChange={handleModeChange}
-                  convertProps={convertProps}
-                  selectionProps={selectionProps}
-                  paintProps={paintProps}
-                  referenceProps={referenceProps}
-                  regionsEnabled={partition === "square"}
-                />
-              </div>
-            </SheetContent>
-          </Sheet> : null}
-          {!desktopControls ? <Sheet open={outputOpen} onOpenChange={setOutputOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon-sm" className="size-11 sm:size-8" disabled={uploading}>
-                <PanelRight />
-                <span className="sr-only">Open output controls</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent
-              side="right"
-              className="min-h-0 gap-0 overflow-hidden p-0 data-[side=right]:w-[92vw] data-[side=right]:max-w-[22rem]"
-            >
-              <SheetHeader className="shrink-0 border-b text-left">
-                <SheetTitle>Output</SheetTitle>
-                <SheetDescription>Set the partition, output resolution, and palette.</SheetDescription>
-              </SheetHeader>
-              <OutputSidebar {...outputProps} />
-            </SheetContent>
-          </Sheet> : null}
           <Button
             aria-label="Export PNG"
             className="size-11 px-0 sm:h-10 sm:w-auto sm:px-4"
@@ -2078,20 +2317,31 @@ export function PixelStudio() {
 
       <div
         className="relative flex min-h-0 min-w-0 flex-1"
+        style={
+          !desktopControls && controlsOpen
+            ? { marginBottom: "calc(58svh - 4rem)" }
+            : undefined
+        }
         inert={uploading || cropping}
         aria-busy={uploading || cropping}
       >
-        {desktopControls ? <aside className="flex min-h-0 min-w-0 w-80 shrink-0 flex-col border-r bg-background">
-          <Inspector
-            mode={mode}
-            onModeChange={handleModeChange}
-            convertProps={convertProps}
-            selectionProps={selectionProps}
-            paintProps={paintProps}
-            referenceProps={referenceProps}
-            regionsEnabled={partition === "square"}
-          />
-        </aside> : null}
+        {desktopControls ? (
+          <aside
+            aria-label="Editing controls"
+            className="flex min-h-0 min-w-0 w-88 shrink-0 flex-col border-r border-border/30 bg-background"
+          >
+            <Inspector
+              mode={mode}
+              onModeChange={handleModeChange}
+              convertProps={convertProps}
+              outputProps={outputProps}
+              selectionProps={selectionProps}
+              paintProps={paintProps}
+              referenceProps={referenceProps}
+              regionsEnabled={partition === "square"}
+            />
+          </aside>
+        ) : null}
         <PixelCanvas
           width={gridWidth}
           height={gridHeight}
@@ -2126,15 +2376,6 @@ export function PixelStudio() {
           onCropChange={setCropDraft}
           onCropApply={requestCrop}
         />
-        {desktopControls ? (
-          <aside className="flex min-h-0 min-w-0 w-80 shrink-0 flex-col border-l bg-background">
-            <div className="shrink-0 border-b px-4 py-3">
-              <p className="text-xs font-medium">Output</p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">Partition and palette</p>
-            </div>
-            <OutputSidebar {...outputProps} />
-          </aside>
-        ) : null}
         {uploading || cropping ? (
           <div className="absolute inset-0 z-40 grid place-items-center bg-background/45 backdrop-blur-[1px]">
             <div className="flex items-center gap-2 border bg-background px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em] shadow-sm">
@@ -2145,12 +2386,78 @@ export function PixelStudio() {
         ) : null}
       </div>
 
+      {!desktopControls ? (
+        <>
+          <nav
+            aria-label="Editing tools"
+            className="grid shrink-0 grid-cols-4 gap-1 border-t border-border/30 bg-background p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+          >
+            {EDITOR_MODES.map((entry) => (
+              <Button
+                key={entry.value}
+                variant={mode === entry.value ? "secondary" : "ghost"}
+                className="min-h-11 min-w-0 px-1 text-[11px] tracking-normal"
+                aria-label={`Open ${entry.label.toLowerCase()} controls`}
+                aria-expanded={controlsOpen && mode === entry.value}
+                disabled={uploading || cropping}
+                onClick={() => {
+                  handleModeChange(entry.value);
+                  setControlsOpen(true);
+                }}
+              >
+                {entry.label}
+              </Button>
+            ))}
+          </nav>
+          <Sheet
+            open={controlsOpen}
+            onOpenChange={setControlsOpen}
+            modal={false}
+          >
+            <SheetContent
+              side="bottom"
+              showCloseButton={false}
+              className="gap-0 overflow-hidden p-0 data-[side=bottom]:h-[58svh] data-[side=bottom]:max-h-[58svh] sm:max-w-none"
+            >
+              <SheetHeader className="flex h-14 shrink-0 flex-row items-center justify-between border-b border-border/30 px-4 py-2 text-left">
+                <div>
+                  <SheetTitle className="text-sm">Editing controls</SheetTitle>
+                  <SheetDescription className="sr-only">
+                    Changes appear on the canvas above. Close the panel to draw.
+                  </SheetDescription>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setControlsOpen(false)}
+                >
+                  Done
+                </Button>
+              </SheetHeader>
+              <div className="min-h-0 flex-1">
+                <Inspector
+                  mode={mode}
+                  onModeChange={handleModeChange}
+                  convertProps={convertProps}
+                  outputProps={outputProps}
+                  selectionProps={selectionProps}
+                  paintProps={paintProps}
+                  referenceProps={referenceProps}
+                  regionsEnabled={partition === "square"}
+                />
+              </div>
+            </SheetContent>
+          </Sheet>
+        </>
+      ) : null}
+
       <Dialog open={imageChooserOpen} onOpenChange={setImageChooserOpen}>
         <DialogContent className="max-h-[min(90svh,58rem)] overflow-y-auto rounded-none p-0 sm:max-w-5xl">
           <DialogHeader className="border-b px-5 py-4 pr-14">
             <DialogTitle>Replace image</DialogTitle>
             <DialogDescription>
-              Choose a file or start from an openly licensed sample. Replacing the image resets the current procedure.
+              Choose a file or start from an openly licensed sample. Replacing
+              the image resets the current procedure.
             </DialogDescription>
           </DialogHeader>
           <div className="p-5">
@@ -2167,7 +2474,11 @@ export function PixelStudio() {
                 void sampleImageFile(sample)
                   .then(handleImageFile)
                   .catch((error: unknown) => {
-                    setUploadError(error instanceof Error ? error.message : "Pigment could not open that sample.");
+                    setUploadError(
+                      error instanceof Error
+                        ? error.message
+                        : "Pigment could not open that sample.",
+                    );
                   });
               }}
             />
@@ -2188,23 +2499,30 @@ export function PixelStudio() {
       ) : null}
       <AlertDialog
         open={pendingCanvasFrame !== null}
-        onOpenChange={(open: boolean) => { if (!open) setPendingCanvasFrame(null); }}
+        onOpenChange={(open: boolean) => {
+          if (!open) setPendingCanvasFrame(null);
+        }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Reframe and rebuild the artwork?</AlertDialogTitle>
+            <AlertDialogTitle>
+              Reframe and rebuild the artwork?
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Changing canvas bounds or image placement clears painted edits, selections,
-              regional methods, and undo history. Your source image stays intact.
-              Changing only the background swatch preserves edits.
+              Changing canvas bounds or image placement clears painted edits,
+              selections, regional methods, and undo history. Your source image
+              stays intact. Changing only the background swatch preserves edits.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Keep current framing</AlertDialogCancel>
-            <AlertDialogAction onClick={() => {
-              if (pendingCanvasFrame) applyCanvasFrame(pendingCanvasFrame.frame);
-              setPendingCanvasFrame(null);
-            }}>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingCanvasFrame)
+                  applyCanvasFrame(pendingCanvasFrame.frame);
+                setPendingCanvasFrame(null);
+              }}
+            >
               Reframe and clear edits
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -2233,8 +2551,16 @@ export function PixelStudio() {
         onTargetChange={setExportTarget}
         artworkWidth={gridWidth}
         artworkHeight={gridHeight}
-        referenceWidth={canvasFrame ? canvasFrameLayout(source.width, source.height, canvasFrame).width : source.width}
-        referenceHeight={canvasFrame ? canvasFrameLayout(source.width, source.height, canvasFrame).height : source.height}
+        referenceWidth={
+          canvasFrame
+            ? canvasFrameLayout(source.width, source.height, canvasFrame).width
+            : source.width
+        }
+        referenceHeight={
+          canvasFrame
+            ? canvasFrameLayout(source.width, source.height, canvasFrame).height
+            : source.height
+        }
         scale={exportScale}
         onScaleChange={setExportScale}
         showReferenceGrid={showReferenceGridInExport}
@@ -2252,8 +2578,9 @@ export function PixelStudio() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this palette?</AlertDialogTitle>
             <AlertDialogDescription>
-              “{pendingPaletteDelete?.name}” will be removed from this browser. If it is
-              active, Arcade will replace it and painted colors will be remapped.
+              “{pendingPaletteDelete?.name}” will be removed from this browser.
+              If it is active, Arcade will replace it and painted colors will be
+              remapped.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -2261,7 +2588,8 @@ export function PixelStudio() {
             <AlertDialogAction
               variant="destructive"
               onClick={() => {
-                if (pendingPaletteDelete) deleteCustomPalette(pendingPaletteDelete);
+                if (pendingPaletteDelete)
+                  deleteCustomPalette(pendingPaletteDelete);
               }}
             >
               Delete palette
@@ -2279,8 +2607,9 @@ export function PixelStudio() {
           <AlertDialogHeader>
             <AlertDialogTitle>Crop to the reference grid?</AlertDialogTitle>
             <AlertDialogDescription>
-              This permanently crops the source and reduces the artwork dimensions.
-              Manual paint edits, selections, and regional methods will be cleared.
+              This permanently crops the source and reduces the artwork
+              dimensions. Manual paint edits, selections, and regional methods
+              will be cleared.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -2306,8 +2635,8 @@ export function PixelStudio() {
           <AlertDialogHeader>
             <AlertDialogTitle>Crop the source image?</AlertDialogTitle>
             <AlertDialogDescription>
-              Cropping changes cell positions, so manual paint edits, selections, and
-              regional quantization methods will be cleared.
+              Cropping changes cell positions, so manual paint edits,
+              selections, and regional quantization methods will be cleared.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -2337,8 +2666,8 @@ export function PixelStudio() {
           <AlertDialogHeader>
             <AlertDialogTitle>Resize the pixel grid?</AlertDialogTitle>
             <AlertDialogDescription>
-              Resizing changes cell positions, so manual paint edits, selections, and
-              regional quantization methods will be cleared.
+              Resizing changes cell positions, so manual paint edits,
+              selections, and regional quantization methods will be cleared.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

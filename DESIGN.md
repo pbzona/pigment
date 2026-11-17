@@ -172,7 +172,7 @@ The palette sets warm paper-like ink against carbon surfaces, then uses four sat
 
 Pigment uses a responsive workbench model. Marketing and catalog pages sit in centered containers up to roughly 80–92rem wide with 1.25rem desktop gutters and 0.75rem mobile gutters. Major sections use visible rules, indexed columns, and grids rather than floating islands. The catalog favors a three-column card grid, reducing to two below 73.75rem and one below 47.5rem.
 
-The studio prioritizes the artifact: a flexible canvas occupies the center, with a 18rem inspector on the left and a 20rem output panel on the right when space allows. Narrow screens move those controls into bottom and side sheets while keeping creation available. Dense control regions use 0.5–1.25rem spacing; page sections use approximately 3–7rem of vertical separation.
+The studio prioritizes the artifact: one 22rem editing dock sits beside a flexible canvas. Image controls keep cell shape, grid size, method, palette, and source adjustments together; Regions, Paint, and Reference provide focused tools in the same dock. Narrow screens use a labeled bottom tool bar and one non-modal panel occupying 58svh, with the canvas refitted into the remaining space so changes stay visible. Dense control regions use 0.5–1.25rem spacing; page sections use approximately 3–7rem of vertical separation.
 
 Grid lines are part of the environment, not a content layout constraint. Align component edges deliberately to the visible structure, but do not force every element onto the 24px background grid. Responsive changes should preserve task order, touch targets, keyboard access, and the central artwork before preserving desktop symmetry.
 

@@ -2,13 +2,7 @@
 
 import { useId } from "react";
 
-import {
-  Blend,
-  Brush,
-  Grid2X2Check,
-  Scan,
-  Ungroup,
-} from "lucide-react";
+import { Blend, Brush, Grid2X2Check, Scan, Ungroup } from "lucide-react";
 
 import { Button } from "@pigment/ui/button";
 import { Label } from "@pigment/ui/label";
@@ -21,7 +15,10 @@ import {
 } from "@pigment/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@pigment/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pigment/ui/tooltip";
-import { CONVERSION_METHODS, type ConversionMethod } from "@pigment/quantization";
+import {
+  CONVERSION_METHODS,
+  type ConversionMethod,
+} from "@pigment/quantization";
 
 import type { SelectionCombineMode, SelectionTool } from "./types";
 
@@ -79,7 +76,7 @@ export function SelectionPanel({
     <div className="space-y-7 px-4 pb-6">
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <Label>Selection tool</Label>
+          <Label>Region tool</Label>
           <span className="font-mono text-[10px] text-muted-foreground">
             {selectedCount === null ? "none" : `${selectedCount} cells`}
           </span>
@@ -99,9 +96,19 @@ export function SelectionPanel({
             return (
               <Tooltip key={entry.value}>
                 <TooltipTrigger asChild>
-                  <ToggleGroupItem value={entry.value} className="flex-1 rounded-none">
+                  <ToggleGroupItem
+                    value={entry.value}
+                    className="h-auto min-h-12 flex-1 flex-col gap-1 px-1 py-2 text-[11px]"
+                    aria-label={entry.label}
+                  >
                     <Icon />
-                    <span className="sr-only">{entry.label}</span>
+                    <span>
+                      {entry.value === "brush"
+                        ? "Brush"
+                        : entry.value === "contiguous"
+                          ? "By color"
+                          : "Rectangle"}
+                    </span>
                   </ToggleGroupItem>
                 </TooltipTrigger>
                 <TooltipContent>{entry.label}</TooltipContent>
@@ -171,31 +178,48 @@ export function SelectionPanel({
           <Button variant="outline" size="xs" onClick={onInvert}>
             <Ungroup data-icon="inline-start" /> Invert
           </Button>
-          <Button variant="outline" size="xs" className="col-span-2" disabled={selectedCount === null} onClick={onDeselect}>
+          <Button
+            variant="outline"
+            size="xs"
+            className="col-span-2"
+            disabled={selectedCount === null}
+            onClick={onDeselect}
+          >
             Deselect
           </Button>
         </div>
       </section>
 
       <section className="border-t pt-5">
-        <Label htmlFor={methodId} className="mb-3">Quantization for selection</Label>
+        <Label htmlFor={methodId} className="mb-3">
+          Method for this region
+        </Label>
         <Select
           value={method}
-          onValueChange={(value: string) => onMethodChange(value as ConversionMethod)}
+          onValueChange={(value: string) =>
+            onMethodChange(value as ConversionMethod)
+          }
         >
           <SelectTrigger id={methodId} className="h-9 w-full rounded-none py-0">
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="rounded-none">
             {CONVERSION_METHODS.map((entry) => (
-              <SelectItem key={entry.value} value={entry.value} className="rounded-none">
+              <SelectItem
+                key={entry.value}
+                value={entry.value}
+                className="rounded-none"
+              >
                 {entry.label}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <div className="mt-3 grid gap-2">
-          <Button disabled={!hasSelection || processing} onClick={onApplyMethod}>
+          <Button
+            disabled={!hasSelection || processing}
+            onClick={onApplyMethod}
+          >
             Apply method
           </Button>
           <Button
@@ -203,11 +227,14 @@ export function SelectionPanel({
             disabled={!hasSelection || processing}
             onClick={onUseGlobal}
           >
-            Use global
+            Use image method
           </Button>
         </div>
         <p className="mt-2 text-[10px] leading-4 text-muted-foreground">
-          Unassigned cells follow the global {globalMethod} method.
+          Other cells keep the image’s{" "}
+          {CONVERSION_METHODS.find((entry) => entry.value === globalMethod)
+            ?.label ?? globalMethod}{" "}
+          method.
         </p>
       </section>
     </div>
