@@ -1,7 +1,12 @@
 import {
+  createFramedPreview,
   createSourcePreview,
   cropPixels,
+  MAX_EXPORT_SIDE,
+  type CanvasFrame,
   type InputAdjustments,
+  type PixelPaletteColor,
+  type PixelPreview,
   type SourceCrop,
 } from "@pigment/quantization";
 
@@ -20,16 +25,82 @@ export type ReferenceExportGrid = Readonly<{
   }>;
 }>;
 
-type ExportReferenceOptions = Readonly<{
-  file: File;
+export type ReferencePreviewOptions = Readonly<{
   crop: SourceCrop;
   adjustments: InputAdjustments;
   preserveTransparency: boolean;
   alphaThreshold: number;
-  showGrid: boolean;
-  grid: ReferenceExportGrid;
-  fileName: string;
+  frame?: CanvasFrame | null;
+  frameBackground?: PixelPaletteColor;
 }>;
+
+export type ExportReferenceOptions = ReferencePreviewOptions &
+  Readonly<{
+    file: File;
+    showGrid: boolean;
+    grid: ReferenceExportGrid;
+    fileName: string;
+  }>;
+
+export const renderReferencePreview = (
+  sourcePixels: Uint8ClampedArray,
+  sourceWidth: number,
+  sourceHeight: number,
+  {
+    crop,
+    adjustments,
+    preserveTransparency,
+    alphaThreshold,
+    frame,
+    frameBackground,
+  }: ReferencePreviewOptions,
+): PixelPreview => {
+  const croppedPixels = cropPixels(
+    sourcePixels,
+    sourceWidth,
+    sourceHeight,
+    crop,
+  );
+  if (frame) {
+    if (!frameBackground) {
+      throw new Error(
+        "Choose a palette color for the canvas background before exporting.",
+      );
+    }
+    return createFramedPreview(
+      croppedPixels,
+      crop.width,
+      crop.height,
+      frame,
+      frameBackground.color,
+      adjustments,
+      preserveTransparency,
+      alphaThreshold,
+      MAX_EXPORT_SIDE,
+    );
+  }
+  return createSourcePreview(
+    croppedPixels,
+    crop.width,
+    crop.height,
+    adjustments,
+    preserveTransparency,
+    alphaThreshold,
+    Math.max(crop.width, crop.height),
+  );
+};
+
+export const referenceGridGeometry = (
+  width: number,
+  height: number,
+  grid: ReferenceExportGrid,
+) => ({
+  left: grid.region.x * width,
+  top: grid.region.y * height,
+  width: grid.region.width * width,
+  height: grid.region.height * height,
+  lineWidth: Math.max(1, Math.round(Math.min(width, height) / 700)),
+});
 
 const canvasToBlob = (canvas: HTMLCanvasElement): Promise<Blob> =>
   new Promise((resolve, reject) => {
@@ -55,11 +126,13 @@ const drawGrid = (
   grid: ReferenceExportGrid,
 ) => {
   const alpha = Math.min(1, Math.max(0.1, grid.opacity / 100));
-  const lineWidth = Math.max(1, Math.round(Math.min(width, height) / 700));
-  const left = grid.region.x * width;
-  const top = grid.region.y * height;
-  const gridWidth = grid.region.width * width;
-  const gridHeight = grid.region.height * height;
+  const {
+    lineWidth,
+    left,
+    top,
+    width: gridWidth,
+    height: gridHeight,
+  } = referenceGridGeometry(width, height, grid);
   const drawLines = (
     columns: number,
     rows: number,
@@ -98,40 +171,29 @@ const drawGrid = (
 
 export const exportReferencePng = async ({
   file,
-  crop,
-  adjustments,
-  preserveTransparency,
-  alphaThreshold,
   showGrid,
   grid,
   fileName,
+  ...previewOptions
 }: ExportReferenceOptions): Promise<void> => {
   const decoded = await decodeImageFile(file);
-  const croppedPixels = cropPixels(
+  const adjusted = renderReferencePreview(
     decoded.pixels,
     decoded.width,
     decoded.height,
-    crop,
-  );
-  const adjusted = createSourcePreview(
-    croppedPixels,
-    crop.width,
-    crop.height,
-    adjustments,
-    preserveTransparency,
-    alphaThreshold,
-    Math.max(crop.width, crop.height),
+    previewOptions,
   );
   const output = document.createElement("canvas");
-  output.width = crop.width;
-  output.height = crop.height;
+  output.width = adjusted.width;
+  output.height = adjusted.height;
   const outputContext = output.getContext("2d");
-  if (!outputContext) throw new Error("The browser could not create an export canvas.");
+  if (!outputContext)
+    throw new Error("The browser could not create an export canvas.");
   outputContext.putImageData(
     new ImageData(adjusted.pixels, adjusted.width, adjusted.height),
     0,
     0,
   );
-  if (showGrid) drawGrid(outputContext, crop.width, crop.height, grid);
+  if (showGrid) drawGrid(outputContext, adjusted.width, adjusted.height, grid);
   downloadBlob(await canvasToBlob(output), fileName);
 };

@@ -42,6 +42,7 @@ type OutputSidebarProps = Readonly<{
   partition: PartitionKind;
   partitionScale: number;
   aspectLocked: boolean;
+  aspectFixed?: boolean;
   inputVersion: number;
   palette: Palette;
   paletteAdjustments: PaletteAdjustmentsValue;
@@ -70,6 +71,7 @@ export function OutputSidebar({
   partition,
   partitionScale,
   aspectLocked,
+  aspectFixed = false,
   inputVersion,
   palette,
   paletteAdjustments,
@@ -238,11 +240,13 @@ export function OutputSidebar({
             <Button
               variant={aspectLocked ? "secondary" : "ghost"}
               size="icon-sm"
+              disabled={aspectFixed}
+              title={aspectFixed ? "Canvas framing keeps these proportions locked." : undefined}
               onClick={() => onAspectLockedChange(!aspectLocked)}
             >
               {aspectLocked ? <Link2 /> : <Unlink2 />}
               <span className="sr-only">
-                {aspectLocked ? "Unlock aspect ratio" : "Preserve aspect ratio"}
+                {aspectFixed ? "Canvas proportions locked" : aspectLocked ? "Unlock aspect ratio" : "Preserve aspect ratio"}
               </span>
             </Button>
             <label className="min-w-0">

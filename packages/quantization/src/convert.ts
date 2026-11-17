@@ -7,8 +7,9 @@ import {
   srgbByteToLinear,
 } from "@pigment/color";
 
+import { canvasFrameBackgroundMask, canvasFrameLayout, createFramedInputSampler, normalizeCanvasFrame } from "./frame";
 import { getCellRange } from "./grid";
-import { createInputSampler, normalizeInputAdjustments, type InputSample } from "./input-adjust";
+import { createInputSampler, normalizeInputAdjustments, type InputSample, type InputSampler } from "./input-adjust";
 import { createPaletteMatcher, type PaletteMatcher } from "./matcher";
 import { createPartition } from "./partition";
 import type {
@@ -42,6 +43,8 @@ type SourceImage = Readonly<{
   pixels: Uint8ClampedArray;
   width: number;
   height: number;
+  sampler?: InputSampler;
+  backgroundMask?: Uint8Array;
 }>;
 
 type RepresentativeGrid = {
@@ -146,7 +149,7 @@ const convertCenter = (
   traces?: QuantizationCellTrace[],
 ) => {
   const sample = createSample();
-  const sampler = createInputSampler(
+  const sampler = source.sampler ?? createInputSampler(
     source.pixels,
     source.width,
     source.height,
@@ -197,6 +200,18 @@ const convertCenter = (
   }
 };
 
+// A cell only bypasses matching when its entire continuous canvas bounds are
+// outside the original image rectangle. Touching an image edge is still outside;
+// partially intersecting cells use the selected conversion method as usual.
+const isFrameBackgroundCell = (
+  source: SourceImage,
+  options: ConversionOptions,
+  x: number,
+  y: number,
+): boolean => {
+  return source.backgroundMask?.[y * options.gridWidth + x] === 1;
+};
+
 const convertPolygonPartition = (
   source: SourceImage,
   options: ConversionOptions,
@@ -214,7 +229,7 @@ const convertPolygonPartition = (
   if (method === "dither" || method === "atkinson" || method === "bayer" || method === "blue-noise" || method === "riemersma") {
     throw new Error("Diffusion and pattern methods require a square partition.");
   }
-  const sampler = createInputSampler(
+  const sampler = source.sampler ?? createInputSampler(
     source.pixels,
     source.width,
     source.height,
@@ -226,6 +241,7 @@ const convertPolygonPartition = (
   for (let y = 0; y < options.gridHeight; y += 1) {
     const yRange = getCellRange(y, options.gridHeight, source.height);
     for (let x = 0; x < options.gridWidth; x += 1) {
+      if (isFrameBackgroundCell(source, options, x, y)) continue;
       const xRange = getCellRange(x, options.gridWidth, source.width);
       const region = partition.regionIds[y * options.gridWidth + x];
       for (let sy = yRange.start; sy < yRange.end; sy += 1) {
@@ -295,7 +311,9 @@ const convertPolygonPartition = (
   }
   const colorIds = new Uint16Array(options.gridWidth * options.gridHeight);
   for (let index = 0; index < colorIds.length; index += 1) {
-    colorIds[index] = regionColors[partition.regionIds[index]];
+    colorIds[index] = isFrameBackgroundCell(
+      source, options, index % options.gridWidth, Math.floor(index / options.gridWidth),
+    ) ? options.frame!.backgroundColorId : regionColors[partition.regionIds[index]];
   }
   return { width: options.gridWidth, height: options.gridHeight, colorIds };
 };
@@ -348,7 +366,7 @@ const convertDominant = (
 ) => {
   const counts = new Uint32Array(options.palette.length);
   const sample = createSample();
-  const sampler = createInputSampler(
+  const sampler = source.sampler ?? createInputSampler(
     source.pixels,
     source.width,
     source.height,
@@ -449,7 +467,7 @@ const averageGrid = (
     ? new Uint32Array(options.gridWidth * options.gridHeight)
     : undefined;
   const sample = createSample();
-  const sampler = createInputSampler(
+  const sampler = source.sampler ?? createInputSampler(
     source.pixels,
     source.width,
     source.height,
@@ -823,7 +841,7 @@ const convertMedian = (
   const green = new Uint32Array(256);
   const blue = new Uint32Array(256);
   const sample = createSample();
-  const sampler = createInputSampler(
+  const sampler = source.sampler ?? createInputSampler(
     source.pixels,
     source.width,
     source.height,
@@ -920,7 +938,7 @@ const convertGeometricMedian = (
   const labB = new Float64Array(GEOMETRIC_MEDIAN_BINS);
   const touched: number[] = [];
   const sample = createSample();
-  const sampler = createInputSampler(
+  const sampler = source.sampler ?? createInputSampler(
     source.pixels,
     source.width,
     source.height,
@@ -1560,14 +1578,59 @@ const runConversion = (
   options: ConversionOptions,
   traces?: QuantizationCellTrace[],
 ): ConversionResult => {
-  const source = { pixels, width: sourceWidth, height: sourceHeight };
+  let source: SourceImage = {
+    pixels,
+    width: sourceWidth,
+    height: sourceHeight,
+  };
   validateConversion(source, options);
+  if (options.frame !== undefined) {
+    const frame = normalizeCanvasFrame(options.frame);
+    if (!frame) throw new RangeError("Invalid canvas frame.");
+    const background =
+      options.frameBackground ??
+      options.palette.find((entry) => entry.id === frame.backgroundColorId);
+    if (!background || background.id !== frame.backgroundColorId) {
+      throw new Error(
+        "Frame background must match backgroundColorId; supply frameBackground when excluded from the palette.",
+      );
+    }
+    const layout = canvasFrameLayout(sourceWidth, sourceHeight, frame);
+    source = {
+      pixels,
+      width: layout.width,
+      height: layout.height,
+      backgroundMask: canvasFrameBackgroundMask(
+        sourceWidth, sourceHeight, frame, options.gridWidth, options.gridHeight,
+      ),
+      sampler: createFramedInputSampler(
+        pixels,
+        sourceWidth,
+        sourceHeight,
+        layout,
+        background.color,
+        options.inputAdjustments,
+        options.preserveTransparency,
+      ),
+    };
+  }
   const matcher = createPaletteMatcher(options.palette);
   if ((options.partition ?? "square") !== "square") {
     return convertPolygonPartition(source, options, matcher);
   }
   const methods = resolveMethods(options);
   const colorIds = new Uint16Array(options.gridWidth * options.gridHeight);
+  if (source.backgroundMask) {
+    for (let y = 0; y < options.gridHeight; y += 1) {
+      for (let x = 0; x < options.gridWidth; x += 1) {
+        if (!isFrameBackgroundCell(source, options, x, y)) continue;
+        const index = y * options.gridWidth + x;
+        // Skipping these cells also prevents error diffusion into or out of fill.
+        methods[index] = METHOD_INHERIT;
+        colorIds[index] = options.frame!.backgroundColorId;
+      }
+    }
+  }
 
   if (methods.includes(METHOD_DOMINANT)) {
     convertDominant(source, options, methods, matcher, colorIds, traces);
@@ -1627,6 +1690,9 @@ export const traceImageConversion = (
   sourceHeight: number,
   options: ConversionOptions,
 ): ImageConversionTrace => {
+  if (options.frame !== undefined) {
+    throw new Error("Teaching traces do not support canvas framing.");
+  }
   if (options.methodOverrides) {
     throw new Error("Teaching traces require one conversion method for the full grid.");
   }

@@ -1,10 +1,12 @@
 import type { PaletteAdjustments } from "@pigment/color";
 import type { Palette } from "@pigment/palette";
-import type {
-  ConversionMethod,
-  InputAdjustments,
-  PartitionKind,
-  SourceCrop,
+import {
+  normalizeCanvasFrame,
+  type CanvasFrame,
+  type ConversionMethod,
+  type InputAdjustments,
+  type PartitionKind,
+  type SourceCrop,
 } from "@pigment/quantization";
 
 export const STUDIO_PROJECT_KEY = "pigment:studio-project:v1";
@@ -23,6 +25,7 @@ export type StudioProject = Readonly<{
   alphaThreshold: number;
   inputAdjustments: InputAdjustments;
   sourceCrop: SourceCrop;
+  canvasFrame?: CanvasFrame | null;
   palette: Palette;
   paletteAdjustments: PaletteAdjustments;
   excludedColorIds: readonly number[];
@@ -68,7 +71,9 @@ export function restoreSparseValues<T extends Int32Array | Uint8Array>(
 export function readStudioProject(): StudioProject | null {
   if (typeof window === "undefined") return null;
   try {
-    const value = JSON.parse(localStorage.getItem(STUDIO_PROJECT_KEY) ?? "null") as unknown;
+    const value = JSON.parse(
+      localStorage.getItem(STUDIO_PROJECT_KEY) ?? "null",
+    ) as unknown;
     if (!value || typeof value !== "object") return null;
     const project = value as Partial<StudioProject>;
     if (
@@ -82,7 +87,19 @@ export function readStudioProject(): StudioProject | null {
     ) {
       return null;
     }
-    return project as StudioProject;
+    const frame = normalizeCanvasFrame(project.canvasFrame);
+    const backgroundColorId =
+      frame &&
+      project.palette.colors.some(
+        (color) => color.id === frame.backgroundColorId,
+      )
+        ? frame.backgroundColorId
+        : project.palette.colors[0]?.id;
+    const canvasFrame =
+      frame && backgroundColorId !== undefined
+        ? { ...frame, backgroundColorId }
+        : null;
+    return { ...project, canvasFrame } as StudioProject;
   } catch {
     return null;
   }

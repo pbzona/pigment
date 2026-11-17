@@ -46,10 +46,19 @@ const nearestCentersMap = (
       regionIds[y * width + x] = nearest;
     }
   }
-  return { width, height, regionCount: centers.length, regionIds, centers: flatCenters };
+  return {
+    width,
+    height,
+    regionCount: centers.length,
+    regionIds,
+    centers: flatCenters,
+  };
 };
 
-export const createSquarePartition = (width: number, height: number): PartitionMap => {
+export const createSquarePartition = (
+  width: number,
+  height: number,
+): PartitionMap => {
   const regionIds = new Uint32Array(width * height);
   const centers = new Float32Array(width * height * 2);
   for (let index = 0; index < regionIds.length; index += 1) {
@@ -144,6 +153,11 @@ export const createPoissonPartition = (
   return nearestCentersMap(width, height, points);
 };
 
+export type PartitionFraming = Readonly<{
+  backgroundMask: Uint8Array;
+  backgroundColorId: number;
+}>;
+
 export const rasterizePartitionColors = (
   colorIds: Uint16Array,
   width: number,
@@ -152,11 +166,20 @@ export const rasterizePartitionColors = (
   scale: number,
   seed: number,
   multiplier: number,
+  framing?: PartitionFraming,
 ): Readonly<{ width: number; height: number; colorIds: Uint16Array }> => {
+  if (framing && framing.backgroundMask.length !== width * height) {
+    throw new RangeError(
+      "Frame background mask must match the partition grid dimensions.",
+    );
+  }
   const partition = createPartition(kind, width, height, scale, seed);
   const regionColors = new Uint16Array(partition.regionCount);
+  if (framing) regionColors.fill(framing.backgroundColorId);
   const assigned = new Uint8Array(partition.regionCount);
   for (let index = 0; index < partition.regionIds.length; index += 1) {
+    // Margin cells (including painted ones) do not choose the image region color.
+    if (framing?.backgroundMask[index]) continue;
     const region = partition.regionIds[index];
     if (!assigned[region]) {
       regionColors[region] = colorIds[index];
@@ -180,11 +203,22 @@ export const rasterizePartitionColors = (
     for (let x = 0; x < outputWidth; x += 1) {
       const px = (x + 0.5) / multiplier;
       const py = (y + 0.5) / multiplier;
+      const cellIndex =
+        Math.min(height - 1, Math.floor(py)) * width +
+        Math.min(width - 1, Math.floor(px));
+      if (framing?.backgroundMask[cellIndex]) {
+        // Preserve the composed cell ID, not just the fill ID: users may have
+        // painted this margin cell after conversion.
+        output[y * outputWidth + x] = colorIds[cellIndex];
+        continue;
+      }
       const bx = Math.floor(px / bucketSize);
       const by = Math.floor(py / bucketSize);
-      let nearest = partition.regionIds[
-        Math.min(height - 1, Math.floor(py)) * width + Math.min(width - 1, Math.floor(px))
-      ];
+      let nearest =
+        partition.regionIds[
+          Math.min(height - 1, Math.floor(py)) * width +
+            Math.min(width - 1, Math.floor(px))
+        ];
       let nearestDistance = Number.POSITIVE_INFINITY;
       for (let oy = -2; oy <= 2; oy += 1) {
         for (let ox = -2; ox <= 2; ox += 1) {

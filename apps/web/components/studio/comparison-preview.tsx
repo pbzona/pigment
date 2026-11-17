@@ -6,6 +6,7 @@ import {
   colorIdsToRgba,
   rasterizePartitionColors,
   type PartitionKind,
+  type PartitionFraming,
   type PixelPaletteColor,
   type PixelPreview,
 } from "@pigment/quantization";
@@ -23,6 +24,7 @@ type ComparisonPreviewProps = Readonly<{
   originalPreview: PixelPreview | null;
   adjustedPreview: PixelPreview | null;
   compact?: boolean;
+  partitionFraming?: PartitionFraming;
 }>;
 
 export function ComparisonPreview({
@@ -36,6 +38,7 @@ export function ComparisonPreview({
   originalPreview,
   adjustedPreview,
   compact = false,
+  partitionFraming,
 }: ComparisonPreviewProps) {
   const pixelCanvasRef = useRef<HTMLCanvasElement>(null);
   const inputCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -47,7 +50,7 @@ export function ComparisonPreview({
     const canvas = pixelCanvasRef.current;
     if (!canvas) return;
     const rendered = colorIds && partition !== "square"
-      ? rasterizePartitionColors(colorIds, width, height, partition, partitionScale, 1, 4)
+      ? rasterizePartitionColors(colorIds, width, height, partition, partitionScale, 1, 4, partitionFraming)
       : { width, height, colorIds };
     canvas.width = rendered.width;
     canvas.height = rendered.height;
@@ -60,7 +63,7 @@ export function ComparisonPreview({
       0,
       0,
     );
-  }, [colorIds, height, palette, partition, partitionScale, visibleColorIds, width]);
+  }, [colorIds, height, palette, partition, partitionScale, partitionFraming, visibleColorIds, width]);
 
   const inputPreview =
     inputMode === "adjusted" ? adjustedPreview ?? originalPreview : originalPreview;

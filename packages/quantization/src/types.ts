@@ -98,6 +98,15 @@ export type PixelPaletteColor = Readonly<{
   color: RgbaColor;
 }>;
 
+export type CanvasFrame = Readonly<{
+  columns: number;
+  rows: number;
+  scale: number;
+  offsetX: number;
+  offsetY: number;
+  backgroundColorId: number;
+}>;
+
 export type ConversionOptions = Readonly<{
   gridWidth: number;
   gridHeight: number;
@@ -107,6 +116,8 @@ export type ConversionOptions = Readonly<{
   preserveTransparency: boolean;
   alphaThreshold: number;
   inputAdjustments?: InputAdjustments;
+  frame?: CanvasFrame;
+  frameBackground?: PixelPaletteColor;
   partition?: PartitionKind;
   partitionScale?: number;
   partitionSeed?: number;

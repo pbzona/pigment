@@ -1,6 +1,6 @@
 "use client";
 
-import { Crop, Grid2X2 } from "lucide-react";
+import { Crop, Frame, Grid2X2 } from "lucide-react";
 
 import { Button } from "@pigment/ui/button";
 import { Input } from "@pigment/ui/input";
@@ -15,6 +15,8 @@ type ReferenceGridPanelProps = Readonly<{
   grid: ReferenceGrid;
   view: ReferenceView;
   cropping: boolean;
+  framed?: boolean;
+  onFrame: () => void;
   onViewChange: (view: ReferenceView) => void;
   onChange: (grid: ReferenceGrid) => void;
   onFit: () => void;
@@ -28,6 +30,8 @@ export function ReferenceGridPanel({
   grid,
   view,
   cropping,
+  framed = false,
+  onFrame,
   onViewChange,
   onChange,
   onFit,
@@ -35,6 +39,16 @@ export function ReferenceGridPanel({
 }: ReferenceGridPanelProps) {
   return (
     <div className="space-y-7 px-4 pb-6">
+      <section>
+        <Button variant="outline" className="w-full" onClick={onFrame}>
+          <Frame data-icon="inline-start" /> Canvas framing
+        </Button>
+        <p className="mt-2 text-[11px] leading-4 text-muted-foreground">
+          {framed
+            ? "The grid covers your full canvas. Edit framing to change its proportions or add space."
+            : "Add space around your image without cropping or stretching the subject."}
+        </p>
+      </section>
       <section>
         <Label className="mb-2">Image</Label>
         <ToggleGroup
@@ -64,7 +78,7 @@ export function ReferenceGridPanel({
           <div>
             <Label htmlFor="reference-grid-visible">Reference grid</Label>
             <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
-              Position a square transfer grid over the source image.
+              {framed ? "Square transfer cells cover the entire canvas." : "Position a square transfer grid over the source image."}
             </p>
           </div>
           <Switch
@@ -82,6 +96,7 @@ export function ReferenceGridPanel({
             type="number"
             min={2}
             max={32}
+            disabled={framed}
             value={grid.columns}
             className="font-mono tabular-nums"
             onChange={(event) =>
@@ -95,6 +110,7 @@ export function ReferenceGridPanel({
             type="number"
             min={2}
             max={32}
+            disabled={framed}
             value={grid.rows}
             className="font-mono tabular-nums"
             onChange={(event) =>
@@ -145,7 +161,7 @@ export function ReferenceGridPanel({
         </label>
       </section>
 
-      <section className="grid gap-2 border-t pt-5">
+      {!framed ? <section className="grid gap-2 border-t pt-5">
         <Button variant="outline" onClick={onFit}>
           <Grid2X2 data-icon="inline-start" /> Fit grid to image
         </Button>
@@ -156,7 +172,7 @@ export function ReferenceGridPanel({
         <p className="text-[10px] leading-4 text-muted-foreground">
           Cropping is destructive and reduces the artwork dimensions proportionally.
         </p>
-      </section>
+      </section> : null}
     </div>
   );
 }

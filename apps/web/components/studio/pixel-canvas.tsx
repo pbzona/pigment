@@ -26,6 +26,7 @@ import {
   rasterizePartitionColors,
   type CellCrop,
   type PartitionKind,
+  type PartitionFraming,
   type PixelPaletteColor,
   type PixelPreview,
   type SelectionMask,
@@ -65,6 +66,8 @@ type PixelCanvasProps = Readonly<{
   cropping: boolean;
   referenceGrid: ReferenceGrid;
   referenceView: ReferenceView;
+  framed?: boolean;
+  partitionFraming?: PartitionFraming;
   onReferenceGridChange: (grid: ReferenceGrid) => void;
   onBeginStroke: (bulk?: boolean) => void;
   onPaint: (indices: readonly number[], restore: boolean) => void;
@@ -245,6 +248,8 @@ export function PixelCanvas({
   cropping,
   referenceGrid,
   referenceView,
+  framed = false,
+  partitionFraming,
   onReferenceGridChange,
   onBeginStroke,
   onPaint,
@@ -310,6 +315,7 @@ export function PixelCanvas({
             partitionScale,
             1,
             4,
+            partitionFraming,
           )
         : { width, height, colorIds };
     canvas.width = rendered.width;
@@ -333,6 +339,7 @@ export function PixelCanvas({
     palette,
     partition,
     partitionScale,
+    partitionFraming,
     visibleColorIds,
     width,
   ]);
@@ -443,6 +450,7 @@ export function PixelCanvas({
     kind: GuideGesture["kind"],
     handle?: GuideResizeHandle,
   ) => {
+    if (framed) return;
     event.preventDefault();
     event.stopPropagation();
     const bounds =
@@ -1015,6 +1023,7 @@ export function PixelCanvas({
               visibleColorIds={visibleColorIds}
               originalPreview={originalPreview}
               adjustedPreview={adjustedPreview}
+              partitionFraming={partitionFraming}
             />
           </PopoverContent>
         </Popover>
@@ -1040,7 +1049,7 @@ export function PixelCanvas({
                   variant={crop ? "secondary" : "ghost"}
                   size="icon-sm"
                   className="size-11 sm:size-8"
-                  disabled={cropping}
+                  disabled={cropping || framed}
                   aria-pressed={crop !== null}
                   onClick={() =>
                     onCropChange(
@@ -1057,7 +1066,7 @@ export function PixelCanvas({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                {crop ? "Cancel crop" : "Crop source image"}
+                {framed ? "Use Canvas framing to change bounds, or restore original bounds to crop." : crop ? "Cancel crop" : "Crop source image"}
               </TooltipContent>
             </Tooltip>
             <Tooltip>
@@ -1264,8 +1273,8 @@ export function PixelCanvas({
             ) : null}
             {mode === "reference" && referenceGrid.visible ? (
               <div
-                className="absolute inset-0 z-10 touch-none"
-                aria-label={`${guideColumns} by ${guideRows} movable square reference grid`}
+                className={cn("absolute inset-0 z-10 touch-none", framed && "pointer-events-none")}
+                aria-label={`${guideColumns} by ${guideRows} ${framed ? "full-canvas" : "movable"} square reference grid`}
               >
                 <span
                   className="pointer-events-none absolute inset-x-0 top-0 bg-black/35"
@@ -1392,8 +1401,8 @@ export function PixelCanvas({
 
                 <div
                   role="group"
-                  tabIndex={0}
-                  aria-label="Reference grid region. Use arrow keys to move it."
+                  tabIndex={framed ? -1 : 0}
+                  aria-label={framed ? "Reference grid covers the canvas." : "Reference grid region. Use arrow keys to move it."}
                   className="absolute cursor-move border-2 border-[#ff7657] outline-none focus-visible:ring-2 focus-visible:ring-[#4d7cff] focus-visible:ring-offset-2 focus-visible:ring-offset-black/70"
                   style={{
                     left: `${guideRegion.x * 100}%`,
@@ -1408,6 +1417,7 @@ export function PixelCanvas({
                   onPointerCancel={finishGuideGesture}
                   onLostPointerCapture={finishGuideGesture}
                   onKeyDown={(event) => {
+                    if (framed) return;
                     const movement = {
                       ArrowLeft: [-1, 0],
                       ArrowRight: [1, 0],
@@ -1427,7 +1437,7 @@ export function PixelCanvas({
                     );
                   }}
                 >
-                  {GUIDE_HANDLES.map((handle) => (
+                  {!framed && GUIDE_HANDLES.map((handle) => (
                     <button
                       key={handle}
                       type="button"

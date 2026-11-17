@@ -11,6 +11,7 @@ import {
   Beaker,
   Download,
   HelpCircle,
+  Frame,
   PanelRight,
   Redo2,
   SlidersHorizontal,
@@ -87,6 +88,10 @@ import {
   DEFAULT_INPUT_ADJUSTMENTS,
   METHOD_INHERIT,
   composeColorIds,
+  canvasFrameLayout,
+  canvasFrameBackgroundMask,
+  createFramedPreview,
+  normalizeCanvasFrame,
   conversionMethodCode,
   dimensionsForAspect,
   finalColorAt,
@@ -101,6 +106,7 @@ import {
   selectAllMask,
   sourceCropFromCells,
   TRANSPARENT_COLOR_ID,
+  type CanvasFrame,
   type CellCrop,
   type ConversionMethod,
   type InputAdjustments,
@@ -110,6 +116,8 @@ import {
   type SourceCrop,
 } from "@pigment/quantization";
 
+import { canvasBackground, canvasGridDimensions, sameCanvasGeometry } from "@/lib/browser/canvas-frame";
+import { CanvasFrameDialog } from "./canvas-frame-dialog";
 import { ImageChooser } from "./image-chooser";
 import { Inspector } from "./inspector";
 import { OutputSidebar } from "./output-sidebar";
@@ -302,6 +310,9 @@ export function PixelStudio() {
   const uploadRequestRef = useRef(0);
   const uploadInFlightRef = useRef(false);
 
+  const [canvasFrame, setCanvasFrame] = useState<CanvasFrame | null>(null);
+  const [canvasFrameOpen, setCanvasFrameOpen] = useState(false);
+  const [pendingCanvasFrame, setPendingCanvasFrame] = useState<{ frame: CanvasFrame | null } | null>(null);
   const [gridWidth, setGridWidth] = useState(64);
   const [gridHeight, setGridHeight] = useState(64);
   const [aspectLocked, setAspectLocked] = useState(true);
@@ -408,6 +419,14 @@ export function PixelStudio() {
       return;
     }
     setCustomPalettes((palettes) => [...palettes, result.value]);
+    const mapping = createPaletteIdMapping(
+      paletteToPixelColors(activePaletteRef.current, adjustmentsRef.current),
+      paletteToPixelColors(result.value, adjustmentsRef.current),
+    );
+    setCanvasFrame((current) => current ? {
+      ...current,
+      backgroundColorId: mapping.get(current.backgroundColorId) ?? result.value.colors[0].id,
+    } : null);
     activePaletteRef.current = result.value;
     setActivePalette(result.value);
     setMatchingPalette(
@@ -429,6 +448,32 @@ export function PixelStudio() {
   const adjustedPalette = useMemo(
     () => paletteToPixelColors(activePalette, adjustments),
     [activePalette, adjustments],
+  );
+  const frameBackground = canvasBackground(canvasFrame, adjustedPalette);
+  const framedOriginalPreview = useMemo(
+    () => originalPreview && canvasFrame && frameBackground
+      ? createFramedPreview(
+          originalPreview.pixels, originalPreview.width, originalPreview.height,
+          canvasFrame, frameBackground.color, undefined, true, 0,
+        )
+      : originalPreview,
+    [originalPreview, canvasFrame, frameBackground],
+  );
+  const framedAdjustedPreview = useMemo(
+    () => adjustedPreview && canvasFrame && frameBackground
+      ? createFramedPreview(
+          adjustedPreview.pixels, adjustedPreview.width, adjustedPreview.height,
+          canvasFrame, frameBackground.color, undefined, true, 0,
+        )
+      : adjustedPreview,
+    [adjustedPreview, canvasFrame, frameBackground],
+  );
+  const partitionFraming = useMemo(
+    () => source && canvasFrame && frameBackground ? {
+      backgroundMask: canvasFrameBackgroundMask(source.width, source.height, canvasFrame, gridWidth, gridHeight),
+      backgroundColorId: frameBackground.id,
+    } : undefined,
+    [source, canvasFrame, frameBackground, gridWidth, gridHeight],
   );
   const finalColorIds = useMemo(
     () => (generated ? composeColorIds(generated, overrides) : null),
@@ -460,6 +505,7 @@ export function PixelStudio() {
         alphaThreshold,
         inputAdjustments,
         sourceCrop: sourceCropRef.current as SourceCrop,
+        canvasFrame,
         palette: activePalette,
         paletteAdjustments: adjustments,
         excludedColorIds: [...excludedColorIds],
@@ -491,6 +537,7 @@ export function PixelStudio() {
     methodOverrides,
     overrides,
     referenceGrid,
+    canvasFrame,
   ]);
 
   useEffect(() => {
@@ -507,10 +554,10 @@ export function PixelStudio() {
       paletteColors: activePalette.colors.map((color) => color.hex),
       inputAdjustments,
       interventionCount,
-      thumbnail: previewToThumbnail(originalPreview),
+      thumbnail: previewToThumbnail(framedOriginalPreview ?? originalPreview),
       updatedAt: Date.now(),
     });
-  }, [source, originalPreview, gridWidth, gridHeight, method, partition, activePalette, inputAdjustments, interventionCount]);
+  }, [source, originalPreview, framedOriginalPreview, gridWidth, gridHeight, method, partition, activePalette, inputAdjustments, interventionCount]);
 
   useEffect(() => {
     activePaletteRef.current = activePalette;
@@ -540,6 +587,8 @@ export function PixelStudio() {
         partitionScale,
         partitionSeed: 1,
         palette: matchingPalette,
+        frame: canvasFrame ?? undefined,
+        frameBackground,
         preserveTransparency,
         alphaThreshold,
         inputAdjustments,
@@ -620,6 +669,8 @@ export function PixelStudio() {
     partition,
     partitionScale,
     matchingPalette,
+    canvasFrame,
+    frameBackground,
     preserveTransparency,
     alphaThreshold,
     inputAdjustments,
@@ -722,6 +773,7 @@ export function PixelStudio() {
       };
       const sourceWidth = sourceCropRef.current.width;
       const sourceHeight = sourceCropRef.current.height;
+      const restoredFrame = savedProject?.canvasFrame ?? null;
       const initialDimensions = initialGrid(sourceWidth, sourceHeight);
       const grid = savedProject
         ? {
@@ -746,6 +798,9 @@ export function PixelStudio() {
         width: sourceWidth,
         height: sourceHeight,
       });
+      setCanvasFrame(restoredFrame);
+      setCanvasFrameOpen(false);
+      setPendingCanvasFrame(null);
       setGridWidth(grid.width);
       setGridHeight(grid.height);
       if (savedProject) {
@@ -796,6 +851,20 @@ export function PixelStudio() {
         setExcludedColorIds(restoredExcludedIds);
         setSelectedColorId(restoredPalette.colors[0]?.id ?? 0);
       }
+      if (restoredFrame) {
+        setAspectLocked(true);
+        setReferenceGrid((current) => ({
+          ...current,
+          columns: restoredFrame.columns,
+          rows: restoredFrame.rows,
+          region: { x: 0, y: 0, width: 1, height: 1 },
+        }));
+      } else if (!savedProject) {
+        setReferenceGrid((current) => ({
+          ...current,
+          region: fitGuideRegion(sourceWidth, sourceHeight, current.columns, current.rows),
+        }));
+      }
       setGenerated(null);
       overridesRef.current = restoredOverrides;
       setOverrides(restoredOverrides);
@@ -843,10 +912,12 @@ export function PixelStudio() {
     pendingPaletteRef.current = takePendingPalette();
     savedProjectRef.current = readStudioProject();
     void readProjectSource()
-      .then((file) => {
-        if (file) return handleImageFile(file);
+      .then(async (file) => {
+        if (file) await handleImageFile(file);
+        // Never apply an orphaned project's frame or edits to a newly picked file.
+        savedProjectRef.current = null;
       })
-      .catch(() => undefined)
+      .catch(() => { savedProjectRef.current = null; })
       .finally(() => setRestoringSource(false));
     // Restore the last source once when Studio opens; the source itself stays local.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -885,7 +956,7 @@ export function PixelStudio() {
   };
 
   const applyCrop = async (crop: CellCrop) => {
-    if (!source) return;
+    if (!source || canvasFrame) return;
     const nextGrid = {
       width: crop.right - crop.left,
       height: crop.bottom - crop.top,
@@ -950,7 +1021,7 @@ export function PixelStudio() {
   };
 
   const applyReferenceCrop = async () => {
-    if (!source) return;
+    if (!source || canvasFrame) return;
     const region = referenceGrid.region;
     const x = Math.max(0, Math.min(source.width - 1, Math.round(region.x * source.width)));
     const y = Math.max(0, Math.min(source.height - 1, Math.round(region.y * source.height)));
@@ -1039,7 +1110,9 @@ export function PixelStudio() {
       axis === "width"
         ? { width: value, height: gridHeight }
         : { width: gridWidth, height: value };
-    if (aspectLocked && source) {
+    if (canvasFrame) {
+      next = canvasGridDimensions(canvasFrame, axis, value);
+    } else if (aspectLocked && source) {
       const aspectDimensions = dimensionsForAspect(
         axis,
         value,
@@ -1052,6 +1125,56 @@ export function PixelStudio() {
       };
     }
     requestGridChange(next);
+  };
+
+  const applyCanvasFrame = (nextFrame: CanvasFrame | null) => {
+    if (!source) return;
+    const geometryChanged = !sameCanvasGeometry(canvasFrame, nextFrame);
+    latestConversionRef.current += 1;
+    setCanvasFrame(nextFrame);
+    setCanvasFrameOpen(false);
+    if (geometryChanged) {
+      const axis = nextFrame
+        ? nextFrame.columns >= nextFrame.rows ? "width" : "height"
+        : source.width >= source.height ? "width" : "height";
+      const side = Math.max(gridWidth, gridHeight);
+      const dimensions = nextFrame
+        ? canvasGridDimensions(nextFrame, axis, side)
+        : dimensionsForAspect(axis, side, source.width, source.height);
+      applyGrid({ width: clampGrid(dimensions.width), height: clampGrid(dimensions.height) });
+      setAspectLocked(true);
+      setReferenceGrid((current) => ({
+        ...current,
+        columns: nextFrame?.columns ?? current.columns,
+        rows: nextFrame?.rows ?? current.rows,
+        region: nextFrame
+          ? { x: 0, y: 0, width: 1, height: 1 }
+          : fitGuideRegion(source.width, source.height, current.columns, current.rows),
+      }));
+    } else {
+      // Transfer divisions can change without changing the composition or paint.
+      if (nextFrame) setReferenceGrid((current) => ({
+        ...current,
+        columns: nextFrame.columns,
+        rows: nextFrame.rows,
+        region: { x: 0, y: 0, width: 1, height: 1 },
+      }));
+      setProcessing(true);
+    }
+    toast.success(nextFrame ? "Canvas framing applied" : "Original image bounds restored");
+  };
+
+  const requestCanvasFrame = (value: CanvasFrame | null) => {
+    const nextFrame = normalizeCanvasFrame(value);
+    if (value && !nextFrame) {
+      toast.error("Choose valid canvas proportions and image placement.");
+      return;
+    }
+    setCanvasFrameOpen(false);
+    if (JSON.stringify(nextFrame) === JSON.stringify(canvasFrame)) return;
+    if (!sameCanvasGeometry(canvasFrame, nextFrame) && hasEditorChanges()) {
+      setPendingCanvasFrame({ frame: nextFrame });
+    } else applyCanvasFrame(nextFrame);
   };
 
   const updateMatchingPalette = (
@@ -1103,6 +1226,10 @@ export function PixelStudio() {
     const currentAdjusted = paletteToPixelColors(currentPalette, currentAdjustments);
     const nextAdjusted = paletteToPixelColors(palette, currentAdjustments);
     const mapping = createPaletteIdMapping(currentAdjusted, nextAdjusted);
+    setCanvasFrame((current) => current ? {
+      ...current,
+      backgroundColorId: mapping.get(current.backgroundColorId) ?? palette.colors[0].id,
+    } : null);
     overridesRef.current = remapPaintedColors(
       overridesRef.current,
       mapping,
@@ -1145,6 +1272,9 @@ export function PixelStudio() {
       );
       const nextIsolatedColorIds = pruneColorIds(isolatedColorIds, nextPalette);
       const mapping = createPaletteIdMapping(adjustedPalette, nextAdjusted);
+      setCanvasFrame((current) => current && !nextPalette.colors.some((swatch) => swatch.id === current.backgroundColorId)
+        ? { ...current, backgroundColorId: mapping.get(current.backgroundColorId) ?? nextPalette.colors[0].id }
+        : current);
       overridesRef.current = remapPaintedColors(
         overridesRef.current,
         mapping,
@@ -1494,6 +1624,8 @@ export function PixelStudio() {
           file,
           crop: sourceCrop,
           adjustments: inputAdjustments,
+          frame: canvasFrame,
+          frameBackground,
           preserveTransparency,
           alphaThreshold,
           showGrid: showReferenceGridInExport,
@@ -1517,6 +1649,7 @@ export function PixelStudio() {
           `${baseName}-${partition}-${gridWidth}x${gridHeight}@${exportScale}x.png`,
           partition,
           partitionScale,
+          partitionFraming,
         );
       }
       toast.success(exportTarget === "reference" ? "Reference exported" : "PNG exported");
@@ -1628,7 +1761,8 @@ export function PixelStudio() {
       setPartitionScale(scale);
       setProcessing(true);
     },
-    aspectLocked,
+    aspectLocked: canvasFrame ? true : aspectLocked,
+    aspectFixed: canvasFrame !== null,
     inputVersion: dimensionInputVersion,
     palette: activePalette,
     paletteAdjustments: adjustments,
@@ -1638,10 +1772,9 @@ export function PixelStudio() {
     processing,
     onGridChange: handleGridChange,
     onGridScale: (factor: 0.5 | 2) =>
-      requestGridChange({
-        width: clampGrid(gridWidth * factor),
-        height: clampGrid(gridHeight * factor),
-      }),
+      requestGridChange(canvasFrame
+        ? canvasGridDimensions(canvasFrame, "width", gridWidth * factor)
+        : { width: clampGrid(gridWidth * factor), height: clampGrid(gridHeight * factor) }),
     onAspectLockedChange: setAspectLocked,
     onPaletteChange: changePalette,
     onOpenPalette: () => setPaletteDialogOpen(true),
@@ -1696,7 +1829,10 @@ export function PixelStudio() {
 
   const handleModeChange = (nextMode: EditorMode) => {
     setMode(nextMode);
-    if (nextMode === "reference" && source && !referenceGrid.visible) {
+    if (nextMode === "reference" && canvasFrame) {
+      setReferenceGrid((current) => ({ ...current, visible: true }));
+    }
+    if (nextMode === "reference" && source && !referenceGrid.visible && !canvasFrame) {
       setReferenceGrid((current) => ({
         ...current,
         visible: true,
@@ -1714,10 +1850,12 @@ export function PixelStudio() {
     grid: referenceGrid,
     view: referenceView,
     cropping,
+    framed: canvasFrame !== null,
+    onFrame: () => { setControlsOpen(false); setCanvasFrameOpen(true); },
     onViewChange: setReferenceView,
     onChange: (nextGrid: ReferenceGrid) => {
       if (
-        source &&
+        source && !canvasFrame &&
         (nextGrid.columns !== referenceGrid.columns ||
           nextGrid.rows !== referenceGrid.rows)
       ) {
@@ -1740,12 +1878,9 @@ export function PixelStudio() {
       setReferenceGrid((current) => ({
         ...current,
         visible: true,
-        region: fitGuideRegion(
-          source.width,
-          source.height,
-          current.columns,
-          current.rows,
-        ),
+        region: canvasFrame
+          ? { x: 0, y: 0, width: 1, height: 1 }
+          : fitGuideRegion(source.width, source.height, current.columns, current.rows),
       }));
     },
     onCrop: requestReferenceCrop,
@@ -1773,6 +1908,22 @@ export function PixelStudio() {
         </div>
 
         <div className="flex items-center gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant={canvasFrame ? "secondary" : "ghost"}
+                size="sm"
+                className="size-11 px-0 sm:h-9 sm:w-auto sm:px-3"
+                aria-label="Canvas framing"
+                disabled={uploading || processing}
+                onClick={() => setCanvasFrameOpen(true)}
+              >
+                <Frame data-icon="inline-start" />
+                <span className="hidden sm:inline">Canvas</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Canvas framing · add space without cropping</TooltipContent>
+          </Tooltip>
           <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
             <Link href="/lab">
               <Beaker data-icon="inline-start" />
@@ -1949,8 +2100,8 @@ export function PixelStudio() {
           partitionScale={partitionScale}
           palette={adjustedPalette}
           visibleColorIds={isolatedColorIds.size > 0 ? isolatedColorIds : null}
-          originalPreview={originalPreview}
-          adjustedPreview={adjustedPreview}
+          originalPreview={framedOriginalPreview}
+          adjustedPreview={framedAdjustedPreview}
           mode={mode}
           tool={tool}
           brushSize={brushSize}
@@ -1963,6 +2114,8 @@ export function PixelStudio() {
           cropping={cropping}
           referenceGrid={referenceGrid}
           referenceView={referenceView}
+          framed={canvasFrame !== null}
+          partitionFraming={partitionFraming}
           onReferenceGridChange={setReferenceGrid}
           onBeginStroke={beginStroke}
           onPaint={paintIndices}
@@ -2021,6 +2174,42 @@ export function PixelStudio() {
           </div>
         </DialogContent>
       </Dialog>
+      {canvasFrameOpen && originalPreview ? (
+        <CanvasFrameDialog
+          open
+          onOpenChange={setCanvasFrameOpen}
+          source={originalPreview}
+          sourceWidth={source.width}
+          sourceHeight={source.height}
+          frame={canvasFrame}
+          palette={adjustedPalette}
+          onApply={requestCanvasFrame}
+        />
+      ) : null}
+      <AlertDialog
+        open={pendingCanvasFrame !== null}
+        onOpenChange={(open: boolean) => { if (!open) setPendingCanvasFrame(null); }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reframe and rebuild the artwork?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Changing canvas bounds or image placement clears painted edits, selections,
+              regional methods, and undo history. Your source image stays intact.
+              Changing only the background swatch preserves edits.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep current framing</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              if (pendingCanvasFrame) applyCanvasFrame(pendingCanvasFrame.frame);
+              setPendingCanvasFrame(null);
+            }}>
+              Reframe and clear edits
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <PaletteDialog
         open={paletteOpen}
         onOpenChange={setPaletteDialogOpen}
@@ -2044,8 +2233,8 @@ export function PixelStudio() {
         onTargetChange={setExportTarget}
         artworkWidth={gridWidth}
         artworkHeight={gridHeight}
-        referenceWidth={source.width}
-        referenceHeight={source.height}
+        referenceWidth={canvasFrame ? canvasFrameLayout(source.width, source.height, canvasFrame).width : source.width}
+        referenceHeight={canvasFrame ? canvasFrameLayout(source.width, source.height, canvasFrame).height : source.height}
         scale={exportScale}
         onScaleChange={setExportScale}
         showReferenceGrid={showReferenceGridInExport}

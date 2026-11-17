@@ -1,6 +1,12 @@
 export * from "./convert";
 export * from "./crop";
 export * from "./edit";
+export {
+  canvasFrameBackgroundMask,
+  canvasFrameLayout,
+  createFramedPreview,
+  normalizeCanvasFrame,
+} from "./frame";
 export * from "./grid";
 export * from "./guides";
 export * from "./input-adjust";

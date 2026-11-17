@@ -1,5 +1,5 @@
 import { colorIdsToRgba, MAX_EXPORT_PIXELS, MAX_EXPORT_SIDE, rasterizePartitionColors } from "@pigment/quantization";
-import type { PartitionKind, PixelPaletteColor } from "@pigment/quantization";
+import type { PartitionKind, PartitionFraming, PixelPaletteColor } from "@pigment/quantization";
 
 const canvasToBlob = (canvas: HTMLCanvasElement): Promise<Blob> =>
   new Promise((resolve, reject) => {
@@ -18,6 +18,7 @@ export const exportPixelPng = async (
   fileName: string,
   partition: PartitionKind = "square",
   partitionScale = 6,
+  partitionFraming?: PartitionFraming,
 ): Promise<void> => {
   const outputWidth = width * scale;
   const outputHeight = height * scale;
@@ -31,7 +32,7 @@ export const exportPixelPng = async (
 
   const rendered = partition === "square"
     ? { width, height, colorIds }
-    : rasterizePartitionColors(colorIds, width, height, partition, partitionScale, 1, scale);
+    : rasterizePartitionColors(colorIds, width, height, partition, partitionScale, 1, scale, partitionFraming);
   const source = document.createElement("canvas");
   source.width = rendered.width;
   source.height = rendered.height;
