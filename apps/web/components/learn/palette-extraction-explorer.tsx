@@ -1,13 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { Button } from "@pigment/ui/button";
 import { tracePaletteExtraction, type PaletteBoxTrace } from "@pigment/palette";
 import { cn } from "@/lib/utils";
 
-import { EXACT_PALETTE_PIXELS, PALETTE_EXTRACTION_PIXELS } from "./learning-data";
+import {
+  EXACT_PALETTE_PIXELS,
+  PALETTE_EXTRACTION_PIXELS,
+} from "./learning-data";
 import { PixelGrid, type LearningPixel } from "./pixel-grid";
 
 const cssRgb = (r: number, g: number, b: number) => `rgb(${r} ${g} ${b})`;
@@ -27,12 +30,25 @@ const sourceGrid = (pixels: Uint8ClampedArray): LearningPixel[] => {
   return result;
 };
 
-function BoxCard({ box, index, active }: Readonly<{ box: PaletteBoxTrace; index: number; active: boolean }>) {
+function BoxCard({
+  box,
+  index,
+  active,
+}: Readonly<{ box: PaletteBoxTrace; index: number; active: boolean }>) {
   return (
-    <div className={cn("min-w-0 border bg-background/45 p-3", active ? "border-primary" : "border-foreground/10")}>
-      <div className="flex items-center justify-between gap-3">
-        <span className="font-mono text-[9px] uppercase tracking-[0.1em] text-muted-foreground">Box {index + 1}</span>
-        <span className="font-mono text-[9px] text-primary">score {box.score.toFixed(0)}</span>
+    <div
+      className={cn(
+        "min-w-0 border bg-background/45 p-3",
+        active ? "border-primary" : "border-foreground/10",
+      )}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <span className="font-mono text-xs uppercase tracking-[0.1em] text-muted-foreground">
+          Box {index + 1}
+        </span>
+        <span className="font-mono text-xs text-primary">
+          score {box.score.toFixed(0)}
+        </span>
       </div>
       <div className="mt-3 flex h-10 overflow-hidden border border-foreground/10">
         {box.colors.slice(0, 12).map((color, colorIndex) => (
@@ -44,32 +60,45 @@ function BoxCard({ box, index, active }: Readonly<{ box: PaletteBoxTrace; index:
           />
         ))}
       </div>
-      <div className="mt-3 grid grid-cols-3 gap-2 font-mono text-[9px] text-muted-foreground">
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 font-mono text-xs text-muted-foreground">
         <span>range {box.range}</span>
         <span>population {box.population}</span>
         <span>{box.colors.length} bins</span>
       </div>
-      <div className="mt-3 flex items-center gap-2 border-t border-foreground/10 pt-3 text-[10px]">
-        <span className="size-5 border border-white/15" style={{ backgroundColor: box.representative }} />
-        <span className="font-mono">mean color {box.representative}</span>
+      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-foreground/10 pt-3 text-xs">
+        <span
+          className="size-5 shrink-0 border border-white/15"
+          style={{ backgroundColor: box.representative }}
+        />
+        <span className="break-words font-mono">
+          mean color {box.representative}
+        </span>
       </div>
     </div>
   );
 }
 
 export function PaletteExtractionExplorer() {
+  const id = useId();
   const [mode, setMode] = useState<"exact" | "extracted">("extracted");
   const [splitStep, setSplitStep] = useState(0);
   const data = useMemo(() => {
-    const pixels = mode === "exact" ? EXACT_PALETTE_PIXELS : PALETTE_EXTRACTION_PIXELS;
+    const pixels =
+      mode === "exact" ? EXACT_PALETTE_PIXELS : PALETTE_EXTRACTION_PIXELS;
     return {
       pixels,
-      trace: tracePaletteExtraction(pixels, mode === "exact" ? 8 : 6, mode === "exact" ? 64 : 4),
+      trace: tracePaletteExtraction(
+        pixels,
+        mode === "exact" ? 8 : 6,
+        mode === "exact" ? 64 : 4,
+      ),
     };
   }, [mode]);
   const step = Math.min(splitStep, data.trace.splits.length);
   const currentSplit = step > 0 ? data.trace.splits[step - 1] : null;
-  const boxes = currentSplit?.boxes ?? (data.trace.initialBox ? [data.trace.initialBox] : []);
+  const boxes =
+    currentSplit?.boxes ??
+    (data.trace.initialBox ? [data.trace.initialBox] : []);
   const final = step === data.trace.splits.length;
 
   const changeMode = (nextMode: "exact" | "extracted") => {
@@ -78,22 +107,64 @@ export function PaletteExtractionExplorer() {
   };
 
   return (
-    <section id="palette-extraction" className="scroll-mt-24 border-t border-foreground/10 pt-16 sm:pt-24">
+    <section
+      id="palette-extraction"
+      className="scroll-mt-24 border-t border-foreground/10 pt-16 sm:pt-24"
+    >
       <div className="mb-8 max-w-3xl">
-        <h2 className="text-3xl font-medium tracking-[-0.04em] sm:text-5xl">See how Pigment finds a palette in an image.</h2>
+        <h2 className="text-3xl font-medium tracking-[-0.04em] sm:text-5xl">
+          See how Pigment finds a palette in an image.
+        </h2>
         <p className="mt-4 text-sm leading-6 text-muted-foreground sm:text-base">
-          Pigment keeps exact colors when the image has 64 or fewer unique colors. For larger color sets, Pigment uses weighted median cut.
+          Pigment keeps exact colors when the image has 64 or fewer unique
+          colors. For larger color sets, Pigment uses weighted median cut.
         </p>
       </div>
 
       <div className="border border-foreground/10 bg-card/45">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-foreground/10 p-4 sm:p-5">
-          <div className="flex border border-foreground/10 p-1" role="tablist" aria-label="Palette extraction path">
+          <div
+            className="flex max-w-full flex-wrap border border-foreground/10 p-1"
+            role="tablist"
+            aria-label="Palette extraction path"
+            onKeyDown={(event) => {
+              const next =
+                event.key === "ArrowRight" || event.key === "ArrowLeft"
+                  ? mode === "exact"
+                    ? "extracted"
+                    : "exact"
+                  : event.key === "Home"
+                    ? "exact"
+                    : event.key === "End"
+                      ? "extracted"
+                      : null;
+              if (
+                next === null ||
+                event.altKey ||
+                event.ctrlKey ||
+                event.metaKey
+              )
+                return;
+              event.preventDefault();
+              changeMode(next);
+              event.currentTarget
+                .querySelector<HTMLButtonElement>(`[id="${id}-${next}"]`)
+                ?.focus();
+            }}
+          >
             <button
               type="button"
               role="tab"
+              id={`${id}-exact`}
+              aria-controls={`${id}-panel`}
               aria-selected={mode === "exact"}
-              className={cn("px-3 py-2 text-xs", mode === "exact" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}
+              tabIndex={mode === "exact" ? 0 : -1}
+              className={cn(
+                "px-3 py-2 text-xs",
+                mode === "exact"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
               onClick={() => changeMode("exact")}
             >
               Exact colors
@@ -101,40 +172,80 @@ export function PaletteExtractionExplorer() {
             <button
               type="button"
               role="tab"
+              id={`${id}-extracted`}
+              aria-controls={`${id}-panel`}
               aria-selected={mode === "extracted"}
-              className={cn("px-3 py-2 text-xs", mode === "extracted" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}
+              tabIndex={mode === "extracted" ? 0 : -1}
+              className={cn(
+                "px-3 py-2 text-xs",
+                mode === "extracted"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
               onClick={() => changeMode("extracted")}
             >
               Median cut
             </button>
           </div>
-          <span className="font-mono text-[9px] uppercase tracking-[0.1em] text-muted-foreground">
-            {mode === "exact" ? `${data.trace.exactColorCount} exact colors` : `more than ${data.trace.exactLimit} exact colors`}
+          <span className="font-mono text-xs uppercase tracking-[0.1em] text-muted-foreground">
+            {mode === "exact"
+              ? `${data.trace.exactColorCount} exact colors`
+              : `more than ${data.trace.exactLimit} exact colors`}
           </span>
         </div>
 
-        <div className="grid gap-px bg-foreground/10 lg:grid-cols-[18rem_minmax(0,1fr)]">
+        <div
+          id={`${id}-panel`}
+          role="tabpanel"
+          aria-labelledby={`${id}-${mode}`}
+          tabIndex={0}
+          className="grid gap-px bg-foreground/10 lg:grid-cols-[18rem_minmax(0,1fr)]"
+        >
           <aside className="bg-background/70 p-4 sm:p-6">
-            <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">Source colors</span>
+            <span className="font-mono text-xs uppercase tracking-[0.12em] text-muted-foreground">
+              Source colors
+            </span>
             <div className="mt-3">
-              <PixelGrid width={8} height={8} pixels={sourceGrid(data.pixels)} label="Palette extraction source pixels" compact />
+              <PixelGrid
+                width={8}
+                height={8}
+                pixels={sourceGrid(data.pixels)}
+                label="Palette extraction source pixels"
+                compact
+              />
             </div>
             <div className="mt-5 grid grid-cols-2 gap-px border border-foreground/10 bg-foreground/10">
               <div className="bg-background p-3">
-                <span className="font-mono text-[8px] uppercase tracking-[0.1em] text-muted-foreground">5-bit bins</span>
-                <p className="mt-1 font-mono text-xs">{data.trace.histogram.length}</p>
+                <span className="font-mono text-xs uppercase tracking-[0.1em] text-muted-foreground">
+                  5-bit bins
+                </span>
+                <p className="mt-1 font-mono text-xs">
+                  {data.trace.histogram.length}
+                </p>
               </div>
               <div className="bg-background p-3">
-                <span className="font-mono text-[8px] uppercase tracking-[0.1em] text-muted-foreground">Requested colors</span>
-                <p className="mt-1 font-mono text-xs">{mode === "exact" ? "all" : 6}</p>
+                <span className="font-mono text-xs uppercase tracking-[0.1em] text-muted-foreground">
+                  Requested colors
+                </span>
+                <p className="mt-1 font-mono text-xs">
+                  {mode === "exact" ? "all" : 6}
+                </p>
               </div>
             </div>
             <details className="mt-5 border-y border-foreground/10 py-3">
-              <summary className="cursor-pointer list-none font-mono text-[9px] uppercase tracking-[0.12em] text-primary marker:hidden">Calculation details</summary>
-              <div className="mt-3 space-y-2 text-[11px] leading-5 text-muted-foreground">
+              <summary className="cursor-pointer list-none font-mono text-xs uppercase tracking-[0.12em] text-primary marker:hidden">
+                Calculation details
+              </summary>
+              <div className="mt-3 space-y-2 text-xs leading-5 text-muted-foreground">
                 <p>Pigment ignores pixels with alpha values less than 128.</p>
-                <p>For large color sets, Pigment reduces each RGB channel to five bits. It then creates color boxes.</p>
-                <p>Pigment selects the box with the largest range × population score. It splits this box along its widest channel.</p>
+                <p>
+                  For large color sets, Pigment reduces each RGB channel to five
+                  bits. It then creates color boxes.
+                </p>
+                <p>
+                  Pigment selects the box with the largest range × population
+                  score. It splits this box along its widest channel.
+                </p>
               </div>
             </details>
           </aside>
@@ -143,13 +254,23 @@ export function PaletteExtractionExplorer() {
             {mode === "exact" ? (
               <div>
                 <p className="max-w-2xl text-sm leading-6">
-                  This image has 64 or fewer unique colors. Pigment does not approximate the colors. It keeps the order in which each color first occurs. The requested count does not apply.
+                  This image has 64 or fewer unique colors. Pigment does not
+                  approximate the colors. It keeps the order in which each color
+                  first occurs. The requested count does not apply.
                 </p>
                 <div className="mt-8 flex flex-wrap gap-3">
                   {data.trace.result.colors.map((color, index) => (
-                    <div key={color} className="border border-foreground/10 bg-background/45 p-2">
-                      <span className="block h-20 w-20 border border-white/10" style={{ backgroundColor: color }} />
-                      <span className="mt-2 block font-mono text-[9px] text-muted-foreground">{index + 1}. {color}</span>
+                    <div
+                      key={color}
+                      className="border border-foreground/10 bg-background/45 p-2"
+                    >
+                      <span
+                        className="block h-20 w-20 border border-white/10"
+                        style={{ backgroundColor: color }}
+                      />
+                      <span className="mt-2 block font-mono text-xs text-muted-foreground">
+                        {index + 1}. {color}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -158,7 +279,9 @@ export function PaletteExtractionExplorer() {
               <div>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-primary">Split {step} / {data.trace.splits.length}</span>
+                    <span className="font-mono text-xs uppercase tracking-[0.12em] text-primary">
+                      Split {step} / {data.trace.splits.length}
+                    </span>
                     <p className="mt-2 text-sm leading-6 text-muted-foreground">
                       {step === 0
                         ? "All histogram bins are in one box. Pigment selects the box with the largest range × population score."
@@ -166,11 +289,27 @@ export function PaletteExtractionExplorer() {
                     </p>
                   </div>
                   <div className="flex gap-1">
-                    <Button variant="outline" size="icon-sm" disabled={step === 0} onClick={() => setSplitStep((value) => Math.max(0, value - 1))}>
+                    <Button
+                      variant="outline"
+                      size="icon-sm"
+                      disabled={step === 0}
+                      onClick={() =>
+                        setSplitStep((value) => Math.max(0, value - 1))
+                      }
+                    >
                       <ChevronLeft />
                       <span className="sr-only">Previous split</span>
                     </Button>
-                    <Button variant="outline" size="icon-sm" disabled={final} onClick={() => setSplitStep((value) => Math.min(data.trace.splits.length, value + 1))}>
+                    <Button
+                      variant="outline"
+                      size="icon-sm"
+                      disabled={final}
+                      onClick={() =>
+                        setSplitStep((value) =>
+                          Math.min(data.trace.splits.length, value + 1),
+                        )
+                      }
+                    >
                       <ChevronRight />
                       <span className="sr-only">Next split</span>
                     </Button>
@@ -183,19 +322,31 @@ export function PaletteExtractionExplorer() {
                       key={`${step}-${index}-${box.representative}`}
                       box={box}
                       index={index}
-                      active={!final && box.score === Math.max(...boxes.map((entry) => entry.score))}
+                      active={
+                        !final &&
+                        box.score ===
+                          Math.max(...boxes.map((entry) => entry.score))
+                      }
                     />
                   ))}
                 </div>
 
                 {final ? (
                   <div className="mt-7 border-t border-foreground/10 pt-6">
-                    <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">Final colors, sorted by luminance</span>
+                    <span className="font-mono text-xs uppercase tracking-[0.12em] text-muted-foreground">
+                      Final colors, sorted by luminance
+                    </span>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {data.trace.result.colors.map((color) => (
-                        <div key={color} className="flex items-center gap-2 border border-foreground/10 bg-background/45 px-2 py-2">
-                          <span className="size-6 border border-white/10" style={{ backgroundColor: color }} />
-                          <span className="font-mono text-[9px]">{color}</span>
+                        <div
+                          key={color}
+                          className="flex items-center gap-2 border border-foreground/10 bg-background/45 px-2 py-2"
+                        >
+                          <span
+                            className="size-6 border border-white/10"
+                            style={{ backgroundColor: color }}
+                          />
+                          <span className="font-mono text-xs">{color}</span>
                         </div>
                       ))}
                     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { ArrowRight } from "lucide-react";
 
 import { traceImageConversion } from "@pigment/quantization";
@@ -10,19 +10,42 @@ import { lessonPixels, TEACHING_PALETTE } from "./learning-data";
 import { PixelGrid, type LearningPixel } from "./pixel-grid";
 
 const PIPELINE_STAGES = [
-  { label: "Decode", description: "The browser decodes the image to RGBA byte values. It stores pixels by row." },
-  { label: "Adjust", description: "Pigment converts each sample to linear RGB. It then applies the input adjustments." },
-  { label: "Map", description: "The output cell maps to a range of source pixels." },
-  { label: "Reduce", description: "The selected method calculates one color or selects one sample." },
+  {
+    label: "Decode",
+    description:
+      "The browser decodes the image to RGBA byte values. It stores pixels by row.",
+  },
+  {
+    label: "Adjust",
+    description:
+      "Pigment converts each sample to linear RGB. It then applies the input adjustments.",
+  },
+  {
+    label: "Map",
+    description: "The output cell maps to a range of source pixels.",
+  },
+  {
+    label: "Reduce",
+    description:
+      "The selected method calculates one color or selects one sample.",
+  },
   { label: "Match", description: "Pigment finds the nearest palette color." },
-  { label: "Store", description: "Pigment stores the palette ID for the output cell." },
-  { label: "Render", description: "Pigment converts palette IDs to RGBA pixels. It scales the image without smoothing." },
+  {
+    label: "Store",
+    description: "Pigment stores the palette ID for the output cell.",
+  },
+  {
+    label: "Render",
+    description:
+      "Pigment converts palette IDs to RGBA pixels. It scales the image without smoothing.",
+  },
 ] as const;
 
 const cssRgb = (r: number, g: number, b: number) => `rgb(${r} ${g} ${b})`;
 const fixed = (value: number) => value.toFixed(3);
 
 export function PipelineExplorer() {
+  const id = useId();
   const [trace] = useState(() => {
     const pixels = lessonPixels("average");
     return {
@@ -58,22 +81,27 @@ export function PipelineExplorer() {
     sourcePixels.push({
       color: cssRgb(r, g, b),
       label: `Source pixel ${x + 1}, ${y + 1}: red ${r}, green ${g}, blue ${b}`,
-      state: stage >= 2 && inRange ? "target" : stage >= 2 ? "muted" : "default",
+      state:
+        stage >= 2 && inRange ? "target" : stage >= 2 ? "muted" : "default",
     });
   }
 
-  const paletteById = new Map(TEACHING_PALETTE.map((entry) => [entry.id, entry.color]));
-  const outputPixels: LearningPixel[] = [...trace.trace.result.colorIds].map((id, index) => {
-    const color = paletteById.get(id);
-    const x = index % 4;
-    const y = Math.floor(index / 4);
-    return {
-      color: color ? cssRgb(color.r, color.g, color.b) : "transparent",
-      label: `Output cell ${x + 1}, ${y + 1}: palette ID ${id}`,
-      marker: index === selectedCell ? String(id) : undefined,
-      state: index === selectedCell ? "current" : "default",
-    };
-  });
+  const paletteById = new Map(
+    TEACHING_PALETTE.map((entry) => [entry.id, entry.color]),
+  );
+  const outputPixels: LearningPixel[] = [...trace.trace.result.colorIds].map(
+    (id, index) => {
+      const color = paletteById.get(id);
+      const x = index % 4;
+      const y = Math.floor(index / 4);
+      return {
+        color: color ? cssRgb(color.r, color.g, color.b) : "transparent",
+        label: `Output cell ${x + 1}, ${y + 1}: palette ID ${id}`,
+        marker: index === selectedCell ? String(id) : undefined,
+        state: index === selectedCell ? "current" : "default",
+      };
+    },
+  );
 
   const firstSample = cell.details.samples[0];
   const representative = cell.details.representativeSrgb;
@@ -99,28 +127,67 @@ export function PipelineExplorer() {
   ];
 
   return (
-    <section id="pipeline" className="scroll-mt-24 border-t border-foreground/10 pt-16 sm:pt-24">
+    <section
+      id="pipeline"
+      className="scroll-mt-24 border-t border-foreground/10 pt-16 sm:pt-24"
+    >
       <div className="mb-8 max-w-2xl">
-        <h2 className="text-3xl font-medium tracking-[-0.04em] sm:text-5xl">Follow one cell from image to palette.</h2>
+        <h2 className="text-3xl font-medium tracking-[-0.04em] sm:text-5xl">
+          Follow one cell from image to palette.
+        </h2>
         <p className="mt-4 text-sm leading-6 text-muted-foreground sm:text-base">
-          Pick an output cell, then step through the pipeline to see which source pixels and calculations shaped its final color.
+          Pick an output cell, then step through the pipeline to see which
+          source pixels and calculations shaped its final color.
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-px border-y border-foreground/10 bg-foreground/10 sm:grid-cols-4 xl:grid-cols-7" role="tablist" aria-label="Image pipeline stages">
+      <div
+        className="grid grid-cols-2 gap-px border-y border-foreground/10 bg-foreground/10 sm:grid-cols-4 xl:grid-cols-7"
+        role="tablist"
+        aria-label="Image pipeline stages"
+      >
         {PIPELINE_STAGES.map((entry, index) => (
           <button
             key={entry.label}
             type="button"
             role="tab"
+            id={`${id}-stage-${index}`}
+            aria-controls={`${id}-panel`}
             aria-selected={stage === index}
+            tabIndex={stage === index ? 0 : -1}
             className={cn(
-              "flex min-w-0 items-center gap-2 bg-background px-3 py-3 text-left font-mono text-[9px] uppercase tracking-[0.08em] transition-colors",
+              "flex min-w-0 items-center gap-2 whitespace-normal break-words bg-background px-3 py-3 text-left font-mono text-xs uppercase tracking-[0.08em] transition-colors",
               stage === index
                 ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:bg-card hover:text-foreground",
             )}
             onClick={() => setStage(index)}
+            onKeyDown={(event) => {
+              const next =
+                event.key === "ArrowRight"
+                  ? (index + 1) % PIPELINE_STAGES.length
+                  : event.key === "ArrowLeft"
+                    ? (index - 1 + PIPELINE_STAGES.length) %
+                      PIPELINE_STAGES.length
+                    : event.key === "Home"
+                      ? 0
+                      : event.key === "End"
+                        ? PIPELINE_STAGES.length - 1
+                        : null;
+              if (
+                next === null ||
+                event.altKey ||
+                event.ctrlKey ||
+                event.metaKey
+              )
+                return;
+              event.preventDefault();
+              setStage(next);
+              event.currentTarget
+                .closest('[role="tablist"]')
+                ?.querySelectorAll<HTMLButtonElement>('[role="tab"]')
+                [next]?.focus();
+            }}
           >
             <span>{String(index + 1).padStart(2, "0")}</span>
             {entry.label}
@@ -128,31 +195,58 @@ export function PipelineExplorer() {
         ))}
       </div>
 
-      <div className="mt-6 grid gap-6 border-2 border-border bg-card p-4 shadow-[6px_6px_0_var(--shadow)] sm:p-6 xl:grid-cols-[minmax(0,1fr)_15rem_minmax(0,1fr)] xl:items-center">
+      <div
+        id={`${id}-panel`}
+        role="tabpanel"
+        aria-labelledby={`${id}-stage-${stage}`}
+        tabIndex={0}
+        className="mt-6 grid gap-6 border-2 border-border bg-card p-4 shadow-[6px_6px_0_var(--shadow)] sm:p-6 xl:grid-cols-[minmax(0,1fr)_15rem_minmax(0,1fr)] xl:items-center"
+      >
         <div className="min-w-0">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Source / 8×8</span>
-            <span className="font-mono text-[9px] text-muted-foreground">select an output cell</span>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <span className="font-mono text-xs uppercase tracking-[0.14em] text-muted-foreground">
+              Source / 8×8
+            </span>
+            <span className="font-mono text-xs text-muted-foreground">
+              Select an output cell
+            </span>
           </div>
-          <PixelGrid width={8} height={8} pixels={sourcePixels} label="Source image pixels" compact />
+          <PixelGrid
+            width={8}
+            height={8}
+            pixels={sourcePixels}
+            label="Source image pixels"
+            compact
+          />
         </div>
 
         <div className="relative min-w-0 border-y border-foreground/10 py-6 text-center xl:border-x xl:border-y-0 xl:px-5 xl:py-10">
-          <span className="mx-auto grid size-7 place-items-center border border-primary/40 bg-primary/10 font-mono text-[10px] text-primary">
+          <span className="mx-auto grid size-7 place-items-center border border-primary/40 bg-primary/10 font-mono text-xs text-primary">
             {stage + 1}
           </span>
-          <h3 className="mt-3 text-lg font-medium">{PIPELINE_STAGES[stage].label}</h3>
-          <p className="mt-2 text-xs leading-5 text-muted-foreground">{PIPELINE_STAGES[stage].description}</p>
-          <p className="mt-4 border bg-background/55 p-3 font-mono text-[10px] leading-5 text-foreground/85">
+          <h3 className="mt-3 text-lg font-medium">
+            {PIPELINE_STAGES[stage].label}
+          </h3>
+          <p className="mt-2 text-xs leading-5 text-muted-foreground">
+            {PIPELINE_STAGES[stage].description}
+          </p>
+          <p className="mt-4 border bg-background/55 p-3 font-mono text-xs leading-5 text-foreground/85">
             {stageFacts[stage]}
           </p>
-          <ArrowRight className="absolute -right-3 top-1/2 hidden size-5 -translate-y-1/2 bg-card text-primary xl:block" aria-hidden="true" />
+          <ArrowRight
+            className="absolute -right-3 top-1/2 hidden size-5 -translate-y-1/2 bg-card text-primary xl:block"
+            aria-hidden="true"
+          />
         </div>
 
         <div className="min-w-0">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Output / 4×4</span>
-            <span className="font-mono text-[9px] text-primary">ID {cell.resultColorId}</span>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <span className="font-mono text-xs uppercase tracking-[0.14em] text-muted-foreground">
+              Output / 4×4
+            </span>
+            <span className="font-mono text-xs text-primary">
+              ID {cell.resultColorId}
+            </span>
           </div>
           <PixelGrid
             width={4}

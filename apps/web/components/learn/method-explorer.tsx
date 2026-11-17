@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 
 import { Button } from "@pigment/ui/button";
 import { linearToSrgbByte, srgbByteToLinear } from "@pigment/color";
@@ -17,7 +17,11 @@ import {
 } from "@pigment/quantization";
 import { cn } from "@/lib/utils";
 
-import { lessonPixels, METHOD_LESSONS, TEACHING_PALETTE } from "./learning-data";
+import {
+  lessonPixels,
+  METHOD_LESSONS,
+  TEACHING_PALETTE,
+} from "./learning-data";
 import { PixelGrid, type LearningPixel } from "./pixel-grid";
 
 type MethodExplorerProps = Readonly<{
@@ -32,7 +36,9 @@ const paletteCss = (index: number) => {
 };
 const fixed = (value: number) => value.toFixed(3);
 
-const kindForMethod = (method: ConversionMethod): QuantizationTraceDetails["kind"] => {
+const kindForMethod = (
+  method: ConversionMethod,
+): QuantizationTraceDetails["kind"] => {
   if (
     method === "dominant" ||
     method === "average" ||
@@ -48,7 +54,9 @@ const kindForMethod = (method: ConversionMethod): QuantizationTraceDetails["kind
   return "diffusion";
 };
 
-const methodTrace = (method: ConversionMethod): Readonly<{
+const methodTrace = (
+  method: ConversionMethod,
+): Readonly<{
   source: Uint8ClampedArray;
   trace: ImageConversionTrace;
 }> => {
@@ -67,9 +75,13 @@ const methodTrace = (method: ConversionMethod): Readonly<{
 };
 
 const rgbLabel = (color: TraceRgb | null) =>
-  color ? `${color.r.toFixed(0)}, ${color.g.toFixed(0)}, ${color.b.toFixed(0)}` : "transparent";
+  color
+    ? `${color.r.toFixed(0)}, ${color.g.toFixed(0)}, ${color.b.toFixed(0)}`
+    : "transparent";
 
-const getMatch = (details: QuantizationTraceDetails): PaletteMatchInspection | null => {
+const getMatch = (
+  details: QuantizationTraceDetails,
+): PaletteMatchInspection | null => {
   if (
     details.kind === "average" ||
     details.kind === "median" ||
@@ -85,18 +97,25 @@ const getMatch = (details: QuantizationTraceDetails): PaletteMatchInspection | n
   return null;
 };
 
-function PaletteStrip({ selectedIndex }: Readonly<{ selectedIndex: number | null }>) {
+function PaletteStrip({
+  selectedIndex,
+}: Readonly<{ selectedIndex: number | null }>) {
   return (
     <div className="flex flex-wrap gap-2" aria-label="Teaching palette">
       {TEACHING_PALETTE.map((entry, index) => (
         <div
           key={entry.id}
           className={cn(
-            "flex items-center gap-2 border px-2 py-1.5 font-mono text-[9px]",
-            selectedIndex === index ? "border-primary bg-primary/10 text-foreground" : "border-foreground/10 text-muted-foreground",
+            "flex items-center gap-2 border px-2 py-1.5 font-mono text-xs",
+            selectedIndex === index
+              ? "border-primary bg-primary/10 text-foreground"
+              : "border-foreground/10 text-muted-foreground",
           )}
         >
-          <span className="size-3 border border-white/15" style={{ backgroundColor: paletteCss(index) }} />
+          <span
+            className="size-3 border border-white/15"
+            style={{ backgroundColor: paletteCss(index) }}
+          />
           ID {entry.id}
         </div>
       ))}
@@ -104,25 +123,43 @@ function PaletteStrip({ selectedIndex }: Readonly<{ selectedIndex: number | null
   );
 }
 
-function PaletteDistances({ match }: Readonly<{ match: PaletteMatchInspection }>) {
+function PaletteDistances({
+  match,
+}: Readonly<{ match: PaletteMatchInspection }>) {
   const max = Math.max(...match.distances, 0.000_001);
   return (
     <div className="space-y-2">
       {match.distances.map((distance, index) => (
-        <div key={TEACHING_PALETTE[index].id} className="grid grid-cols-[1rem_2rem_1fr_3.5rem] items-center gap-2 text-[10px]">
-          <span className="size-3 border border-white/15" style={{ backgroundColor: paletteCss(index) }} />
-          <span className="font-mono text-muted-foreground">{TEACHING_PALETTE[index].id}</span>
+        <div
+          key={TEACHING_PALETTE[index].id}
+          className="grid grid-cols-[1rem_2rem_1fr_3.5rem] items-center gap-2 text-xs"
+        >
+          <span
+            className="size-3 border border-white/15"
+            style={{ backgroundColor: paletteCss(index) }}
+          />
+          <span className="font-mono text-muted-foreground">
+            {TEACHING_PALETTE[index].id}
+          </span>
           <span className="h-1.5 bg-foreground/8">
             <span
-              className={cn("block h-full", index === match.nearestPaletteIndex ? "bg-primary" : "bg-foreground/30")}
+              className={cn(
+                "block h-full",
+                index === match.nearestPaletteIndex
+                  ? "bg-primary"
+                  : "bg-foreground/30",
+              )}
               style={{ width: `${Math.max(3, (distance / max) * 100)}%` }}
             />
           </span>
-          <span className="text-right font-mono tabular-nums text-muted-foreground">{distance.toFixed(4)}</span>
+          <span className="text-right font-mono tabular-nums text-muted-foreground">
+            {distance.toFixed(4)}
+          </span>
         </div>
       ))}
-      <p className="font-mono text-[9px] leading-4 text-muted-foreground">
-        The smallest squared OKLab distance identifies the nearest color. A shorter bar shows a smaller distance.
+      <p className="font-mono text-xs leading-4 text-muted-foreground">
+        The smallest squared OKLab distance identifies the nearest color. A
+        shorter bar shows a smaller distance.
       </p>
     </div>
   );
@@ -134,14 +171,27 @@ function DominantAnalysis({ cell }: Readonly<{ cell: QuantizationCellTrace }>) {
   return (
     <div className="space-y-4">
       <div>
-        <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">Palette counts</span>
+        <span className="font-mono text-xs uppercase tracking-[0.12em] text-muted-foreground">
+          Palette counts
+        </span>
         <div className="mt-3 space-y-2">
           {cell.details.counts.map((count, index) => (
-            <div key={TEACHING_PALETTE[index].id} className="grid grid-cols-[1rem_2rem_1fr_1rem] items-center gap-2 text-[10px]">
-              <span className="size-3 border border-white/15" style={{ backgroundColor: paletteCss(index) }} />
-              <span className="font-mono text-muted-foreground">{TEACHING_PALETTE[index].id}</span>
+            <div
+              key={TEACHING_PALETTE[index].id}
+              className="grid grid-cols-[1rem_2rem_1fr_1rem] items-center gap-2 text-xs"
+            >
+              <span
+                className="size-3 border border-white/15"
+                style={{ backgroundColor: paletteCss(index) }}
+              />
+              <span className="font-mono text-muted-foreground">
+                {TEACHING_PALETTE[index].id}
+              </span>
               <span className="h-2 bg-foreground/8">
-                <span className="block h-full bg-primary" style={{ width: `${(count / max) * 100}%` }} />
+                <span
+                  className="block h-full bg-primary"
+                  style={{ width: `${(count / max) * 100}%` }}
+                />
               </span>
               <span className="text-right font-mono tabular-nums">{count}</span>
             </div>
@@ -157,8 +207,23 @@ function AverageAnalysis({ cell }: Readonly<{ cell: QuantizationCellTrace }>) {
   if (cell.details.kind !== "average") return null;
   return (
     <div className="grid gap-3 sm:grid-cols-2">
-      <ValueCard label="Linear-light average" value={cell.details.representativeLinear ? `${fixed(cell.details.representativeLinear.r)} / ${fixed(cell.details.representativeLinear.g)} / ${fixed(cell.details.representativeLinear.b)}` : "transparent"} />
-      <ValueCard label="Encoded sRGB" value={rgbLabel(cell.details.representativeSrgb)} color={cell.details.representativeSrgb ? cssRgb(cell.details.representativeSrgb) : undefined} />
+      <ValueCard
+        label="Linear-light average"
+        value={
+          cell.details.representativeLinear
+            ? `${fixed(cell.details.representativeLinear.r)} / ${fixed(cell.details.representativeLinear.g)} / ${fixed(cell.details.representativeLinear.b)}`
+            : "transparent"
+        }
+      />
+      <ValueCard
+        label="Encoded sRGB"
+        value={rgbLabel(cell.details.representativeSrgb)}
+        color={
+          cell.details.representativeSrgb
+            ? cssRgb(cell.details.representativeSrgb)
+            : undefined
+        }
+      />
     </div>
   );
 }
@@ -172,19 +237,39 @@ function MedianAnalysis({ cell }: Readonly<{ cell: QuantizationCellTrace }>) {
         const values = details.histograms[channel];
         const max = Math.max(...values.map((entry) => entry.count), 1);
         return (
-          <div key={channel} className="border border-foreground/10 bg-background/35 p-3">
-            <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">{channel} histogram</span>
+          <div
+            key={channel}
+            className="min-w-0 border border-foreground/10 bg-background/35 p-3"
+          >
+            <span className="font-mono text-xs uppercase tracking-[0.12em] text-muted-foreground">
+              {channel} histogram
+            </span>
             <div className="mt-3 flex h-20 items-end gap-1">
               {values.map((entry) => (
-                <span key={entry.value} className="group relative flex min-w-2 flex-1 items-end" title={`${entry.value}: ${entry.count}`}>
+                <span
+                  key={entry.value}
+                  className="group relative flex min-w-2 flex-1 items-end"
+                  title={`${entry.value}: ${entry.count}`}
+                >
                   <span
-                    className={cn("block w-full", channel === "r" ? "bg-red-400" : channel === "g" ? "bg-emerald-400" : "bg-sky-400")}
-                    style={{ height: `${Math.max(8, (entry.count / max) * 100)}%` }}
+                    className={cn(
+                      "block w-full",
+                      channel === "r"
+                        ? "bg-red-400"
+                        : channel === "g"
+                          ? "bg-emerald-400"
+                          : "bg-sky-400",
+                    )}
+                    style={{
+                      height: `${Math.max(8, (entry.count / max) * 100)}%`,
+                    }}
                   />
                 </span>
               ))}
             </div>
-            <p className="mt-2 font-mono text-[10px]">median {details.median?.[channel] ?? "—"}</p>
+            <p className="mt-2 font-mono text-xs">
+              median {details.median?.[channel] ?? "—"}
+            </p>
           </div>
         );
       })}
@@ -196,7 +281,10 @@ function CenterAnalysis({ cell }: Readonly<{ cell: QuantizationCellTrace }>) {
   if (cell.details.kind !== "center") return null;
   return (
     <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
-      <ValueCard label="Chosen coordinate" value={`x ${cell.details.sample.x}, y ${cell.details.sample.y}`} />
+      <ValueCard
+        label="Chosen coordinate"
+        value={`x ${cell.details.sample.x}, y ${cell.details.sample.y}`}
+      />
       <div
         className="size-20 border-4 border-background shadow-[0_0_0_1px_rgba(255,255,255,0.14)]"
         style={{ backgroundColor: cssRgb(cell.details.sample.rgb) }}
@@ -208,28 +296,27 @@ function CenterAnalysis({ cell }: Readonly<{ cell: QuantizationCellTrace }>) {
 
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5] as const;
 const BLUE_NOISE = [
-  7, 47, 15, 59, 4, 62, 12, 39,
-  58, 24, 63, 26, 35, 23, 38, 28,
-  8, 41, 0, 43, 13, 33, 2, 32,
-  49, 17, 56, 16, 50, 27, 44, 20,
-  6, 34, 11, 53, 5, 54, 9, 42,
-  51, 30, 37, 25, 36, 21, 40, 18,
-  14, 48, 3, 61, 10, 60, 1, 55,
-  46, 29, 52, 31, 57, 22, 45, 19,
+  7, 47, 15, 59, 4, 62, 12, 39, 58, 24, 63, 26, 35, 23, 38, 28, 8, 41, 0, 43,
+  13, 33, 2, 32, 49, 17, 56, 16, 50, 27, 44, 20, 6, 34, 11, 53, 5, 54, 9, 42,
+  51, 30, 37, 25, 36, 21, 40, 18, 14, 48, 3, 61, 10, 60, 1, 55, 46, 29, 52, 31,
+  57, 22, 45, 19,
 ] as const;
 
 function BayerAnalysis({ cell }: Readonly<{ cell: QuantizationCellTrace }>) {
   if (cell.details.kind !== "bayer") return null;
   return (
     <div className="grid gap-5 sm:grid-cols-[auto_1fr] sm:items-center">
-      <div className="grid grid-cols-4 gap-px border border-foreground/15 bg-foreground/15 p-px" aria-label="Bayer 4 by 4 threshold matrix">
+      <div
+        className="grid grid-cols-4 gap-px border border-foreground/15 bg-foreground/15 p-px"
+        aria-label="Bayer 4 by 4 threshold matrix"
+      >
         {BAYER.map((value, index) => {
           const active = index === (cell.y % 4) * 4 + (cell.x % 4);
           return (
             <span
               key={index}
               className={cn(
-                "grid size-9 place-items-center bg-background font-mono text-[10px]",
+                "grid size-9 place-items-center bg-background font-mono text-xs",
                 active && "bg-primary text-primary-foreground",
               )}
             >
@@ -239,15 +326,24 @@ function BayerAnalysis({ cell }: Readonly<{ cell: QuantizationCellTrace }>) {
         })}
       </div>
       <div className="space-y-4">
-        <ValueCard label="Projected mix" value={cell.details.mix?.toFixed(3) ?? "—"} />
+        <ValueCard
+          label="Projected mix"
+          value={cell.details.mix?.toFixed(3) ?? "—"}
+        />
         <div>
-          <div className="mb-2 flex justify-between font-mono text-[9px] text-muted-foreground">
+          <div className="mb-2 flex justify-between font-mono text-xs text-muted-foreground">
             <span>threshold {cell.details.threshold.toFixed(3)}</span>
             <span>mix {cell.details.mix?.toFixed(3) ?? "—"}</span>
           </div>
           <div className="relative h-3 bg-foreground/10">
-            <span className="absolute inset-y-0 w-px bg-primary" style={{ left: `${cell.details.threshold * 100}%` }} />
-            <span className="block h-full bg-foreground/35" style={{ width: `${(cell.details.mix ?? 0) * 100}%` }} />
+            <span
+              className="absolute inset-y-0 w-px bg-primary"
+              style={{ left: `${cell.details.threshold * 100}%` }}
+            />
+            <span
+              className="block h-full bg-foreground/35"
+              style={{ width: `${(cell.details.mix ?? 0) * 100}%` }}
+            />
           </div>
         </div>
       </div>
@@ -255,18 +351,23 @@ function BayerAnalysis({ cell }: Readonly<{ cell: QuantizationCellTrace }>) {
   );
 }
 
-function BlueNoiseAnalysis({ cell }: Readonly<{ cell: QuantizationCellTrace }>) {
+function BlueNoiseAnalysis({
+  cell,
+}: Readonly<{ cell: QuantizationCellTrace }>) {
   if (cell.details.kind !== "blue-noise") return null;
   return (
     <div className="grid gap-5 sm:grid-cols-[auto_1fr] sm:items-center">
-      <div className="grid grid-cols-8 gap-px border border-foreground/15 bg-foreground/15 p-px" aria-label="Blue-noise 8 by 8 threshold map">
+      <div
+        className="grid grid-cols-8 gap-px border border-foreground/15 bg-foreground/15 p-px"
+        aria-label="Blue-noise 8 by 8 threshold map"
+      >
         {BLUE_NOISE.map((value, index) => {
           const active = index === (cell.y % 8) * 8 + (cell.x % 8);
           return (
             <span
               key={index}
               className={cn(
-                "grid size-7 place-items-center bg-background font-mono text-[7px]",
+                "grid size-7 place-items-center bg-background font-mono text-xs",
                 active && "bg-primary text-primary-foreground",
               )}
             >
@@ -277,17 +378,29 @@ function BlueNoiseAnalysis({ cell }: Readonly<{ cell: QuantizationCellTrace }>) 
       </div>
       <div className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-2">
-          <ValueCard label="Blue-noise rank" value={String(cell.details.matrixValue)} />
-          <ValueCard label="Projected mix" value={cell.details.mix?.toFixed(3) ?? "—"} />
+          <ValueCard
+            label="Blue-noise rank"
+            value={String(cell.details.matrixValue)}
+          />
+          <ValueCard
+            label="Projected mix"
+            value={cell.details.mix?.toFixed(3) ?? "—"}
+          />
         </div>
         <div>
-          <div className="mb-2 flex justify-between font-mono text-[9px] text-muted-foreground">
+          <div className="mb-2 flex justify-between font-mono text-xs text-muted-foreground">
             <span>threshold {cell.details.threshold.toFixed(3)}</span>
             <span>mix {cell.details.mix?.toFixed(3) ?? "—"}</span>
           </div>
           <div className="relative h-3 bg-foreground/10">
-            <span className="absolute inset-y-0 w-px bg-primary" style={{ left: `${cell.details.threshold * 100}%` }} />
-            <span className="block h-full bg-foreground/35" style={{ width: `${(cell.details.mix ?? 0) * 100}%` }} />
+            <span
+              className="absolute inset-y-0 w-px bg-primary"
+              style={{ left: `${cell.details.threshold * 100}%` }}
+            />
+            <span
+              className="block h-full bg-foreground/35"
+              style={{ width: `${(cell.details.mix ?? 0) * 100}%` }}
+            />
           </div>
         </div>
       </div>
@@ -295,7 +408,9 @@ function BlueNoiseAnalysis({ cell }: Readonly<{ cell: QuantizationCellTrace }>) 
   );
 }
 
-function GeometricMedianAnalysis({ cell }: Readonly<{ cell: QuantizationCellTrace }>) {
+function GeometricMedianAnalysis({
+  cell,
+}: Readonly<{ cell: QuantizationCellTrace }>) {
   if (cell.details.kind !== "geometric-median") return null;
   const points = cell.details.initial
     ? [cell.details.initial, ...cell.details.iterations]
@@ -303,15 +418,40 @@ function GeometricMedianAnalysis({ cell }: Readonly<{ cell: QuantizationCellTrac
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-3">
-        <ValueCard label="Start / OKLab mean" value={cell.details.initial ? `${fixed(cell.details.initial.l)} / ${fixed(cell.details.initial.a)} / ${fixed(cell.details.initial.b)}` : "transparent"} />
-        <ValueCard label="Iterations" value={String(cell.details.iterations.length)} />
-        <ValueCard label="Final sRGB" value={rgbLabel(cell.details.representativeSrgb)} color={cell.details.representativeSrgb ? cssRgb(cell.details.representativeSrgb) : undefined} />
+        <ValueCard
+          label="Start / OKLab mean"
+          value={
+            cell.details.initial
+              ? `${fixed(cell.details.initial.l)} / ${fixed(cell.details.initial.a)} / ${fixed(cell.details.initial.b)}`
+              : "transparent"
+          }
+        />
+        <ValueCard
+          label="Iterations"
+          value={String(cell.details.iterations.length)}
+        />
+        <ValueCard
+          label="Final sRGB"
+          value={rgbLabel(cell.details.representativeSrgb)}
+          color={
+            cell.details.representativeSrgb
+              ? cssRgb(cell.details.representativeSrgb)
+              : undefined
+          }
+        />
       </div>
       <div className="grid gap-px border border-foreground/10 bg-foreground/10 sm:grid-cols-2">
         {points.map((point, index) => (
-          <div key={index} className="grid grid-cols-[3rem_1fr] gap-3 bg-background/70 px-3 py-2 font-mono text-[9px]">
-            <span className="text-primary">{index === 0 ? "start" : `step ${index}`}</span>
-            <span className="tabular-nums text-muted-foreground">{fixed(point.l)} / {fixed(point.a)} / {fixed(point.b)}</span>
+          <div
+            key={index}
+            className="grid grid-cols-[3rem_1fr] gap-3 bg-background/70 px-3 py-2 font-mono text-xs"
+          >
+            <span className="text-primary">
+              {index === 0 ? "start" : `step ${index}`}
+            </span>
+            <span className="tabular-nums text-muted-foreground">
+              {fixed(point.l)} / {fixed(point.a)} / {fixed(point.b)}
+            </span>
           </div>
         ))}
       </div>
@@ -319,39 +459,70 @@ function GeometricMedianAnalysis({ cell }: Readonly<{ cell: QuantizationCellTrac
   );
 }
 
-function RiemersmaAnalysis({ cell }: Readonly<{ cell: QuantizationCellTrace }>) {
+function RiemersmaAnalysis({
+  cell,
+}: Readonly<{ cell: QuantizationCellTrace }>) {
   if (cell.details.kind !== "riemersma") return null;
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-3">
-        <ValueCard label="Hilbert path position" value={String(cell.details.pathIndex + 1)} />
-        <ValueCard label="Errors in history" value={String(cell.details.history.length)} />
-        <ValueCard label="Weighted adjustment" value={cell.details.adjustment ? `${fixed(cell.details.adjustment.r)} / ${fixed(cell.details.adjustment.g)} / ${fixed(cell.details.adjustment.b)}` : "—"} />
+        <ValueCard
+          label="Hilbert path position"
+          value={String(cell.details.pathIndex + 1)}
+        />
+        <ValueCard
+          label="Errors in history"
+          value={String(cell.details.history.length)}
+        />
+        <ValueCard
+          label="Weighted adjustment"
+          value={
+            cell.details.adjustment
+              ? `${fixed(cell.details.adjustment.r)} / ${fixed(cell.details.adjustment.g)} / ${fixed(cell.details.adjustment.b)}`
+              : "—"
+          }
+        />
       </div>
       <div className="grid gap-px border border-foreground/10 bg-foreground/10 sm:grid-cols-2">
-        {cell.details.history.length ? cell.details.history.map((entry) => (
-          <div key={entry.age} className="grid grid-cols-[3rem_3.5rem_1fr] gap-2 bg-background/70 px-3 py-2 font-mono text-[8px]">
-            <span className="text-primary">age {entry.age}</span>
-            <span className="tabular-nums">× {entry.weight.toFixed(3)}</span>
-            <span className="truncate tabular-nums text-muted-foreground">{fixed(entry.error.r)} / {fixed(entry.error.g)} / {fixed(entry.error.b)}</span>
-          </div>
-        )) : (
-          <p className="bg-background/70 px-3 py-4 font-mono text-[9px] text-muted-foreground sm:col-span-2">The first cell on a path has no earlier error.</p>
+        {cell.details.history.length ? (
+          cell.details.history.map((entry) => (
+            <div
+              key={entry.age}
+              className="grid grid-cols-[3rem_3.5rem_minmax(0,1fr)] gap-2 bg-background/70 px-3 py-2 font-mono text-xs"
+            >
+              <span className="text-primary">age {entry.age}</span>
+              <span className="tabular-nums">× {entry.weight.toFixed(3)}</span>
+              <span className="break-words tabular-nums text-muted-foreground">
+                {fixed(entry.error.r)} / {fixed(entry.error.g)} /{" "}
+                {fixed(entry.error.b)}
+              </span>
+            </div>
+          ))
+        ) : (
+          <p className="bg-background/70 px-3 py-4 font-mono text-xs text-muted-foreground sm:col-span-2">
+            The first cell on a path has no earlier error.
+          </p>
         )}
       </div>
     </div>
   );
 }
 
-function DiffusionAnalysis({ cell }: Readonly<{ cell: QuantizationCellTrace }>) {
+function DiffusionAnalysis({
+  cell,
+}: Readonly<{ cell: QuantizationCellTrace }>) {
   if (cell.details.kind !== "diffusion") return null;
   const details = cell.details;
   const deliveryMap = new Map(
-    details.deliveries.map((delivery) => [`${delivery.x - cell.x},${delivery.y - cell.y}`, delivery]),
+    details.deliveries.map((delivery) => [
+      `${delivery.x - cell.x},${delivery.y - cell.y}`,
+      delivery,
+    ]),
   );
-  const selectedPalette = details.selectedPaletteIndex === null
-    ? null
-    : TEACHING_PALETTE[details.selectedPaletteIndex];
+  const selectedPalette =
+    details.selectedPaletteIndex === null
+      ? null
+      : TEACHING_PALETTE[details.selectedPaletteIndex];
   const selectedLinear = selectedPalette
     ? {
         r: srgbByteToLinear(selectedPalette.color.r),
@@ -359,21 +530,24 @@ function DiffusionAnalysis({ cell }: Readonly<{ cell: QuantizationCellTrace }>) 
         b: srgbByteToLinear(selectedPalette.color.b),
       }
     : null;
-  const receivedChange = details.representativeLinear && details.currentLinear
-    ? {
-        r: details.currentLinear.r - details.representativeLinear.r,
-        g: details.currentLinear.g - details.representativeLinear.g,
-        b: details.currentLinear.b - details.representativeLinear.b,
-      }
-    : null;
-  const exampleDelivery = details.deliveries.find((delivery) => delivery.applied) ?? null;
-  const exampleChange = exampleDelivery && details.error
-    ? {
-        r: details.error.r * exampleDelivery.weight,
-        g: details.error.g * exampleDelivery.weight,
-        b: details.error.b * exampleDelivery.weight,
-      }
-    : null;
+  const receivedChange =
+    details.representativeLinear && details.currentLinear
+      ? {
+          r: details.currentLinear.r - details.representativeLinear.r,
+          g: details.currentLinear.g - details.representativeLinear.g,
+          b: details.currentLinear.b - details.representativeLinear.b,
+        }
+      : null;
+  const exampleDelivery =
+    details.deliveries.find((delivery) => delivery.applied) ?? null;
+  const exampleChange =
+    exampleDelivery && details.error
+      ? {
+          r: details.error.r * exampleDelivery.weight,
+          g: details.error.g * exampleDelivery.weight,
+          b: details.error.b * exampleDelivery.weight,
+        }
+      : null;
   const stencil: { dx: number; dy: number }[] = [];
   for (let dy = 0; dy <= 2; dy += 1) {
     for (let dx = -1; dx <= 2; dx += 1) stencil.push({ dx, dy });
@@ -381,48 +555,87 @@ function DiffusionAnalysis({ cell }: Readonly<{ cell: QuantizationCellTrace }>) 
   return (
     <div className="space-y-5">
       <div className="border border-primary/35 bg-primary/5 p-4">
-        <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-primary">Source of the quantization error</span>
+        <span className="font-mono text-xs uppercase tracking-[0.12em] text-primary">
+          Source of the quantization error
+        </span>
         <p className="mt-3 text-xs leading-5 text-foreground/85">
-          Quantization error is a three-value linear RGB difference. Pigment calculates it after palette matching. It does not come from the source image.
+          Quantization error is a three-value linear RGB difference. Pigment
+          calculates it after palette matching. It does not come from the source
+          image.
         </p>
-        <p className="mt-2 border bg-background/60 px-3 py-2 font-mono text-[10px] leading-5">
-          error = current linear RGB color - selected palette color in linear RGB
+        <p className="mt-2 border bg-background/60 px-3 py-2 font-mono text-xs leading-5">
+          error = current linear RGB color - selected palette color in linear
+          RGB
         </p>
-        <p className="mt-2 text-[11px] leading-5 text-muted-foreground">
-          A positive error value increases that color channel in a later cell. A negative value decreases that channel.
+        <p className="mt-2 text-xs leading-5 text-muted-foreground">
+          A positive error value increases that color channel in a later cell. A
+          negative value decreases that channel.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <ValueCard
             label="Current color before match"
-            value={details.currentLinear ? `${fixed(details.currentLinear.r)} / ${fixed(details.currentLinear.g)} / ${fixed(details.currentLinear.b)}` : "—"}
+            value={
+              details.currentLinear
+                ? `${fixed(details.currentLinear.r)} / ${fixed(details.currentLinear.g)} / ${fixed(details.currentLinear.b)}`
+                : "—"
+            }
           />
           <ValueCard
             label="Selected palette color"
-            value={selectedLinear ? `${fixed(selectedLinear.r)} / ${fixed(selectedLinear.g)} / ${fixed(selectedLinear.b)}` : "—"}
-            color={details.selectedPaletteIndex === null ? undefined : paletteCss(details.selectedPaletteIndex)}
+            value={
+              selectedLinear
+                ? `${fixed(selectedLinear.r)} / ${fixed(selectedLinear.g)} / ${fixed(selectedLinear.b)}`
+                : "—"
+            }
+            color={
+              details.selectedPaletteIndex === null
+                ? undefined
+                : paletteCss(details.selectedPaletteIndex)
+            }
           />
           <ValueCard
             label="Quantization error"
-            value={details.error ? `${fixed(details.error.r)} / ${fixed(details.error.g)} / ${fixed(details.error.b)}` : "—"}
+            value={
+              details.error
+                ? `${fixed(details.error.r)} / ${fixed(details.error.g)} / ${fixed(details.error.b)}`
+                : "—"
+            }
           />
         </div>
-        <p className="mt-3 text-[11px] leading-5 text-muted-foreground">
-          The current color includes changes received from earlier cells. Pigment multiplies the error by a weight. It adds the weighted value to a later cell before that cell selects a palette color.
+        <p className="mt-3 text-xs leading-5 text-muted-foreground">
+          The current color includes changes received from earlier cells.
+          Pigment multiplies the error by a weight. It adds the weighted value
+          to a later cell before that cell selects a palette color.
         </p>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <ValueCard
             label="Change received from earlier cells"
-            value={receivedChange ? `${fixed(receivedChange.r)} / ${fixed(receivedChange.g)} / ${fixed(receivedChange.b)}` : "—"}
+            value={
+              receivedChange
+                ? `${fixed(receivedChange.r)} / ${fixed(receivedChange.g)} / ${fixed(receivedChange.b)}`
+                : "—"
+            }
           />
           <ValueCard
-            label={exampleDelivery ? `Example change sent to cell (${exampleDelivery.x}, ${exampleDelivery.y})` : "Example change sent"}
-            value={exampleChange && exampleDelivery ? `${exampleDelivery.weight.toFixed(3)} × error = ${fixed(exampleChange.r)} / ${fixed(exampleChange.g)} / ${fixed(exampleChange.b)}` : "No later cell receives error"}
+            label={
+              exampleDelivery
+                ? `Example change sent to cell (${exampleDelivery.x}, ${exampleDelivery.y})`
+                : "Example change sent"
+            }
+            value={
+              exampleChange && exampleDelivery
+                ? `${exampleDelivery.weight.toFixed(3)} × error = ${fixed(exampleChange.r)} / ${fixed(exampleChange.g)} / ${fixed(exampleChange.b)}`
+                : "No later cell receives error"
+            }
           />
         </div>
       </div>
 
       <div className="grid gap-5 sm:grid-cols-[auto_1fr] sm:items-center">
-        <div className="grid grid-cols-4 gap-px border border-foreground/15 bg-foreground/15 p-px" aria-label="Error distribution weights">
+        <div
+          className="grid grid-cols-4 gap-px border border-foreground/15 bg-foreground/15 p-px"
+          aria-label="Error distribution weights"
+        >
           {stencil.map(({ dx, dy }) => {
             const delivery = deliveryMap.get(`${dx},${dy}`);
             const origin = dx === 0 && dy === 0;
@@ -430,33 +643,62 @@ function DiffusionAnalysis({ cell }: Readonly<{ cell: QuantizationCellTrace }>) 
               <span
                 key={`${dx},${dy}`}
                 className={cn(
-                  "grid h-11 w-12 place-items-center bg-background px-1 text-center font-mono text-[8px] leading-3 text-muted-foreground",
+                  "grid h-11 w-12 place-items-center bg-background px-1 text-center font-mono text-xs leading-3 text-muted-foreground",
                   origin && "bg-primary text-primary-foreground",
                   delivery?.applied && "bg-[#536f72] text-white",
-                  delivery && !delivery.applied && "bg-muted text-muted-foreground line-through",
+                  delivery &&
+                    !delivery.applied &&
+                    "bg-muted text-muted-foreground line-through",
                 )}
               >
-                {origin ? "this cell" : delivery ? `${Math.round(delivery.weight * 1000) / 1000}` : ""}
+                {origin
+                  ? "this cell"
+                  : delivery
+                    ? `${Math.round(delivery.weight * 1000) / 1000}`
+                    : ""}
               </span>
             );
           })}
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          <ValueCard label="Quantization error (linear RGB)" value={details.error ? `${fixed(details.error.r)} / ${fixed(details.error.g)} / ${fixed(details.error.b)}` : "—"} />
-          <ValueCard label="Total error sent from this cell" value={`${Math.round(details.propagatedWeight * 100)}%`} />
+          <ValueCard
+            label="Quantization error (linear RGB)"
+            value={
+              details.error
+                ? `${fixed(details.error.r)} / ${fixed(details.error.g)} / ${fixed(details.error.b)}`
+                : "—"
+            }
+          />
+          <ValueCard
+            label="Total error sent from this cell"
+            value={`${Math.round(details.propagatedWeight * 100)}%`}
+          />
         </div>
       </div>
     </div>
   );
 }
 
-function ValueCard({ label, value, color }: Readonly<{ label: string; value: string; color?: string }>) {
+function ValueCard({
+  label,
+  value,
+  color,
+}: Readonly<{ label: string; value: string; color?: string }>) {
   return (
-    <div className="border border-foreground/10 bg-background/35 p-3">
-      <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">{label}</span>
-      <div className="mt-2 flex items-center gap-2">
-        {color ? <span className="size-4 border border-white/15" style={{ backgroundColor: color }} /> : null}
-        <span className="font-mono text-xs tabular-nums">{value}</span>
+    <div className="min-w-0 border border-foreground/10 bg-background/35 p-3">
+      <span className="font-mono text-xs uppercase tracking-[0.12em] text-muted-foreground">
+        {label}
+      </span>
+      <div className="mt-2 flex min-w-0 items-center gap-2">
+        {color ? (
+          <span
+            className="size-4 shrink-0 border border-white/15"
+            style={{ backgroundColor: color }}
+          />
+        ) : null}
+        <span className="break-words font-mono text-xs tabular-nums">
+          {value}
+        </span>
       </div>
     </div>
   );
@@ -467,88 +709,192 @@ const stageFacts = (cell: QuantizationCellTrace): readonly string[] => {
   const sampleCount = details.kind === "center" ? 1 : details.samples.length;
   const mapped = `${sampleCount} source sample${sampleCount === 1 ? "" : "s"}: x ${cell.sourceRange.startX}–${cell.sourceRange.endX - 1}, y ${cell.sourceRange.startY}–${cell.sourceRange.endY - 1}.`;
   if (details.kind === "dominant") {
-    return [mapped, `Pigment matches ${details.samples.length} samples to palette colors.`, `Palette counts: ${details.counts.join(" / ")}.`, `${details.tiedPaletteIndices.length} palette color${details.tiedPaletteIndices.length === 1 ? " has" : "s have"} the highest count.`, `Pigment stores palette ID ${cell.resultColorId}.`];
+    return [
+      mapped,
+      `Pigment matches ${details.samples.length} samples to palette colors.`,
+      `Palette counts: ${details.counts.join(" / ")}.`,
+      `${details.tiedPaletteIndices.length} palette color${details.tiedPaletteIndices.length === 1 ? " has" : "s have"} the highest count.`,
+      `Pigment stores palette ID ${cell.resultColorId}.`,
+    ];
   }
   if (details.kind === "average") {
-    return [mapped, `Pigment converts ${details.samples.length} samples to linear RGB.`, `Linear RGB mean: ${details.representativeLinear ? `${fixed(details.representativeLinear.r)} / ${fixed(details.representativeLinear.g)} / ${fixed(details.representativeLinear.b)}` : "transparent"}.`, `sRGB result: ${rgbLabel(details.representativeSrgb)}.`, `Pigment stores palette ID ${cell.resultColorId}.`];
+    return [
+      mapped,
+      `Pigment converts ${details.samples.length} samples to linear RGB.`,
+      `Linear RGB mean: ${details.representativeLinear ? `${fixed(details.representativeLinear.r)} / ${fixed(details.representativeLinear.g)} / ${fixed(details.representativeLinear.b)}` : "transparent"}.`,
+      `sRGB result: ${rgbLabel(details.representativeSrgb)}.`,
+      `Pigment stores palette ID ${cell.resultColorId}.`,
+    ];
   }
   if (details.kind === "median") {
-    return [mapped, `Pigment adds ${details.samples.length} values to each channel histogram.`, `Median RGB values: ${rgbLabel(details.median)}.`, "Pigment combines the three channel values.", `Pigment stores palette ID ${cell.resultColorId}.`];
+    return [
+      mapped,
+      `Pigment adds ${details.samples.length} values to each channel histogram.`,
+      `Median RGB values: ${rgbLabel(details.median)}.`,
+      "Pigment combines the three channel values.",
+      `Pigment stores palette ID ${cell.resultColorId}.`,
+    ];
   }
   if (details.kind === "center") {
-    return [mapped, `The cell center maps to source coordinate (${details.sample.x}, ${details.sample.y}).`, `Sample RGB: ${rgbLabel(details.sample.rgb)}.`, `Nearest palette index: ${details.match?.nearestPaletteIndex ?? "—"}.`, `Pigment stores palette ID ${cell.resultColorId}.`];
+    return [
+      mapped,
+      `The cell center maps to source coordinate (${details.sample.x}, ${details.sample.y}).`,
+      `Sample RGB: ${rgbLabel(details.sample.rgb)}.`,
+      `Nearest palette index: ${details.match?.nearestPaletteIndex ?? "—"}.`,
+      `Pigment stores palette ID ${cell.resultColorId}.`,
+    ];
   }
   if (details.kind === "bayer") {
-    return [mapped, `Mean sRGB color: ${rgbLabel(details.representativeSrgb)}.`, `Nearest palette indices: ${details.nearestPaletteIndex ?? "—"} and ${details.secondPaletteIndex ?? "—"}.`, `Mix value: ${details.mix?.toFixed(3) ?? "—"}. Threshold: ${details.threshold.toFixed(3)}.`, `Pigment stores palette ID ${cell.resultColorId}.`];
+    return [
+      mapped,
+      `Mean sRGB color: ${rgbLabel(details.representativeSrgb)}.`,
+      `Nearest palette indices: ${details.nearestPaletteIndex ?? "—"} and ${details.secondPaletteIndex ?? "—"}.`,
+      `Mix value: ${details.mix?.toFixed(3) ?? "—"}. Threshold: ${details.threshold.toFixed(3)}.`,
+      `Pigment stores palette ID ${cell.resultColorId}.`,
+    ];
   }
   if (details.kind === "blue-noise") {
-    return [mapped, `Mean sRGB color: ${rgbLabel(details.representativeSrgb)}.`, `Nearest palette indices: ${details.nearestPaletteIndex ?? "—"} and ${details.secondPaletteIndex ?? "—"}.`, `Mix value: ${details.mix?.toFixed(3) ?? "—"}.`, `Blue-noise rank ${details.matrixValue} gives threshold ${details.threshold.toFixed(3)}. Pigment stores palette ID ${cell.resultColorId}.`];
+    return [
+      mapped,
+      `Mean sRGB color: ${rgbLabel(details.representativeSrgb)}.`,
+      `Nearest palette indices: ${details.nearestPaletteIndex ?? "—"} and ${details.secondPaletteIndex ?? "—"}.`,
+      `Mix value: ${details.mix?.toFixed(3) ?? "—"}.`,
+      `Blue-noise rank ${details.matrixValue} gives threshold ${details.threshold.toFixed(3)}. Pigment stores palette ID ${cell.resultColorId}.`,
+    ];
   }
   if (details.kind === "geometric-median") {
-    return [mapped, `Pigment groups ${details.samples.length} samples into 5-bit RGB bins.`, `Starting OKLab mean: ${details.initial ? `${fixed(details.initial.l)} / ${fixed(details.initial.a)} / ${fixed(details.initial.b)}` : "transparent"}.`, `${details.iterations.length} Weiszfeld iteration${details.iterations.length === 1 ? "" : "s"} moved toward the geometric median.`, `Final sRGB color: ${rgbLabel(details.representativeSrgb)}.`, `Pigment stores palette ID ${cell.resultColorId}.`];
+    return [
+      mapped,
+      `Pigment groups ${details.samples.length} samples into 5-bit RGB bins.`,
+      `Starting OKLab mean: ${details.initial ? `${fixed(details.initial.l)} / ${fixed(details.initial.a)} / ${fixed(details.initial.b)}` : "transparent"}.`,
+      `${details.iterations.length} Weiszfeld iteration${details.iterations.length === 1 ? "" : "s"} moved toward the geometric median.`,
+      `Final sRGB color: ${rgbLabel(details.representativeSrgb)}.`,
+      `Pigment stores palette ID ${cell.resultColorId}.`,
+    ];
   }
   if (details.kind === "riemersma") {
-    return [mapped, `This cell is position ${details.pathIndex + 1} on the Hilbert path.`, `${details.history.length} recent error${details.history.length === 1 ? "" : "s"} adjust the cell color.`, `Current linear RGB: ${details.currentLinear ? `${fixed(details.currentLinear.r)} / ${fixed(details.currentLinear.g)} / ${fixed(details.currentLinear.b)}` : "transparent"}.`, `The new quantization error is stored at full weight.`, `Pigment stores palette ID ${cell.resultColorId}.`];
+    return [
+      mapped,
+      `This cell is position ${details.pathIndex + 1} on the Hilbert path.`,
+      `${details.history.length} recent error${details.history.length === 1 ? "" : "s"} adjust the cell color.`,
+      `Current linear RGB: ${details.currentLinear ? `${fixed(details.currentLinear.r)} / ${fixed(details.currentLinear.g)} / ${fixed(details.currentLinear.b)}` : "transparent"}.`,
+      `The new quantization error is stored at full weight.`,
+      `Pigment stores palette ID ${cell.resultColorId}.`,
+    ];
   }
-  return [mapped, `Mean linear RGB before received error: ${details.representativeLinear ? `${fixed(details.representativeLinear.r)} / ${fixed(details.representativeLinear.g)} / ${fixed(details.representativeLinear.b)}` : "transparent"}.`, `Current linear RGB after received error: ${details.currentLinear ? `${fixed(details.currentLinear.r)} / ${fixed(details.currentLinear.g)} / ${fixed(details.currentLinear.b)}` : "—"}.`, `${details.deliveries.filter((delivery) => delivery.applied).length} later cells receive part of the error.`, `Pigment stores palette ID ${cell.resultColorId}.`];
+  return [
+    mapped,
+    `Mean linear RGB before received error: ${details.representativeLinear ? `${fixed(details.representativeLinear.r)} / ${fixed(details.representativeLinear.g)} / ${fixed(details.representativeLinear.b)}` : "transparent"}.`,
+    `Current linear RGB after received error: ${details.currentLinear ? `${fixed(details.currentLinear.r)} / ${fixed(details.currentLinear.g)} / ${fixed(details.currentLinear.b)}` : "—"}.`,
+    `${details.deliveries.filter((delivery) => delivery.applied).length} later cells receive part of the error.`,
+    `Pigment stores palette ID ${cell.resultColorId}.`,
+  ];
 };
 
-export function MethodExplorer({ method, onMethodChange }: MethodExplorerProps) {
+export function MethodExplorer({
+  method,
+  onMethodChange,
+}: MethodExplorerProps) {
+  const id = useId();
   const lesson = METHOD_LESSONS[method];
   const definition = conversionMethodDefinition(method);
   const data = useMemo(() => methodTrace(method), [method]);
-  const [stage, setStage] = useState(0);
-  const [selectedCell, setSelectedCell] = useState(method === "dither" || method === "atkinson" || method === "riemersma" ? 0 : 5);
+  const [stageIndex, setStage] = useState(0);
+  const stage = Math.min(stageIndex, lesson.stages.length - 1);
+  const [selectedCell, setSelectedCell] = useState(
+    method === "dither" || method === "atkinson" || method === "riemersma"
+      ? 0
+      : 5,
+  );
   const cell = data.trace.cells[selectedCell];
   const expectedKind = kindForMethod(method);
   if (!cell || cell.details.kind !== expectedKind) return null;
 
-  const paletteById = new Map(TEACHING_PALETTE.map((entry) => [entry.id, entry.color]));
-  const deliveryTargets = cell.details.kind === "diffusion"
-    ? new Set(cell.details.deliveries.filter((delivery) => delivery.applied).map((delivery) => delivery.y * 4 + delivery.x))
-    : new Set<number>();
-  const sequential = cell.details.kind === "diffusion" || cell.details.kind === "riemersma";
+  const paletteById = new Map(
+    TEACHING_PALETTE.map((entry) => [entry.id, entry.color]),
+  );
+  const deliveryTargets =
+    cell.details.kind === "diffusion"
+      ? new Set(
+          cell.details.deliveries
+            .filter((delivery) => delivery.applied)
+            .map((delivery) => delivery.y * 4 + delivery.x),
+        )
+      : new Set<number>();
+  const sequential =
+    cell.details.kind === "diffusion" || cell.details.kind === "riemersma";
   const sequence = sequential
     ? [...data.trace.cells].sort((a, b) => {
-        const aOrder = a.details.kind === "riemersma" ? a.details.pathIndex : a.index;
-        const bOrder = b.details.kind === "riemersma" ? b.details.pathIndex : b.index;
+        const aOrder =
+          a.details.kind === "riemersma" ? a.details.pathIndex : a.index;
+        const bOrder =
+          b.details.kind === "riemersma" ? b.details.pathIndex : b.index;
         return aOrder - bOrder;
       })
     : data.trace.cells;
-  const selectedSequenceIndex = sequence.findIndex((traceCell) => traceCell.index === selectedCell);
-  const selectedOrder = cell.details.kind === "riemersma" ? cell.details.pathIndex : selectedCell;
+  const selectedSequenceIndex = sequence.findIndex(
+    (traceCell) => traceCell.index === selectedCell,
+  );
+  const selectedOrder =
+    cell.details.kind === "riemersma" ? cell.details.pathIndex : selectedCell;
 
-  const outputPixels: LearningPixel[] = data.trace.cells.map((traceCell, index) => {
-    const traceOrder = traceCell.details.kind === "riemersma" ? traceCell.details.pathIndex : index;
-    const complete = sequential && traceOrder <= selectedOrder;
-    let color: string;
-    if (complete || !sequential) {
-      const paletteColor = paletteById.get(traceCell.resultColorId);
-      color = paletteColor ? `rgb(${paletteColor.r} ${paletteColor.g} ${paletteColor.b})` : "transparent";
-    } else if ((traceCell.details.kind === "diffusion" || traceCell.details.kind === "riemersma") && traceCell.details.representativeLinear) {
-      color = cssRgb({
-        r: linearToSrgbByte(traceCell.details.representativeLinear.r),
-        g: linearToSrgbByte(traceCell.details.representativeLinear.g),
-        b: linearToSrgbByte(traceCell.details.representativeLinear.b),
-      });
-    } else {
-      color = "transparent";
-    }
-    return {
-      color,
-      label: `Output cell ${traceCell.x + 1}, ${traceCell.y + 1}, palette ID ${traceCell.resultColorId}`,
-      marker: index === selectedCell ? String(index + 1) : undefined,
-      state: index === selectedCell ? "current" : deliveryTargets.has(index) ? "target" : complete ? "complete" : "default",
-    };
-  });
+  const outputPixels: LearningPixel[] = data.trace.cells.map(
+    (traceCell, index) => {
+      const traceOrder =
+        traceCell.details.kind === "riemersma"
+          ? traceCell.details.pathIndex
+          : index;
+      const complete = sequential && traceOrder <= selectedOrder;
+      let color: string;
+      if (complete || !sequential) {
+        const paletteColor = paletteById.get(traceCell.resultColorId);
+        color = paletteColor
+          ? `rgb(${paletteColor.r} ${paletteColor.g} ${paletteColor.b})`
+          : "transparent";
+      } else if (
+        (traceCell.details.kind === "diffusion" ||
+          traceCell.details.kind === "riemersma") &&
+        traceCell.details.representativeLinear
+      ) {
+        color = cssRgb({
+          r: linearToSrgbByte(traceCell.details.representativeLinear.r),
+          g: linearToSrgbByte(traceCell.details.representativeLinear.g),
+          b: linearToSrgbByte(traceCell.details.representativeLinear.b),
+        });
+      } else {
+        color = "transparent";
+      }
+      return {
+        color,
+        label: `Output cell ${traceCell.x + 1}, ${traceCell.y + 1}, palette ID ${traceCell.resultColorId}`,
+        marker: index === selectedCell ? String(index + 1) : undefined,
+        state:
+          index === selectedCell
+            ? "current"
+            : deliveryTargets.has(index)
+              ? "target"
+              : complete
+                ? "complete"
+                : "default",
+      };
+    },
+  );
 
   const sourcePixels: LearningPixel[] = [];
   for (let index = 0; index < 64; index += 1) {
     const offset = index * 4;
     const x = index % 8;
     const y = Math.floor(index / 8);
-    const inRange = x >= cell.sourceRange.startX && x < cell.sourceRange.endX && y >= cell.sourceRange.startY && y < cell.sourceRange.endY;
-    const color = { r: data.source[offset], g: data.source[offset + 1], b: data.source[offset + 2] };
+    const inRange =
+      x >= cell.sourceRange.startX &&
+      x < cell.sourceRange.endX &&
+      y >= cell.sourceRange.startY &&
+      y < cell.sourceRange.endY;
+    const color = {
+      r: data.source[offset],
+      g: data.source[offset + 1],
+      b: data.source[offset + 2],
+    };
     sourcePixels.push({
       color: cssRgb(color),
       label: `Source pixel ${x + 1}, ${y + 1}: RGB ${rgbLabel(color)}`,
@@ -558,32 +904,68 @@ export function MethodExplorer({ method, onMethodChange }: MethodExplorerProps) 
 
   const facts = stageFacts(cell);
   const match = getMatch(cell.details);
-  const resultPaletteIndex = TEACHING_PALETTE.findIndex((entry) => entry.id === cell.resultColorId);
-  const selectedPaletteIndex = cell.details.kind === "dominant"
-    ? cell.details.selectedPaletteIndex
-    : resultPaletteIndex >= 0 ? resultPaletteIndex : match?.nearestPaletteIndex ?? null;
+  const resultPaletteIndex = TEACHING_PALETTE.findIndex(
+    (entry) => entry.id === cell.resultColorId,
+  );
+  const selectedPaletteIndex =
+    cell.details.kind === "dominant"
+      ? cell.details.selectedPaletteIndex
+      : resultPaletteIndex >= 0
+        ? resultPaletteIndex
+        : (match?.nearestPaletteIndex ?? null);
   const methodFamilies = [
-    { id: "sample", label: "Sample", methods: CONVERSION_METHODS.filter((entry) => entry.family === "sample") },
-    { id: "reducer", label: "Reduce", methods: CONVERSION_METHODS.filter((entry) => entry.family === "reducer") },
-    { id: "diffusion", label: "Diffuse", methods: CONVERSION_METHODS.filter((entry) => entry.family === "diffusion") },
-    { id: "ordered", label: "Pattern", methods: CONVERSION_METHODS.filter((entry) => entry.family === "ordered") },
+    {
+      id: "sample",
+      label: "Sample",
+      methods: CONVERSION_METHODS.filter((entry) => entry.family === "sample"),
+    },
+    {
+      id: "reducer",
+      label: "Reduce",
+      methods: CONVERSION_METHODS.filter((entry) => entry.family === "reducer"),
+    },
+    {
+      id: "diffusion",
+      label: "Diffuse",
+      methods: CONVERSION_METHODS.filter(
+        (entry) => entry.family === "diffusion",
+      ),
+    },
+    {
+      id: "ordered",
+      label: "Pattern",
+      methods: CONVERSION_METHODS.filter((entry) => entry.family === "ordered"),
+    },
   ].filter((family) => family.methods.length > 0);
 
   return (
-    <section id="methods" className="relative scroll-mt-24 border-t border-foreground/10 pt-16 sm:pt-24">
-      {CONVERSION_METHODS.map((entry) => <span key={entry.slug} id={entry.slug} className="absolute -top-20" />)}
+    <section
+      id="methods"
+      className="relative scroll-mt-24 border-t border-foreground/10 pt-16 sm:pt-24"
+    >
+      {CONVERSION_METHODS.map((entry) => (
+        <span key={entry.slug} id={entry.slug} className="absolute -top-20" />
+      ))}
       <div className="mb-8 max-w-3xl">
-        <h2 className="text-3xl font-medium tracking-[-0.04em] sm:text-5xl">Compare the methods.</h2>
+        <h2 className="text-3xl font-medium tracking-[-0.04em] sm:text-5xl">
+          Compare the methods.
+        </h2>
         <p className="mt-4 text-sm leading-6 text-muted-foreground sm:text-base">
-          Every method turns the same source pixels into one palette color differently. Pick a method and an output cell to follow its decisions.
+          Every method turns the same source pixels into one palette color
+          differently. Pick a method and an output cell to follow its decisions.
         </p>
       </div>
 
-      <div className="grid gap-px border-y border-foreground/10 bg-foreground/10 md:grid-cols-2 xl:grid-cols-4" aria-label="Image reduction methods">
+      <div
+        className="grid gap-px border-y border-foreground/10 bg-foreground/10 md:grid-cols-2 xl:grid-cols-4"
+        aria-label="Image reduction methods"
+      >
         {methodFamilies.map((family) => (
           <fieldset key={family.id} className="min-w-0 bg-background p-3">
             <legend className="sr-only">{family.label} methods</legend>
-            <p className="mb-2 font-mono text-[8px] uppercase tracking-[0.12em] text-muted-foreground/60">{family.label}</p>
+            <p className="mb-2 font-mono text-xs uppercase tracking-[0.12em] text-muted-foreground">
+              {family.label}
+            </p>
             <div className="grid gap-1 sm:grid-cols-2 md:grid-cols-1 2xl:grid-cols-2">
               {family.methods.map((entry) => (
                 <button
@@ -591,7 +973,7 @@ export function MethodExplorer({ method, onMethodChange }: MethodExplorerProps) 
                   type="button"
                   aria-pressed={method === entry.value}
                   className={cn(
-                    "min-w-0 whitespace-nowrap border px-2 py-2 text-left text-xs leading-4 transition-colors",
+                    "min-w-0 whitespace-normal break-words border px-2 py-2 text-left text-xs leading-4 transition-colors",
                     method === entry.value
                       ? "border-primary bg-primary/10 text-foreground"
                       : "border-transparent text-muted-foreground hover:border-foreground/15 hover:text-foreground",
@@ -608,76 +990,201 @@ export function MethodExplorer({ method, onMethodChange }: MethodExplorerProps) 
 
       <article className="mt-6 border border-foreground/10 bg-card/45">
         <header className="border-b border-foreground/10 p-5 sm:p-7">
-          <h3 className="text-3xl font-medium tracking-[-0.04em] sm:text-4xl">{definition.label}</h3>
-          <p className="mt-3 max-w-3xl text-base leading-7">{lesson.principle}</p>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">{lesson.explanation}</p>
+          <h3 className="text-3xl font-medium tracking-[-0.04em] sm:text-4xl">
+            {definition.label}
+          </h3>
+          <p className="mt-3 max-w-3xl text-base leading-7">
+            {lesson.principle}
+          </p>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+            {lesson.explanation}
+          </p>
         </header>
 
         <div className="border-b border-foreground/10 p-4 sm:p-5">
-          <div className="grid min-w-0 grid-cols-2 gap-px bg-foreground/10 sm:grid-cols-3 xl:grid-cols-5" role="tablist" aria-label={`${definition.label} stages`}>
-              {lesson.stages.map((label, index) => (
-                <button
-                  key={label}
-                  type="button"
-                  role="tab"
-                  aria-selected={stage === index}
-                  className={cn(
-                    "min-w-0 border-b-2 bg-card px-2 py-2 text-left font-mono text-[8px] uppercase leading-4 tracking-[0.06em] transition-colors",
-                    stage === index ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
-                  )}
-                  onClick={() => setStage(index)}
-                >
-                  {index + 1}. {label}
-                </button>
-              ))}
+          <div
+            className="grid min-w-0 grid-cols-2 gap-px bg-foreground/10 sm:grid-cols-3 xl:grid-cols-5"
+            role="tablist"
+            aria-label={`${definition.label} stages`}
+          >
+            {lesson.stages.map((label, index) => (
+              <button
+                key={label}
+                type="button"
+                role="tab"
+                id={`${id}-stage-${index}`}
+                aria-controls={`${id}-panel`}
+                aria-selected={stage === index}
+                tabIndex={stage === index ? 0 : -1}
+                className={cn(
+                  "min-w-0 whitespace-normal break-words border-b-2 bg-card px-2 py-2 text-left font-mono text-xs uppercase leading-4 tracking-[0.06em] transition-colors",
+                  stage === index
+                    ? "border-primary text-foreground"
+                    : "border-transparent text-muted-foreground hover:text-foreground",
+                )}
+                onClick={() => setStage(index)}
+                onKeyDown={(event) => {
+                  const next =
+                    event.key === "ArrowRight"
+                      ? (index + 1) % lesson.stages.length
+                      : event.key === "ArrowLeft"
+                        ? (index - 1 + lesson.stages.length) %
+                          lesson.stages.length
+                        : event.key === "Home"
+                          ? 0
+                          : event.key === "End"
+                            ? lesson.stages.length - 1
+                            : null;
+                  if (
+                    next === null ||
+                    event.altKey ||
+                    event.ctrlKey ||
+                    event.metaKey
+                  )
+                    return;
+                  event.preventDefault();
+                  setStage(next);
+                  event.currentTarget
+                    .closest('[role="tablist"]')
+                    ?.querySelectorAll<HTMLButtonElement>('[role="tab"]')
+                    [next]?.focus();
+                }}
+              >
+                {index + 1}. {label}
+              </button>
+            ))}
           </div>
-          <div className="mt-3 flex items-start gap-3 border-l-2 border-primary bg-primary/5 px-3 py-2.5">
-            <span className="font-mono text-[10px] text-primary">{String(stage + 1).padStart(2, "0")}</span>
-            <p className="font-mono text-[10px] leading-5 text-foreground/80" aria-live="polite">{facts[stage]}</p>
+          <div
+            id={`${id}-panel`}
+            role="tabpanel"
+            aria-labelledby={`${id}-stage-${stage}`}
+            tabIndex={0}
+            className="mt-3 flex items-start gap-3 border-l border-primary bg-primary/5 px-3 py-2.5"
+          >
+            <span className="font-mono text-xs text-primary">
+              {String(stage + 1).padStart(2, "0")}
+            </span>
+            <p
+              className="font-mono text-xs leading-5 text-foreground/80"
+              aria-live="polite"
+            >
+              {facts[stage]}
+            </p>
           </div>
         </div>
 
         <div className="grid gap-px bg-foreground/10 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.85fr)]">
           <div className="min-w-0 bg-card p-4 sm:p-6">
-            <div className="grid gap-8 sm:grid-cols-2">
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-1 2xl:grid-cols-2">
               <div className="min-w-0">
-                <div className="mb-3 flex items-center justify-between">
-                  <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">Source samples</span>
-                  <span className="font-mono text-[9px] text-muted-foreground">8×8</span>
+                <div className="mb-3 flex flex-wrap items-center justify-between">
+                  <span className="font-mono text-xs uppercase tracking-[0.12em] text-muted-foreground">
+                    Source samples
+                  </span>
+                  <span className="font-mono text-xs text-muted-foreground">
+                    8×8
+                  </span>
                 </div>
-                <PixelGrid width={8} height={8} pixels={sourcePixels} label={`${definition.label} source example`} compact />
+                <PixelGrid
+                  width={8}
+                  height={8}
+                  pixels={sourcePixels}
+                  label={`${definition.label} source example`}
+                  compact
+                />
               </div>
               <div className="min-w-0">
-                <div className="mb-3 flex items-center justify-between">
-                  <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">Output cells</span>
-                  <span className="font-mono text-[9px] text-primary">select an output cell</span>
+                <div className="mb-3 flex flex-wrap items-center justify-between">
+                  <span className="font-mono text-xs uppercase tracking-[0.12em] text-muted-foreground">
+                    Output cells
+                  </span>
+                  <span className="font-mono text-xs text-primary">
+                    Select an output cell
+                  </span>
                 </div>
-                <PixelGrid width={4} height={4} pixels={outputPixels} label={`${definition.label} output example`} selectedIndex={selectedCell} onSelect={setSelectedCell} />
+                <PixelGrid
+                  width={4}
+                  height={4}
+                  pixels={outputPixels}
+                  label={`${definition.label} output example`}
+                  selectedIndex={selectedCell}
+                  onSelect={setSelectedCell}
+                />
                 {sequential ? (
-                  <div className="mt-3 flex items-center justify-between gap-2 border-t border-foreground/10 pt-3">
-                    <Button variant="outline" size="xs" disabled={selectedSequenceIndex <= 0} onClick={() => setSelectedCell(sequence[Math.max(0, selectedSequenceIndex - 1)].index)}>Previous pixel</Button>
-                    <span className="font-mono text-[9px] tabular-nums text-muted-foreground">scan {selectedSequenceIndex + 1} / {sequence.length}</span>
-                    <Button variant="outline" size="xs" disabled={selectedSequenceIndex >= sequence.length - 1} onClick={() => setSelectedCell(sequence[Math.min(sequence.length - 1, selectedSequenceIndex + 1)].index)}>Next pixel</Button>
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-foreground/10 pt-3">
+                    <Button
+                      variant="outline"
+                      size="xs"
+                      disabled={selectedSequenceIndex <= 0}
+                      onClick={() =>
+                        setSelectedCell(
+                          sequence[Math.max(0, selectedSequenceIndex - 1)]
+                            .index,
+                        )
+                      }
+                    >
+                      Previous cell
+                    </Button>
+                    <span className="break-words font-mono text-xs tabular-nums text-muted-foreground">
+                      scan {selectedSequenceIndex + 1} / {sequence.length}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="xs"
+                      disabled={selectedSequenceIndex >= sequence.length - 1}
+                      onClick={() =>
+                        setSelectedCell(
+                          sequence[
+                            Math.min(
+                              sequence.length - 1,
+                              selectedSequenceIndex + 1,
+                            )
+                          ].index,
+                        )
+                      }
+                    >
+                      Next cell
+                    </Button>
                   </div>
                 ) : null}
               </div>
             </div>
 
             <div className="mt-7 border-t border-foreground/10 pt-6">
-              {cell.details.kind === "dominant" ? <DominantAnalysis cell={cell} /> : null}
-              {cell.details.kind === "average" ? <AverageAnalysis cell={cell} /> : null}
-              {cell.details.kind === "median" ? <MedianAnalysis cell={cell} /> : null}
-              {cell.details.kind === "center" ? <CenterAnalysis cell={cell} /> : null}
-              {cell.details.kind === "bayer" ? <BayerAnalysis cell={cell} /> : null}
-              {cell.details.kind === "blue-noise" ? <BlueNoiseAnalysis cell={cell} /> : null}
-              {cell.details.kind === "geometric-median" ? <GeometricMedianAnalysis cell={cell} /> : null}
-              {cell.details.kind === "diffusion" ? <DiffusionAnalysis cell={cell} /> : null}
-              {cell.details.kind === "riemersma" ? <RiemersmaAnalysis cell={cell} /> : null}
+              {cell.details.kind === "dominant" ? (
+                <DominantAnalysis cell={cell} />
+              ) : null}
+              {cell.details.kind === "average" ? (
+                <AverageAnalysis cell={cell} />
+              ) : null}
+              {cell.details.kind === "median" ? (
+                <MedianAnalysis cell={cell} />
+              ) : null}
+              {cell.details.kind === "center" ? (
+                <CenterAnalysis cell={cell} />
+              ) : null}
+              {cell.details.kind === "bayer" ? (
+                <BayerAnalysis cell={cell} />
+              ) : null}
+              {cell.details.kind === "blue-noise" ? (
+                <BlueNoiseAnalysis cell={cell} />
+              ) : null}
+              {cell.details.kind === "geometric-median" ? (
+                <GeometricMedianAnalysis cell={cell} />
+              ) : null}
+              {cell.details.kind === "diffusion" ? (
+                <DiffusionAnalysis cell={cell} />
+              ) : null}
+              {cell.details.kind === "riemersma" ? (
+                <RiemersmaAnalysis cell={cell} />
+              ) : null}
             </div>
           </div>
 
           <aside className="min-w-0 bg-background/70 p-4 sm:p-6">
-            <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">Palette result</span>
+            <span className="font-mono text-xs uppercase tracking-[0.12em] text-muted-foreground">
+              Palette result
+            </span>
             <div className="mt-3">
               <PaletteStrip selectedIndex={selectedPaletteIndex} />
             </div>
@@ -688,20 +1195,33 @@ export function MethodExplorer({ method, onMethodChange }: MethodExplorerProps) 
             ) : null}
             <div className="mt-7 space-y-3 border-t border-foreground/10 pt-5">
               <div>
-                <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">Recommended use</span>
+                <span className="font-mono text-xs uppercase tracking-[0.12em] text-muted-foreground">
+                  Recommended use
+                </span>
                 <p className="mt-2 text-xs leading-5">{lesson.useWhen}</p>
               </div>
               <div>
-                <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">Limit</span>
-                <p className="mt-2 text-xs leading-5 text-muted-foreground">{lesson.limitation}</p>
+                <span className="font-mono text-xs uppercase tracking-[0.12em] text-muted-foreground">
+                  Limit
+                </span>
+                <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                  {lesson.limitation}
+                </p>
               </div>
             </div>
             <details className="group mt-6 border-y border-foreground/10 py-3">
-              <summary className="cursor-pointer list-none font-mono text-[9px] uppercase tracking-[0.12em] text-primary marker:hidden">
+              <summary className="cursor-pointer list-none font-mono text-xs uppercase tracking-[0.12em] text-primary marker:hidden">
                 Calculation details
               </summary>
-              <ul className="mt-3 space-y-2 text-[11px] leading-5 text-muted-foreground">
-                {lesson.exact.map((detail) => <li key={detail} className="border-l border-foreground/15 pl-3">{detail}</li>)}
+              <ul className="mt-3 space-y-2 text-xs leading-5 text-muted-foreground">
+                {lesson.exact.map((detail) => (
+                  <li
+                    key={detail}
+                    className="border-l border-foreground/15 pl-3"
+                  >
+                    {detail}
+                  </li>
+                ))}
               </ul>
             </details>
           </aside>
