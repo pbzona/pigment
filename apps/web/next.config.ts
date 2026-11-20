@@ -4,6 +4,7 @@ import { getPaletteDirectoryRelativePath } from "@pigment/palette-catalog/server
 const paletteDirectory = getPaletteDirectoryRelativePath();
 
 const nextConfig: NextConfig = {
+  experimental: { goRoutes: true },
   outputFileTracingIncludes: {
     "/palette-images/*": [`./${paletteDirectory}/**/*.png`],
   },
